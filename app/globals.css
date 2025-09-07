@@ -120,3 +120,145 @@
     @apply bg-background text-foreground;
   }
 }
+
+@layer components {
+  .slider::-webkit-slider-thumb {
+    appearance: none;
+    height: 16px;
+    width: 16px;
+    border-radius: 50%;
+    background: #3b82f6;
+    cursor: pointer;
+    border: 2px solid #ffffff;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+
+  .slider::-moz-range-thumb {
+    height: 16px;
+    width: 16px;
+    border-radius: 50%;
+    background: #3b82f6;
+    cursor: pointer;
+    border: 2px solid #ffffff;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+
+  .enhanced-slider::-webkit-slider-thumb {
+    appearance: none;
+    height: 20px;
+    width: 20px;
+    border-radius: 50%;
+    background: #3b82f6;
+    cursor: pointer;
+    border: 3px solid #ffffff;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+  }
+
+  .enhanced-slider::-moz-range-thumb {
+    height: 20px;
+    width: 20px;
+    border-radius: 50%;
+    background: #3b82f6;
+    cursor: pointer;
+    border: 3px solid #ffffff;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+  }
+
+  /* Rules Markdown Styling */
+  .rules-markdown {
+    line-height: 1.6;
+    color: #374151;
+  }
+
+  .rules-markdown h1 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #111827;
+    margin-top: 1.5rem;
+    margin-bottom: 1rem;
+    line-height: 1.3;
+  }
+
+  .rules-markdown h2 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #111827;
+    margin-top: 1.25rem;
+    margin-bottom: 0.75rem;
+    line-height: 1.3;
+  }
+
+  .rules-markdown h3 {
+    font-size: 1.125rem;
+    font-weight: 500;
+    color: #111827;
+    margin-top: 1rem;
+    margin-bottom: 0.5rem;
+    line-height: 1.3;
+  }
+
+  .rules-markdown p {
+    margin-bottom: 1rem;
+    color: #374151;
+  }
+
+  .rules-markdown ul {
+    margin-bottom: 1rem;
+    padding-left: 1.5rem;
+  }
+
+  .rules-markdown ol {
+    margin-bottom: 1rem;
+    padding-left: 1.5rem;
+  }
+
+  .rules-markdown li {
+    margin-bottom: 0.25rem;
+    color: #374151;
+  }
+
+  .rules-markdown hr {
+    margin: 1.5rem 0;
+    border: none;
+    border-top: 1px solid #d1d5db;
+  }
+
+  .rules-markdown strong {
+    font-weight: 600;
+    color: #111827;
+  }
+
+  .rules-markdown em {
+    font-style: italic;
+    color: #4b5563;
+  }
+
+  .rules-markdown code {
+    background-color: #f3f4f6;
+    padding: 0.125rem 0.25rem;
+    border-radius: 0.25rem;
+    font-size: 0.875rem;
+    color: #111827;
+  }
+
+  .rules-markdown pre {
+    background-color: #f3f4f6;
+    padding: 1rem;
+    border-radius: 0.5rem;
+    overflow-x: auto;
+    margin-bottom: 1rem;
+  }
+
+  .rules-markdown pre code {
+    background-color: transparent;
+    padding: 0;
+  }
+
+  .rules-markdown blockquote {
+    border-left: 4px solid #d1d5db;
+    padding-left: 1rem;
+    margin: 1rem 0;
+    color: #6b7280;
+    font-style: italic;
+  }
+}

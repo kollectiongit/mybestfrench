@@ -1,7 +1,7 @@
 "use client";
 
 import Logo from "@/components/navbar/components/logo";
-import UserMenu from "@/components/navbar/components/user-menu";
+import ProfileSwitcher from "@/components/navbar/components/profile-switcher";
 import { Button } from "@/components/ui/button";
 import {
   NavigationMenu,
@@ -22,8 +22,8 @@ import { authClient } from "../../../lib/auth-client";
 // Navigation links array to be used in both desktop and mobile menus
 const navigationLinks = [
   { href: "/", label: "Accueil", icon: Home },
-  { href: "/profiles", label: "Profiles", icon: Contact },
-  { href: "/exercices", label: "Exercices", icon: GraduationCap },
+  { href: "/profiles", label: "Profils", icon: Contact },
+  { href: "/exercices/dictees", label: "Dictées", icon: GraduationCap },
 ];
 
 export default function Component() {
@@ -36,7 +36,7 @@ export default function Component() {
   };
 
   return (
-    <header className="border-b px-4 md:px-6">
+    <header className="border-b px-4 md:px-6 bg-white/90 backdrop-blur-md relative z-20">
       <div className="flex h-16 items-center justify-between gap-4">
         {/* Left side */}
         <div className="flex items-center gap-2">
@@ -146,9 +146,11 @@ export default function Component() {
           </div>
           {/* Authentication-based content */}
           {isPending ? (
-            <div className="w-8 h-8 animate-pulse bg-gray-200 rounded-full" />
+            <></>
           ) : session ? (
-            <UserMenu />
+            <div className="flex items-center gap-3">
+              <ProfileSwitcher />
+            </div>
           ) : (
             <div className="flex items-center gap-2">
               <Button asChild variant="ghost" size="sm" className="text-sm">

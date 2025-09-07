@@ -13,8 +13,6 @@ const resend = new Resend(process.env.RESEND_API_KEY);
 // Debug: Check if Resend API key is configured
 if (!process.env.RESEND_API_KEY) {
   console.warn('⚠️ RESEND_API_KEY is not configured in environment variables');
-} else {
-  console.log('✅ Resend API key is configured');
 }
 
 // Email sending function using Resend
@@ -78,7 +76,7 @@ export const auth = betterAuth({
   emailAndPassword: {
     enabled: true,
     requireEmailVerification: false,
-    sendResetPassword: async ({ user, url, token: _token }, _request) => {
+    sendResetPassword: async ({ user, url }) => {
       await sendEmail({
         to: user.email, // Send to the user's actual email
         subject: "Réinitialisation de votre mot de passe",
@@ -88,7 +86,7 @@ export const auth = betterAuth({
         }),
       });
     },
-    onPasswordReset: async ({ user }, _request) => {
+    onPasswordReset: async ({ user }) => {
       console.log(`Password for user ${user.email} has been reset.`);
     },
   },

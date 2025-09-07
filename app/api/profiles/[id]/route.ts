@@ -52,6 +52,20 @@ export async function PUT(
         description,
         updated_at: new Date(),
       },
+      include: {
+        profile_levels: {
+          include: {
+            levels: {
+              select: {
+                id: true,
+                code: true,
+                label: true,
+                rank: true,
+              },
+            },
+          },
+        },
+      },
     });
 
     return NextResponse.json(profile);

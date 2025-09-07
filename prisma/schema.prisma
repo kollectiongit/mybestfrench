@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
   output   = "../app/generated/prisma"
@@ -15,28 +9,28 @@ datasource db {
 }
 
 model User {
-  id            String    @id
-  name          String
-  email         String
-  emailVerified Boolean   @default(false)
-  image         String?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @default(now()) @updatedAt
-  sessions      Session[]
-  accounts      Account[]
-  exercices_attempts exercices_attempts[]
-  filter_preferences filter_preferences[]
+  id                  String                @id
+  name                String
+  email               String                @unique
+  emailVerified       Boolean               @default(false)
+  image               String?
+  createdAt           DateTime              @default(now())
+  updatedAt           DateTime              @default(now()) @updatedAt
+  accounts            Account[]
+  exercices_attempts  exercices_attempts[]
+  filter_preferences  filter_preferences[]
   generated_questions generated_questions[]
-  profiles profiles[]
+  profiles            profiles[]
+  sessions            Session[]
 
-  @@unique([email])
+
   @@map("user")
 }
 
 model Session {
   id        String   @id
   expiresAt DateTime
-  token     String
+  token     String   @unique
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   ipAddress String?
@@ -44,7 +38,6 @@ model Session {
   userId    String
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@unique([token])
   @@map("session")
 }
 
@@ -53,7 +46,6 @@ model Account {
   accountId             String
   providerId            String
   userId                String
-  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   accessToken           String?
   refreshToken          String?
   idToken               String?
@@ -63,6 +55,7 @@ model Account {
   password              String?
   createdAt             DateTime  @default(now())
   updatedAt             DateTime  @updatedAt
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("account")
 }
@@ -78,18 +71,16 @@ model Verification {
   @@map("verification")
 }
 
-
-
-model categories {
-  id            Int             @id @default(autoincrement())
-  name          String          @db.VarChar(100)
-  slug          String          @unique @db.VarChar(100)
-  subcategories subcategories[]
+model category {
+  id    Int     @id @default(autoincrement())
+  name  String  @db.VarChar(100)
+  slug  String  @unique(map: "categories_slug_key") @db.VarChar(100)
+  topic topic[]
 }
 
 model exercices_attempts {
   id                    String               @id(map: "training_attempts_pkey") @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  user_id            String?
+  user_id               String?
   profile_id            String               @db.Uuid
   exercise_id           String               @db.Uuid
   generated_question_id String?              @db.Uuid
@@ -101,9 +92,9 @@ model exercices_attempts {
   correct_answer        String?
   choices               String[]
   generated_questions   generated_questions? @relation(fields: [generated_question_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  user              User?            @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "training_attempts_user_id_fkey")
   exercises             exercises            @relation(fields: [exercise_id], references: [id], onUpdate: NoAction, map: "training_attempts_exercise_id_fkey")
   profiles              profiles             @relation(fields: [profile_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "training_attempts_profile_id_fkey")
+  user                  User?                @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "training_attempts_user_id_fkey")
 
   @@index([user_id, created_at], map: "idx_training_attempts_user_created")
   @@index([exercise_id], map: "idx_training_attempts_exercise")
@@ -133,32 +124,31 @@ model exercises {
   answer_example            String?
   answer_choices_example    String[]
   supports_single_choice    Boolean?
-  subcategory_id            Int?
+  topic_id                  Int?
   exercices_attempts        exercices_attempts[]
   exercise_levels           exercise_levels[]
-  subcategories             subcategories?        @relation(fields: [subcategory_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  topic                     topic?                @relation(fields: [topic_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
   generated_questions       generated_questions[]
 }
 
 model filter_preferences {
-  id                       String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  id                    String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   user_id               String
-  profile_id               String?        @db.Uuid
-  selected_category_ids    Int[]          @default([])
-  selected_subcategory_ids Int[]          @default([])
-  question_type            question_type?
-  show_rules_default       Boolean?       @default(false)
-  created_at               DateTime?      @default(now()) @db.Timestamptz(6)
-  updated_at               DateTime?      @default(now()) @db.Timestamptz(6)
-  user                 User       @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  profile_id            String?        @db.Uuid
+  selected_category_ids Int[]          @default([])
+  question_type         question_type?
+  show_rules_default    Boolean?       @default(false)
+  created_at            DateTime?      @default(now()) @db.Timestamptz(6)
+  updated_at            DateTime?      @default(now()) @db.Timestamptz(6)
+  selected_topic_ids    Int[]          @default([])
+  user                  User           @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
 
   @@index([user_id, profile_id], map: "idx_filter_preferences_user_profile")
 }
 
-
 model generated_questions {
   id                    String               @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  user_id            String?
+  user_id               String?
   profile_id            String               @db.Uuid
   exercise_id           String               @db.Uuid
   payload               Json
@@ -175,19 +165,20 @@ model generated_questions {
   is_used               Boolean?             @default(false)
   status                String?              @default("TO_SOLVE")
   exercices_attempts    exercices_attempts[]
-  user              User?            @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
   exercises             exercises            @relation(fields: [exercise_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
   profiles              profiles             @relation(fields: [profile_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  user                  User?                @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
 }
 
 model levels {
-  id                   Int                    @id @default(autoincrement())
-  code                 String                 @unique @db.VarChar(10)
-  label                String                 @db.VarChar(100)
-  rank                 Int
-  exercise_levels      exercise_levels[]
-  profile_levels       profile_levels[]
-  subcategories_levels subcategories_levels[]
+  id              Int               @id @default(autoincrement())
+  code            String            @unique @db.VarChar(10)
+  label           String            @db.VarChar(100)
+  rank            Int
+  exercise_levels exercise_levels[]
+  profile_levels  profile_levels[]
+  topics_levels   topics_levels[]
+  dictations_levels dictations_levels[]
 }
 
 model profile_levels {
@@ -211,26 +202,52 @@ model profiles {
   exercices_attempts  exercices_attempts[]
   generated_questions generated_questions[]
   profile_levels      profile_levels[]
-  user            User              @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  user                User                  @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
 }
 
-model subcategories {
-  id                   Int                    @id @default(autoincrement())
-  category_id          Int
-  name                 String                 @db.VarChar(100)
-  slug                 String                 @unique
-  exercises            exercises[]
-  categories           categories             @relation(fields: [category_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  subcategories_levels subcategories_levels[]
+model topic {
+  id          Int         @id @default(autoincrement())
+  category_id Int
+  name        String      @db.VarChar(100)
+  slug        String      @unique()
+  rules_explanation_message String?
+  exercises   exercises[]
+  category    category    @relation(fields: [category_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  dictation   dictation[]
+  topics_levels topics_levels[]
 }
 
-model subcategories_levels {
-  id             BigInt         @id @default(autoincrement())
-  created_at     DateTime       @default(now()) @db.Timestamptz(6)
-  subcategory_id Int?
+model topics_levels {
+  id             BigInt   @id() @default(autoincrement())
+  created_at     DateTime @default(now()) @db.Timestamptz(6)
+  topic_id Int?
   level_id       Int?
-  levels         levels?        @relation(fields: [level_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  subcategories  subcategories? @relation(fields: [subcategory_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  levels         levels?  @relation(fields: [level_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  topic          topic?   @relation(fields: [topic_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model dictation {
+  id              String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  topic_id        Int
+  original_text   String?
+  audio_file     String?
+  screenshot_file String?
+  picture_file    String?
+  count_words     Int?
+  created_at      DateTime @default(now()) @db.Timestamptz(6)
+  updated_at      DateTime @default(now()) @db.Timestamptz(6) @updatedAt
+  topic          topic   @relation(fields: [topic_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  dictations_levels dictations_levels[]
+}
+
+model dictations_levels {
+  id           Int       @id @default(autoincrement())
+  level_id     Int
+  dictation_id String    @db.Uuid
+  created_at   DateTime  @default(now()) @db.Timestamptz(6)
+  updated_at   DateTime  @default(now()) @db.Timestamptz(6) @updatedAt
+  levels       levels    @relation(fields: [level_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  dictation    dictation @relation(fields: [dictation_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
 }
 
 enum question_type {

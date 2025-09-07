@@ -14,14 +14,14 @@ export default function WelcomePage() {
   const { data: session, isPending } = authClient.useSession();
 
   const handleContinue = () => {
-    window.location.href = "/dashboard";
+    window.location.href = "/profiles";
   };
 
   if (isPending) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <h2 className="text-2xl font-semibold">Loading...</h2>
+          <h2 className="text-2xl font-semibold">Chargement...</h2>
         </div>
       </div>
     );
@@ -68,7 +68,7 @@ export default function WelcomePage() {
             </div>
 
             <Button onClick={handleContinue} className="w-full">
-              Continue to Dashboard
+              Continue to Profiles
             </Button>
           </CardContent>
         </Card>

@@ -66,7 +66,7 @@ export function ResetPasswordForm({
     }
 
     try {
-      const { data, error } = await authClient.resetPassword({
+      const { error } = await authClient.resetPassword({
         newPassword,
         token,
       });
@@ -76,7 +76,7 @@ export function ResetPasswordForm({
       } else {
         setSuccess(true);
       }
-    } catch (err) {
+    } catch {
       setError("An unexpected error occurred. Please try again.");
     } finally {
       setIsLoading(false);
@@ -144,7 +144,7 @@ export function ResetPasswordForm({
       <div className={cn("flex flex-col gap-6", className)} {...props}>
         <Card>
           <CardHeader>
-            <CardTitle>Loading...</CardTitle>
+            <CardTitle>Chargement...</CardTitle>
             <CardDescription>Validating reset token...</CardDescription>
           </CardHeader>
         </Card>

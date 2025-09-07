@@ -1,6 +1,8 @@
 "use client";
 
 import { ImageUpload } from "@/components/image-upload";
+import ProfileLevelsSelector from "@/components/profile-levels-selector";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -11,29 +13,35 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useProfile } from "@/contexts/profile-context";
 import { EditIcon, PlusIcon, TrashIcon, UserIcon } from "lucide-react";
 import Image from "next/image";
-import { useEffect, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Suspense, useEffect, useState } from "react";
+import { toast } from "sonner";
+import { CurrentProfile, ProfileLevel } from "../../lib/current-profile";
 
-interface Profile {
-  id: string;
-  first_name: string;
-  last_name: string | null;
-  avatar_url: string | null;
-  age: number | null;
-  description: string | null;
-  created_at: string | null;
-  updated_at: string | null;
-}
+function ProfilesPageContent() {
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const {
+    allProfiles: contextProfiles,
+    currentProfile,
+    setCurrentProfile,
+    refreshProfiles,
+    isLoading: contextLoading,
+  } = useProfile();
 
-export default function ProfilesPage() {
-  const [profiles, setProfiles] = useState<Profile[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [profiles, setProfiles] = useState<CurrentProfile[]>(contextProfiles);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const [editingProfile, setEditingProfile] = useState<Profile | null>(null);
+  const [editingProfile, setEditingProfile] = useState<CurrentProfile | null>(
+    null
+  );
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
-  const [profileToDelete, setProfileToDelete] = useState<Profile | null>(null);
+  const [profileToDelete, setProfileToDelete] = useState<CurrentProfile | null>(
+    null
+  );
   const [formData, setFormData] = useState({
     first_name: "",
     last_name: "",
@@ -41,6 +49,7 @@ export default function ProfilesPage() {
     description: "",
   });
   const [avatarFilename, setAvatarFilename] = useState<string>("");
+  const [selectedLevelIds, setSelectedLevelIds] = useState<number[]>([]);
 
   // Generate public URL from filename
   const getPublicUrl = (filename: string | null) => {
@@ -48,25 +57,30 @@ export default function ProfilesPage() {
     return `/api/avatars/${filename}`;
   };
 
-  const fetchProfiles = async () => {
-    try {
-      const response = await fetch("/api/profiles");
-      if (response.ok) {
-        const data = await response.json();
-        setProfiles(data);
-      } else {
-        console.error("Failed to fetch profiles");
-      }
-    } catch (error) {
-      console.error("Error fetching profiles:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
+  // Check for URL parameters and show toast if needed
   useEffect(() => {
-    fetchProfiles();
-  }, []);
+    const message = searchParams.get("message");
+    if (message === "profile-required") {
+      // Check if we've already shown this toast for this session
+      const toastKey = `toast-shown-${window.location.pathname}`;
+      const hasShownToast = sessionStorage.getItem(toastKey);
+
+      if (!hasShownToast) {
+        toast.error("Vous devez d'abord créer un profil");
+        sessionStorage.setItem(toastKey, "true");
+      }
+
+      // Always clear the URL parameter
+      const url = new URL(window.location.href);
+      url.searchParams.delete("message");
+      router.replace(url.pathname + url.search);
+    }
+  }, [searchParams, router]);
+
+  // Sync profiles from context
+  useEffect(() => {
+    setProfiles(contextProfiles);
+  }, [contextProfiles]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -86,6 +100,35 @@ export default function ProfilesPage() {
       if (response.ok) {
         const newProfile = await response.json();
         setProfiles([newProfile, ...profiles]);
+
+        // Set the newly created profile as current
+        if (newProfile.id) {
+          await setCurrentProfile(newProfile.id);
+
+          // Update profile levels if any are selected
+          if (selectedLevelIds.length > 0) {
+            const levelsResponse = await fetch(
+              `/api/profiles/${newProfile.id}/levels`,
+              {
+                method: "PUT",
+                headers: {
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                  level_ids: selectedLevelIds,
+                }),
+              }
+            );
+
+            if (!levelsResponse.ok) {
+              console.error("Failed to update profile levels");
+              toast.error(
+                "Profil créé mais erreur lors de la sauvegarde des niveaux"
+              );
+            }
+          }
+        }
+
         setFormData({
           first_name: "",
           last_name: "",
@@ -93,12 +136,17 @@ export default function ProfilesPage() {
           description: "",
         });
         setAvatarFilename("");
+        setSelectedLevelIds([]);
         setIsDialogOpen(false);
+        await refreshProfiles(); // Refresh to sync with context
+        toast.success("Profil créé avec succès");
       } else {
         console.error("Failed to create profile");
+        toast.error("Erreur lors de la création du profil");
       }
     } catch (error) {
       console.error("Error creating profile:", error);
+      toast.error("Erreur lors de la création du profil");
     }
   };
 
@@ -112,7 +160,20 @@ export default function ProfilesPage() {
     }));
   };
 
-  const handleEditProfile = (profile: Profile) => {
+  const handleCreateProfileClick = () => {
+    // Reset form data when opening create dialog
+    setFormData({
+      first_name: "",
+      last_name: "",
+      age: "",
+      description: "",
+    });
+    setAvatarFilename("");
+    setSelectedLevelIds([]);
+    setIsDialogOpen(true);
+  };
+
+  const handleEditProfile = (profile: CurrentProfile) => {
     setEditingProfile(profile);
     setFormData({
       first_name: profile.first_name,
@@ -121,6 +182,10 @@ export default function ProfilesPage() {
       description: profile.description || "",
     });
     setAvatarFilename(profile.avatar_url || "");
+    // Set initial selected levels from profile
+    const initialLevelIds =
+      profile.profile_levels?.map((pl: ProfileLevel) => pl.level_id) || [];
+    setSelectedLevelIds(initialLevelIds);
     setIsEditDialogOpen(true);
   };
 
@@ -130,6 +195,7 @@ export default function ProfilesPage() {
     if (!editingProfile) return;
 
     try {
+      // Update profile basic info
       const response = await fetch(`/api/profiles/${editingProfile.id}`, {
         method: "PUT",
         headers: {
@@ -143,27 +209,53 @@ export default function ProfilesPage() {
 
       if (response.ok) {
         const updatedProfile = await response.json();
-        setProfiles(
-          profiles.map((p) => (p.id === updatedProfile.id ? updatedProfile : p))
+
+        // Update profile levels
+        const levelsResponse = await fetch(
+          `/api/profiles/${editingProfile.id}/levels`,
+          {
+            method: "PUT",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              level_ids: selectedLevelIds,
+            }),
+          }
         );
-        setIsEditDialogOpen(false);
-        setEditingProfile(null);
-        setFormData({
-          first_name: "",
-          last_name: "",
-          age: "",
-          description: "",
-        });
-        setAvatarFilename("");
+
+        if (levelsResponse.ok) {
+          setProfiles(
+            profiles.map((p) =>
+              p.id === updatedProfile.id ? updatedProfile : p
+            )
+          );
+          setIsEditDialogOpen(false);
+          setEditingProfile(null);
+          setFormData({
+            first_name: "",
+            last_name: "",
+            age: "",
+            description: "",
+          });
+          setAvatarFilename("");
+          setSelectedLevelIds([]);
+          toast.success("Profil mis à jour");
+        } else {
+          console.error("Failed to update profile levels");
+          toast.error("Erreur lors de la mise à jour des niveaux");
+        }
       } else {
         console.error("Failed to update profile");
+        toast.error("Erreur lors de la mise à jour du profil");
       }
     } catch (error) {
       console.error("Error updating profile:", error);
+      toast.error("Erreur lors de la mise à jour du profil");
     }
   };
 
-  const handleDeleteClick = (profile: Profile) => {
+  const handleDeleteClick = (profile: CurrentProfile) => {
     setProfileToDelete(profile);
     setDeleteConfirmOpen(true);
   };
@@ -180,6 +272,7 @@ export default function ProfilesPage() {
         setProfiles(profiles.filter((p) => p.id !== profileToDelete.id));
         setDeleteConfirmOpen(false);
         setProfileToDelete(null);
+        await refreshProfiles(); // Refresh to sync with context
       } else {
         console.error("Failed to delete profile");
       }
@@ -188,7 +281,7 @@ export default function ProfilesPage() {
     }
   };
 
-  if (loading) {
+  if (contextLoading) {
     return (
       <div className="container mx-auto px-4 py-8">
         <div className="flex items-center justify-center min-h-[400px]">
@@ -206,16 +299,32 @@ export default function ProfilesPage() {
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900 mb-2">Mes Profils</h1>
         <p className="text-gray-600">
-          Créez un profil différent pour chaque personne qui veut réviser
+          Sélectionne ou crée le profil qui fera la dictée
         </p>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6 lg:gap-8 -ml-4 sm:-ml-6 lg:-ml-8">
         {/* Add New Profile Card */}
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <Dialog
+          open={isDialogOpen}
+          onOpenChange={(open) => {
+            setIsDialogOpen(open);
+            if (!open) {
+              // Reset form data when dialog is closed
+              setFormData({
+                first_name: "",
+                last_name: "",
+                age: "",
+                description: "",
+              });
+              setAvatarFilename("");
+              setSelectedLevelIds([]);
+            }
+          }}
+        >
           <Card
-            className="h-80 w-full max-w-80 cursor-pointer border-dashed border-2 border-gray-300 hover:border-gray-400 ml-4 sm:ml-6 lg:ml-8"
-            onClick={() => setIsDialogOpen(true)}
+            className="h-96 w-full max-w-80 cursor-pointer border-dashed border-2 border-gray-300 hover:border-gray-400 ml-4 sm:ml-6 lg:ml-8"
+            onClick={handleCreateProfileClick}
           >
             <CardContent className="flex flex-col items-center justify-center h-full p-6">
               <PlusIcon className="h-12 w-12 text-gray-400 mb-4" />
@@ -283,6 +392,10 @@ export default function ProfilesPage() {
                 />
               </div>
 
+              <div className="space-y-2">
+                <ProfileLevelsSelector onLevelsChange={setSelectedLevelIds} />
+              </div>
+
               <div className="flex justify-end space-x-2 pt-4">
                 <Button
                   type="button"
@@ -301,8 +414,12 @@ export default function ProfilesPage() {
         {profiles.map((profile) => (
           <Card
             key={profile.id}
-            className="h-80 w-full max-w-80 shadow-lg hover:shadow-xl transition-shadow duration-300 cursor-pointer group relative overflow-hidden ml-4 sm:ml-6 lg:ml-8"
-            onClick={() => handleEditProfile(profile)}
+            className={`h-96 w-full max-w-80 shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer group relative overflow-hidden ml-4 sm:ml-6 lg:ml-8 ${
+              currentProfile?.id === profile.id
+                ? "ring-2 ring-blue-500 ring-offset-2"
+                : ""
+            }`}
+            onClick={() => setCurrentProfile(profile.id, false)}
           >
             {/* Edit Button - Top Right */}
             <Button
@@ -358,6 +475,20 @@ export default function ProfilesPage() {
                     {profile.description}
                   </p>
                 </>
+              )}
+
+              {/* Levels */}
+              {profile.profile_levels && profile.profile_levels.length > 0 && (
+                <div className="flex flex-wrap gap-1 justify-center mt-3">
+                  {profile.profile_levels.map((profileLevel: ProfileLevel) => (
+                    <Badge
+                      key={profileLevel.id}
+                      className="bg-teal-400 text-white border-teal-400 hover:bg-teal-500"
+                    >
+                      {profileLevel.levels.code}
+                    </Badge>
+                  ))}
+                </div>
               )}
             </CardContent>
           </Card>
@@ -424,6 +555,13 @@ export default function ProfilesPage() {
               />
             </div>
 
+            <div className="space-y-2">
+              <ProfileLevelsSelector
+                profileId={editingProfile?.id || ""}
+                onLevelsChange={setSelectedLevelIds}
+              />
+            </div>
+
             <div className="flex justify-between pt-4">
               <Button
                 type="button"
@@ -481,5 +619,24 @@ export default function ProfilesPage() {
         </DialogContent>
       </Dialog>
     </div>
+  );
+}
+
+export default function ProfilesPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="container mx-auto px-4 py-32">
+          <div className="flex items-center justify-center min-h-[400px]">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto mb-4"></div>
+              <p className="text-gray-600">Chargement...</p>
+            </div>
+          </div>
+        </div>
+      }
+    >
+      <ProfilesPageContent />
+    </Suspense>
   );
 }

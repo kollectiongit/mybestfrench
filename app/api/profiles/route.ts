@@ -19,6 +19,20 @@ export async function GET(request: NextRequest) {
       where: {
         user_id: session.user.id,
       },
+      include: {
+        profile_levels: {
+          include: {
+            levels: {
+              select: {
+                id: true,
+                code: true,
+                label: true,
+                rank: true,
+              },
+            },
+          },
+        },
+      },
       orderBy: {
         created_at: "desc",
       },

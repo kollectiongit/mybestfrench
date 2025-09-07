@@ -41,7 +41,7 @@ export function PasswordResetEmail({
           }}
         >
           Nous avons reçu une demande de réinitialisation de mot de passe pour
-          votre compte. Si vous n'avez pas fait cette demande, vous pouvez
+          votre compte. Si vous n&apos;avez pas fait cette demande, vous pouvez
           ignorer cet email en toute sécurité.
         </p>
 

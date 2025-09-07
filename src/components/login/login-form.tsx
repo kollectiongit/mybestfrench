@@ -29,7 +29,7 @@ export function LoginForm({
         {
           email,
           password,
-          callbackURL: "/dashboard",
+          callbackURL: "/profiles",
         },
         {
           onRequest: () => {

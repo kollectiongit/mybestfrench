@@ -26,18 +26,18 @@ export function SignupForm({
     const name = formData.get("name") as string;
 
     try {
-      const { data, error } = await authClient.signUp.email(
+      const { error } = await authClient.signUp.email(
         {
           email,
           password,
           name,
-          callbackURL: "/dashboard", // Redirect to dashboard after email verification
+          callbackURL: "/profiles", // Redirect to profiles after email verification
         },
         {
           onRequest: () => {
             setIsLoading(true);
           },
-          onSuccess: async (ctx) => {
+          onSuccess: async () => {
             setIsLoading(false);
 
             // Send welcome email after successful signup
@@ -62,8 +62,8 @@ export function SignupForm({
               console.error("❌ Error sending welcome email:", error);
             }
 
-            // Redirect to dashboard after successful signup
-            window.location.href = "/dashboard";
+            // Redirect to profiles after successful signup
+            window.location.href = "/profiles";
           },
           onError: (ctx) => {
             // Handle specific error cases
@@ -93,7 +93,7 @@ export function SignupForm({
           setError(error.message ?? "Une erreur est survenue");
         }
       }
-    } catch (err) {
+    } catch {
       setError("Une erreur inattendue est survenue. Veuillez réessayer.");
     } finally {
       setIsLoading(false);

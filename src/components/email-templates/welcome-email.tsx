@@ -38,7 +38,7 @@ export function WelcomeEmail({ firstName, email }: WelcomeEmailProps) {
           }}
         >
           Nous sommes ravis de vous accueillir ! Votre compte a été créé avec
-          succès avec l'adresse email : <strong>{email}</strong>
+          succès avec l&apos;adresse email : <strong>{email}</strong>
         </p>
 
         <div
@@ -79,7 +79,7 @@ export function WelcomeEmail({ firstName, email }: WelcomeEmailProps) {
         </div>
 
         <p style={{ fontSize: "14px", color: "#9ca3af", marginTop: "30px" }}>
-          Si vous avez des questions, n'hésitez pas à nous contacter.
+          Si vous avez des questions, n&apos;hésitez pas à nous contacter.
         </p>
 
         <div

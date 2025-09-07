@@ -1,21 +1,35 @@
+"use client";
+
 import { ResetPasswordForm } from "@/components/login/reset-password-form";
-import type { Metadata } from "next";
-import { headers } from "next/headers";
-import { redirect } from "next/navigation";
-import { auth } from "../../lib/auth";
+import { useCurrentProfile } from "@/hooks/use-current-profile";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 
-export const metadata: Metadata = {
-  title: "Nouveau mot de passe | Révisions",
-  description: "Réinitialisez votre mot de passe Révisions",
-};
+export default function ResetPasswordPage() {
+  const { profile, isLoading } = useCurrentProfile();
+  const router = useRouter();
 
-export default async function ResetPasswordPage() {
-  const session = await auth.api.getSession({
-    headers: await headers(),
-  });
+  useEffect(() => {
+    if (!isLoading && profile) {
+      router.push("/dashboard");
+    }
+  }, [profile, isLoading, router]);
 
-  if (session) {
-    redirect("/dashboard");
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-md w-full space-y-8">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto mb-4"></div>
+            <p className="text-gray-600">Chargement...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (profile) {
+    return null; // Will redirect via useEffect
   }
 
   return (

@@ -25,7 +25,7 @@ export function RequestPasswordResetForm({
     const email = formData.get("email") as string;
 
     try {
-      const { data, error } = await authClient.requestPasswordReset({
+      const { error } = await authClient.requestPasswordReset({
         email,
         redirectTo: `${window.location.origin}/reset-password`,
       });
@@ -35,7 +35,7 @@ export function RequestPasswordResetForm({
       } else {
         setSuccess(true);
       }
-    } catch (err) {
+    } catch {
       setError("An unexpected error occurred. Please try again.");
     } finally {
       setIsLoading(false);
@@ -53,12 +53,12 @@ export function RequestPasswordResetForm({
                   Vérifie ton email
                 </h2>
                 <p className="text-sm text-gray-600 mb-4">
-                  Nous t'avons envoyé un lien de réinitialisation du mot de
+                  Nous t&apos;avons envoyé un lien de réinitialisation du mot de
                   passe. Vérifie ton email et clique sur le lien pour
                   réinitialiser ton mot de passe.
                 </p>
                 <p className="text-sm text-gray-600">
-                  Si tu ne vois pas l'email, vérifie ton dossier spam.
+                  Si tu ne vois pas l&apos;email, vérifie ton dossier spam.
                 </p>
               </div>
               <Button
