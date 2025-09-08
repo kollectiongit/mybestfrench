@@ -15,6 +15,14 @@ const prisma = new PrismaClient();
 
 export async function POST(request: NextRequest) {
   try {
+    // Ensure OpenAI API key is configured
+    if (!process.env["OPENAI_API_KEY"]) {
+      console.error("OPENAI_API_KEY is not set in environment");
+      return NextResponse.json(
+        { error: "Server configuration error: missing OpenAI API key" },
+        { status: 500 }
+      );
+    }
     // Get session from BetterAuth
     const session = await auth.api.getSession({
       headers: request.headers,
@@ -222,21 +230,24 @@ ${studentText}
       }
     }
 
-    // Create output directory if it doesn't exist
-    const outputDir = path.join(process.cwd(), "public", "openai_output");
-    if (!fs.existsSync(outputDir)) {
-      fs.mkdirSync(outputDir, { recursive: true });
+    // Create output directory and save file (ignore errors in serverless envs)
+    let filepath: string | undefined = undefined;
+    try {
+      const isServerless = !!process.env["VERCEL"]; // Vercel sets VERCEL=true
+      const baseDir = isServerless ? "/tmp" : process.cwd();
+      const outputDir = path.join(baseDir, "openai_output");
+      if (!fs.existsSync(outputDir)) {
+        fs.mkdirSync(outputDir, { recursive: true });
+      }
+      const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
+      const filename = `dictation_analysis_${dictationId}_${timestamp}.json`;
+      filepath = path.join(outputDir, filename);
+      fs.writeFileSync(filepath, JSON.stringify(validatedResult, null, 2));
+      console.log("OpenAI Analysis Result:", validatedResult);
+      console.log(`Result saved to: ${filepath}`);
+    } catch (fileError) {
+      console.warn("Could not persist OpenAI analysis result to filesystem:", fileError);
     }
-
-    // Save the result to a file
-    const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
-    const filename = `dictation_analysis_${dictationId}_${timestamp}.json`;
-    const filepath = path.join(outputDir, filename);
-    
-    fs.writeFileSync(filepath, JSON.stringify(validatedResult, null, 2));
-
-    console.log("OpenAI Analysis Result:", validatedResult);
-    console.log(`Result saved to: ${filepath}`);
 
     // Save the analysis results to the database
     try {
@@ -270,7 +281,7 @@ ${studentText}
     return NextResponse.json({
       success: true,
       analysis: validatedResult,
-      filepath: `/openai_output/${filename}`,
+      filepath: filepath,
     });
 
   } catch (error) {
