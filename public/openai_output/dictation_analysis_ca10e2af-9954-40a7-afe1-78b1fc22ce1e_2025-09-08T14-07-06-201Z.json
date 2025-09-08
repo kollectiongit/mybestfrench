@@ -1,0 +1,20 @@
+{
+  "stats": {
+    "total_fautes": 1,
+    "fautes_orthographe": 0,
+    "fautes_grammaire": 1,
+    "fautes_conjugaison": 0,
+    "pourcentage_mots_bien_orthographies": 93
+  },
+  "message_general": "Belle performance, Enzo ! Seulement une petite faute de grammaire, c'est du beau travail !",
+  "fautes": [
+    {
+      "sentence_order_number": 1,
+      "texte_eleve": "Avant d'entrer en scène **les** danseuses font quelques mouvements d'assouplissement dans les coulisses",
+      "correction": "Avant d'entrer en scène *,* les danseuses font quelques mouvements d'assouplissement dans les coulisses",
+      "explication": "Il manque une **virgule** après **scène** dans ta phrase. La virgule est importante pour indiquer une pause et séparer deux parties de la phrase.",
+      "regle": "**La virgule sert à marquer une pause** dans la phrase. Elle est souvent utilisée pour séparer une proposition du reste de la phrase. Par exemple : *Avant de manger, il se lave les mains.*"
+    }
+  ],
+  "conclusion_positive": "Bravo, Enzo ! Tu es sur la bonne voie. Il n'y a qu'une seule petite erreur, on dirait une poussière dans ta performance impeccable. Continue comme ça et bientôt, ton cahier sera sans faute ! 🕺"
+}

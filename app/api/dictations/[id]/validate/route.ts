@@ -159,7 +159,7 @@ ${studentText}
               },
               conclusion_positive: { type: "string", description: "Conclusion positive et motivante pour motiver l'élève à continuer à progresser en se basant sur son profil et ses résultats." }
             },
-            required: ["sentence_order_number", "stats", "message_general", "fautes", "conclusion_positive"],
+            required: ["stats", "message_general", "fautes", "conclusion_positive"],
             additionalProperties: false
           }
         }

@@ -111,8 +111,8 @@ export async function DELETE(
       try {
         const { createClient } = await import("@supabase/supabase-js");
         const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-        const supabaseServiceKey = process.env.NEXT_PUBLIC_SUPABASE_SERVICE_KEY!;
-        const supabase = createClient(supabaseUrl, supabaseServiceKey);
+        const supabaseSecretKey = process.env.SUPABASE_SECRET_KEY!;
+        const supabase = createClient(supabaseUrl, supabaseSecretKey);
         
         await supabase.storage.from("avatars").remove([existingProfile.avatar_url]);
       } catch (error) {

@@ -4,8 +4,8 @@ import { NextResponse } from "next/server";
 import path from "path";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseServiceKey = process.env.NEXT_PUBLIC_SUPABASE_SERVICE_KEY!;
-const supabase = createClient(supabaseUrl, supabaseServiceKey);
+const supabaseSecretKey = process.env.SUPABASE_SECRET_KEY!;
+const supabase = createClient(supabaseUrl, supabaseSecretKey);
 
 // Define the source and destination paths
 const SOURCE_AUDIO_DIR = path.join(process.cwd(), "public", "files_to_upload", "audio");
