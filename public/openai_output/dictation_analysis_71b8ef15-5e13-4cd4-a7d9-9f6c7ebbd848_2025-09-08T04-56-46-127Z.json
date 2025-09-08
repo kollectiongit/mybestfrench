@@ -1,0 +1,20 @@
+{
+  "stats": {
+    "total_fautes": 3,
+    "fautes_orthographe": 2,
+    "fautes_grammaire": 0,
+    "fautes_conjugaison": 1,
+    "pourcentage_mots_bien_orthographies": 67
+  },
+  "message_general": "Noa, tu as fait de petits défis à surmonter sur cette dictée avec quelques fautes à corriger, mais tu es sur la bonne voie. Tu as déjà bien réussi \"Le tigre\" et avec encore un peu d'entraînement, tu seras un champion des dictées !",
+  "fautes": [
+    {
+      "sentence_order_number": 1,
+      "texte_eleve": "Le tigre **ait** un **annimal** **ferosse**",
+      "correction": "Le tigre *est* un *animal* *féroce*",
+      "explication": "- **ait** est incorrect car il s'agit d'une erreur de conjugaison. Le bon mot est *est* pour le verbe être au présent.\n- **annimal** a une lettre 'n' de trop. Le bon mot est *animal*.\n- **ferosse** est incorrect, le mot correct est *féroce*.",
+      "regle": "- **Conjugaison du verbe être** : Pour dire ce qu'une chose est, on utilise \"est\" qui est la bonne forme du verbe être au présent pour \"il/elle\". Exemple: *Le chat est mignon.*\n- **Orthographe de \"animal\"** : *Animal* s'écrit avec un seul 'n'. Exemple: *Un animal sauvage.* \n- **Orthographe de \"féroce\"** : Le mot *féroce* s'écrit avec un 'é' et 'ce' à la fin. Exemple: *Un lion féroce.*"
+    }
+  ],
+  "conclusion_positive": "Bravo Noa pour tes efforts sur cette dictée ! Tu as bien commencé avec \"Le tigre\", et en corrigeant quelques petits détails, tu seras bientôt un vrai maestro des mots, aussi talentueux que pour faire des macarons avec ton papa !"
+}

@@ -1,0 +1,20 @@
+{
+  "stats": {
+    "total_fautes": 3,
+    "fautes_orthographe": 2,
+    "fautes_grammaire": 0,
+    "fautes_conjugaison": 1,
+    "pourcentage_mots_bien_orthographies": 60
+  },
+  "message_general": "Bravo Noa pour tes efforts ! Il y a quelques petites erreurs, mais c'est tout à fait normal. Tu progresses bien !",
+  "fautes": [
+    {
+      "sentence_order_number": 1,
+      "texte_eleve": "Le tigre **ait** un **annimal** **ferosse**",
+      "correction": "Le tigre **est** un **animal** **féroce**",
+      "explication": "- Le mot **ait** est incorrect ici. On doit utiliser *est* parce que le verbe correct à utiliser est *être* dans ce cas.\n- Il y a un *n* en trop dans le mot **annimal**.\n- Le mot **ferosse** est incorrect en orthographe et signifiait *féroce*.",
+      "regle": "- **Le verbe \"être\"** est utilisé pour indiquer l'état ou la description de quelque chose. On dit *le tigre est*.\n- **Animal** s'écrit avec un seul *n*. Souviens-toi qu'il n'y a qu'un *n* comme les chatons de tonton Floflo !\n- **Féroce** s'écrit avec un *é* et un *c*. Imagine un tigre qui fait grr, il est *féroce* comme un gros chat !"
+    }
+  ],
+  "conclusion_positive": "Continue comme ça, Noa ! Chaque mot que tu écris te rend plus fort en français, comme les ingrédients qui se mélangent pour faire un délicieux gâteau. Tes progrès sont comme une belle tarte qui s'améliore à chaque cuisson. Allez, champion !"
+}

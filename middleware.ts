@@ -1,6 +1,6 @@
 import { getSessionCookie } from "better-auth/cookies";
 import { NextRequest, NextResponse } from "next/server";
-import { getCurrentProfileFromCookie } from "./lib/profile-cookies";
+import { getCurrentProfileFromCookie } from "./src/lib/profile-cookies";
 
 export async function middleware(request: NextRequest) {
   const sessionCookie = getSessionCookie(request);
@@ -22,8 +22,7 @@ export async function middleware(request: NextRequest) {
     const protectedRoutes = [
       "/dashboard",
       "/profiles", 
-      "/exercices",
-      "/welcome"
+      "/exercices"
     ];
     
     // Check if the current path starts with any protected route
@@ -54,10 +53,9 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    "/dashboard",
     "/profiles",
+    "/exercices",
     "/exercices/:path*",
-    "/welcome",
     "/login", 
     "/signup", 
     "/reset-password"

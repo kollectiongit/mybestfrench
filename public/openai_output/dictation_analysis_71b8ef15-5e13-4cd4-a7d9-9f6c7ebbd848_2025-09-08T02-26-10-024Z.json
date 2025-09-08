@@ -1,0 +1,20 @@
+{
+  "stats": {
+    "total_fautes": 3,
+    "fautes_orthographe": 2,
+    "fautes_grammaire": 0,
+    "fautes_conjugaison": 1,
+    "pourcentage_mots_bien_orthographies": 50
+  },
+  "message_general": "Noa, tu as bien capturé la structure de la phrase et tu as utilisé les bons mots principaux, bravo! Il y a quelques petites erreurs, mais rien d'inquiétant. On va les corriger ensemble pour que tu puisses t'améliorer pour la prochaine fois.",
+  "fautes": [
+    {
+      "sentence_order_number": 1,
+      "texte_eleve": "Le tigre **ait** un **annimal** **ferosse**",
+      "correction": "Le tigre *est* un *animal* *féroce*",
+      "explication": "1. Le mot **ait** est utilisé à la place de *est*.  \n2. Le mot **annimal** a une lettre en trop et doit être corrigé en *animal*.  \n3. Le mot **ferosse** est mal orthographié et doit être corrigé en *féroce*.",
+      "regle": "1. **Pour conjuguer être à la 3ème personne du singulier au présent, on utilise 'est' et non 'ait'**. *Exemple : Le chat est mignon.*  \n2. **'Animal' ne prend qu'un 'n' en français**. *Exemple : L'animal dort.*  \n3. **Le mot 'féroce' est écrit avec 'é' et 'c', pas 'o' ni 's'**. *Exemple : Le lion est féroce.*"
+    }
+  ],
+  "conclusion_positive": "Continue comme ça, Noa! Tu es un champion pour repérer les animaux dans la jungle des mots! Et n'oublie pas que même les plus grands pâtissiers ont commencé par ajouter un peu trop de farine. Avec de la pratique, tu deviendras un expert de l'orthographe!"
+}

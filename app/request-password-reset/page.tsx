@@ -1,10 +1,10 @@
-import { RequestPasswordResetForm } from "@/components/login/request-password-reset-form";
 import type { Metadata } from "next";
+import { RequestPasswordResetForm } from "./request-password-reset-form";
 
 export const metadata: Metadata = {
-  title: "Réinitialisation du mot de passe | Révisions",
+  title: "Nouveau mot de passe pour My Best French",
   description:
-    "Demandez un lien de réinitialisation de votre mot de passe Révisions",
+    "Demandez un lien de réinitialisation de votre mot de passe My Best French",
 };
 
 export default function RequestPasswordResetPage() {

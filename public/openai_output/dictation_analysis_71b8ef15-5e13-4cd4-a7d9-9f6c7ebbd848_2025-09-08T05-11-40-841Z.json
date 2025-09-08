@@ -1,0 +1,20 @@
+{
+  "stats": {
+    "total_fautes": 1,
+    "fautes_orthographe": 0,
+    "fautes_grammaire": 1,
+    "fautes_conjugaison": 0,
+    "pourcentage_mots_bien_orthographies": 80
+  },
+  "message_general": "Noa, ta dictée est presque parfaite, mais une toute petite erreur s'est glissée dedans. C'est comme quand on oublie juste une pincée de sucre dans une recette, même si le gâteau est quand même délicieux !",
+  "fautes": [
+    {
+      "sentence_order_number": 1,
+      "texte_eleve": "Le tigre **et** un animal féroce",
+      "correction": "Le tigre *est* un animal féroce",
+      "explication": "**et** est une conjonction de coordination utilisée pour joindre des idées ou des éléments, tandis que *est* est la forme du verbe \"être\" en troisième personne du singulier.",
+      "regle": "**La conjugaison du verbe être** : Rappelle-toi que pour dire qu'il \"est\" quelque chose ou quelqu'un, on utilise *est* avec un 's' au milieu. Par exemple : *Il est grand.* Ne le confonds pas avec **et** qui lie deux phrases, comme dans *Ponyo et Spoon sont des chats.*"
+    }
+  ],
+  "conclusion_positive": "Bravo Noa ! Avec juste une petite correction, ta dictée sera parfaite. C'est comme ajouter une cerise sur le gâteau. Continue ainsi et tu seras un champion de l'écriture, comme tu l'es déjà sur Rivals et en pâtisserie avec ton papa !"
+}

@@ -1,0 +1,20 @@
+{
+  "stats": {
+    "total_fautes": 3,
+    "fautes_orthographe": 2,
+    "fautes_grammaire": 1,
+    "fautes_conjugaison": 0,
+    "pourcentage_mots_bien_orthographies": 66
+  },
+  "message_general": "Presque tous les mots de ta dictée sont bien écrits, Noa ! Tu as fait **trois petites erreurs**, mais pas de panique, on va les corriger ensemble.",
+  "fautes": [
+    {
+      "sentence_order_number": 1,
+      "texte_eleve": "**le** tigre **est t'un** animal **férosse**",
+      "correction": "*Le* tigre *est un* animal *féroce*",
+      "explication": "- **le** : le début de la phrase doit commencer par une majuscule, donc *Le*.\n- **est t'un** : il y a un *t'* en trop, la bonne phrase est \"*est un*\".\n- **férosse** : le mot correctement orthographié est *féroce*, sans le double s à la fin.",
+      "regle": "- **Les phrases commencent par une majuscule** : chaque début de phrase doit commencer avec une majuscule, comme dans *Le*.\n- **Articles et prépositions** : pas besoin de rajouter des lettres en trop. On écrit simplement \"*est un*\" sans le *t'*.\n- **Orthographe des mots** : certains mots ont des lettres muettes ou des orthographes particulières. *Féroce* s'écrit toujours avec un *c* à la fin, jamais avec un *ss*."
+    }
+  ],
+  "conclusion_positive": "Bravo, Noa ! Tu as très bien écrit les mots \"tigre\" et \"animal\". Avec un peu de pratique, tu vas devenir un pro de l'orthographe, comme quand tu arrives à préparer des gâteaux délicieux. Continue comme ça, et bientôt, tu feras aussi peu d'erreurs qu'il y a de chats chez tata Tchoopy ! 🐱"
+}

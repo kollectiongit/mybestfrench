@@ -211,10 +211,10 @@ export function EnhancedAudioPlayer({
           size="lg"
           onClick={handlePlayPause}
           disabled={isLoading || hasError}
-          className="h-12 px-6 rounded-full"
+          className="h-12 px-6 rounded-full bg-orange-400"
         >
           {isLoading ? (
-            <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white" />
+            <div className=" animate-spin rounded-full h-5 w-5 border-b-2 border-white" />
           ) : hasError ? (
             "Erreur"
           ) : isPlaying ? (

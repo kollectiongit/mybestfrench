@@ -1,0 +1,20 @@
+{
+  "stats": {
+    "total_fautes": 3,
+    "fautes_orthographe": 2,
+    "fautes_grammaire": 0,
+    "fautes_conjugaison": 1,
+    "pourcentage_mots_bien_orthographies": 33
+  },
+  "message_general": "Noa, tu as fait quelques erreurs dans ta dictée, mais c'est en forgeant qu'on devient forgeron (ou plutôt pâtissier, dans ton cas !). Voyons comment on peut les corriger.",
+  "fautes": [
+    {
+      "sentence_order_number": 1,
+      "texte_eleve": "Le tigre **ait** un **annimal ferosse**",
+      "correction": "Le tigre **est** un **animal féroce**",
+      "explication": "1. Le mot **ait** est incorrect ici car le verbe correct est être au présent, ce qui donne *est*.\n2. Le mot **annimal** est mal écrit. Il suffit d'une seule 'n' pour *animal*.\n3. Le mot **ferosse** ne s'écrit pas comme ça, il faut remplacer le double 's' par un 'c' pour obtenir *féroce*.",
+      "regle": "- Pour le verbe **être** au présent avec le sujet 'il', on utilise *est*, pas **ait**.\n- L'orthographe correcte de **animal** ne nécessite qu'un seul 'n'.\n- Le mot **féroce** a une orthographe particulière, où le 's' est remplacé par un 'c'."
+    }
+  ],
+  "conclusion_positive": "Continue comme ça, Noa, tu es sur le bon chemin ! Chaque erreur est une occasion d'apprendre et de t'améliorer, tout comme chaque gâteau un peu raté est une chance de faire mieux la prochaine fois. Avec un peu d'entraînement, tu deviendras un vrai champion de l'orthographe, aussi bon qu'un gâteau au chocolat parfaitement cuit ! 🍰"
+}

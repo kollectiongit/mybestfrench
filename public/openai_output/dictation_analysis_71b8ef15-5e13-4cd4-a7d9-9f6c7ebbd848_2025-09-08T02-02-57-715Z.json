@@ -1,0 +1,20 @@
+{
+  "stats": {
+    "total_fautes": 3,
+    "fautes_orthographe": 2,
+    "fautes_grammaire": 0,
+    "fautes_conjugaison": 1,
+    "pourcentage_mots_bien_orthographies": 40
+  },
+  "message_general": "Dans cette dictée, tu as fait quelques erreurs que nous allons corriger ensemble. Mais ne t'inquiète pas, tu as reconnu la plupart des mots, et on va travailler ces petites coquilles pour que tu sois encore plus fort la prochaine fois !",
+  "fautes": [
+    {
+      "sentence_order_number": 1,
+      "texte_eleve": "Le tigre **ait** un **annimal** **ferosse**",
+      "correction": "Le tigre *est* un *animal* *féroce*",
+      "explication": "- **Ait** est la mauvaise forme du verbe. Dans cette phrase, on doit utiliser *est*.\n- **Annimal** est mal orthographié. Il manque un 'n'.\n- **Ferosse** est aussi mal orthographié. La bonne orthographe est *féroce*.",
+      "regle": "- **Le verbe 'être' au présent** : Pour parler du présent, on utilise *est* pour 'il/elle'. Exemple: *Le chat est noir.*\n- **Mots sans double lettre** : Certains mots ont un doublement de consonnes, mais ce n'est pas le cas pour *animal*. Exemple: *animal*, pas **annimal**.\n- **Orthographe des adjectifs** : Il faut veiller à l'orthographe correcte des adjectifs. Exemple: *féroce*, pas **ferosse**."
+    }
+  ],
+  "conclusion_positive": "Bravo Noa, tu as bien réussi à écrire ton idée, et avec un peu de pratique, tu vas épater les chats de tonton Floflo avec ton écriture impeccable ! Continue à t'amuser avec les mots comme tu le fais avec Rivals sur Roblox. Tu as déjà tout d'un grand écrivain en herbe ! 🌟"
+}

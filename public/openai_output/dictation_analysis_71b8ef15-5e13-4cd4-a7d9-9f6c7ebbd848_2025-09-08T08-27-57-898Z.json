@@ -1,0 +1,20 @@
+{
+  "stats": {
+    "total_fautes": 2,
+    "fautes_orthographe": 2,
+    "fautes_grammaire": 0,
+    "fautes_conjugaison": 0,
+    "pourcentage_mots_bien_orthographies": 67
+  },
+  "message_general": "Pas mal du tout pour un début, Noa ! Tu as déjà bien su écrire le mot 'tigre' correctement, et c'est un mot impressionnant !",
+  "fautes": [
+    {
+      "sentence_order_number": 1,
+      "texte_eleve": "**le** tigre **é** un animal **féros**",
+      "correction": "*Le* tigre *est* un animal *féroce*",
+      "explication": "- **le** devrait être *Le* car c'est le début de la phrase. En français, une phrase commence toujours par une majuscule.\n- **é** devrait être *est* car c'est la forme verbale correcte pour le verbe 'être'.\n- **féros** devrait être *féroce* car c'est l'orthographe correcte du mot.",
+      "regle": "- **Majuscule au début d'une phrase**: En français, une phrase commence toujours par une majuscule. Par exemple, *Le chien court.*\n- **Conjugaison du verbe 'être' au présent**: On écrit *est* pour 'il est, elle est'. Par exemple, *Il est content.*\n- **Orthographe correcte des mots**: Certains mots ont des orthographes particulières, comme *féroce*. Essayons de bien retenir leur orthographe."
+    }
+  ],
+  "conclusion_positive": "Continue sur cette lancée, Noa ! Tu es comme un petit chef pâtissier qui apprend ses recettes. Chaque faute corrigée, c'est comme une nouvelle étape réussie dans la préparation d’un délicieux gâteau ! Avec un peu plus de pratique, je suis sûr que tu écriras sans faute toutes tes prochaines dictées. Bravo, beau gosse ! 🎉"
+}

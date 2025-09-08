@@ -1,0 +1,12 @@
+{
+  "stats": {
+    "total_fautes": 0,
+    "fautes_orthographe": 0,
+    "fautes_grammaire": 0,
+    "fautes_conjugaison": 0,
+    "pourcentage_mots_bien_orthographies": 100
+  },
+  "message_general": "Bravo Noa, tu n'as fait aucune faute dans cette dictée, on dirait un chef pâtissier qui sort des macarons parfaitement réussis du four !",
+  "fautes": [],
+  "conclusion_positive": "Super travail, Noa ! Tu fais aussi bien avec les mots qu'avec la crème fouettée pour tes gâteaux. Continue comme ça, tu es sur la voie pour devenir un véritable champion en orthographe et en pâtisserie ! N'oublie pas de garder le sourire et de t'amuser, c'est comme ça qu'on apprend le mieux !"
+}

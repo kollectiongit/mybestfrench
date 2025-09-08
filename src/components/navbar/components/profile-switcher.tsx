@@ -12,6 +12,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useProfile } from "@/contexts/profile-context";
+import { authClient } from "@/lib/auth-client";
 import {
   Check,
   ChevronDown,
@@ -22,7 +23,6 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { authClient } from "../../../../lib/auth-client";
 
 export default function ProfileSwitcher() {
   const { data: session } = authClient.useSession();
@@ -51,9 +51,7 @@ export default function ProfileSwitcher() {
     return `/api/avatars/${filename}`;
   };
 
-  if (!currentProfile && allProfiles.length === 0) {
-    return <></>;
-  }
+  // Always render the switcher when user is logged in, even without profiles
 
   return (
     <DropdownMenu>
@@ -79,14 +77,18 @@ export default function ProfileSwitcher() {
               </AvatarFallback>
             )}
           </Avatar>
-          {currentProfile && (
-            <div className="flex items-center gap-1">
-              <span className="text-sm font-medium truncate max-w-24">
-                {currentProfile.first_name}
-              </span>
-              <ChevronDown size={14} className="opacity-60" />
-            </div>
-          )}
+          {(() => {
+            const displayName =
+              currentProfile?.first_name || session?.user?.name;
+            return displayName ? (
+              <div className="flex items-center gap-1">
+                <span className="text-sm font-medium truncate max-w-24">
+                  {displayName}
+                </span>
+                <ChevronDown size={14} className="opacity-60" />
+              </div>
+            ) : null;
+          })()}
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent className="w-64" align="start">
@@ -158,7 +160,7 @@ export default function ProfileSwitcher() {
             )
           )}
         </DropdownMenuGroup>
-        <DropdownMenuSeparator />
+        {allProfiles.length > 0 && <DropdownMenuSeparator />}
         <DropdownMenuGroup>
           <DropdownMenuItem asChild>
             <Link href="/profiles" className="flex items-center gap-2">
@@ -172,7 +174,7 @@ export default function ProfileSwitcher() {
           </DropdownMenuItem>
           <DropdownMenuItem onClick={handleSignOut}>
             <LogOutIcon size={16} className="opacity-60" aria-hidden="true" />
-            <span>Se connecter</span>
+            <span>Se déconnecter</span>
           </DropdownMenuItem>
         </DropdownMenuGroup>
       </DropdownMenuContent>

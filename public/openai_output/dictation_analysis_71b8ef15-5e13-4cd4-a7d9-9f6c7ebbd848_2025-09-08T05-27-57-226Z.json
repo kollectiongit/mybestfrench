@@ -1,0 +1,20 @@
+{
+  "stats": {
+    "total_fautes": 1,
+    "fautes_orthographe": 0,
+    "fautes_grammaire": 1,
+    "fautes_conjugaison": 0,
+    "pourcentage_mots_bien_orthographies": 80
+  },
+  "message_general": "Tu as presque tout bon, Noa ! Juste une petite erreur de grammaire à corriger.",
+  "fautes": [
+    {
+      "sentence_order_number": 1,
+      "texte_eleve": "Le tigre **et** un animal féroce",
+      "correction": "Le tigre *est* un animal féroce",
+      "explication": "Tu as écrit **et** au lieu de *est*. **Et** est une conjonction qui relie deux mots ou phrases, alors que *est* est le verbe 'être' conjugué au présent de l'indicatif.",
+      "regle": "**'Est' est le verbe 'être' conjugué au présent à la troisième personne du singulier (il/elle/on est).** Par exemple, *Il est content.* **'Et' est une conjonction de coordination qui relie des mots ou des propositions.** Par exemple, *Il mange une pomme et une banane.*"
+    }
+  ],
+  "conclusion_positive": "Bravo Noa ! Tu as fait une super dictée avec presque tous les mots correctement écrits. C'est comme préparer un gâteau parfait, tu as juste besoin d'une petite touche finale. Continue comme ça et tu deviendras un vrai chef de la langue française ! 🍰"
+}

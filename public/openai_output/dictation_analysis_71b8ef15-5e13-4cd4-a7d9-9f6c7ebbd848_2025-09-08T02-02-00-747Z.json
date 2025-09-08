@@ -1,0 +1,20 @@
+{
+  "stats": {
+    "total_fautes": 3,
+    "fautes_orthographe": 2,
+    "fautes_grammaire": 0,
+    "fautes_conjugaison": 1,
+    "pourcentage_mots_bien_orthographies": 67
+  },
+  "message_general": "Dans ta dictée, il y a 3 petites erreurs, mais tu as déjà réussi à bien écrire 67% des mots. Chapeau, Noa ! On va regarder cela de plus près et tu verras qu'on va tous les corriger ensemble.",
+  "fautes": [
+    {
+      "sentence_order_number": 1,
+      "texte_eleve": "Le tigre **ait** un **annimal** **ferosse**",
+      "correction": "Le tigre **est** un **animal** **féroce**",
+      "explication": "- **ait** est incorrect pour exprimer ce que fait le tigre. On utilise le verbe *être*, donc il faut écrire *est*.\n- **annimal** a une lettre en trop. Le mot correct est *animal* avec un seul 'n'.\n- **ferosse** c'est une petite confusion. Le mot correct est *féroce*.",
+      "regle": "- Pour le verbe **être**, on utilise *est* quand on parle au présent de quelque chose ou quelqu'un : *il/elle est*. Par exemple, *Le chat est joli*.\n- **animal** s'écrit toujours avec un seul 'n'. Pour t'en souvenir, pense aux animaux que tu aimes, comme les chats de tonton Floflo, Ponyo et Spoon.\n- **féroce** s'écrit avec un 'é' au début et pas de double consonne. Pense à un tigre qui fait un grand sourire féroce avec ses crocs."
+    }
+  ],
+  "conclusion_positive": "Bravo Noa, tu es sur la bonne voie ! Comme en pâtisserie, il suffit de quelques ajustements pour obtenir un résultat parfait. Continue de faire attention à ces petites erreurs, et bientôt ton français sera aussi bon qu'un gâteau tout chaud sorti du four. Crois en toi et continue ainsi, champion !"
+}

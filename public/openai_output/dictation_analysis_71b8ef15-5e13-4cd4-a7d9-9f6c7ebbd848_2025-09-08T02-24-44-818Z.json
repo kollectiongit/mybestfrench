@@ -1,0 +1,20 @@
+{
+  "stats": {
+    "total_fautes": 3,
+    "fautes_orthographe": 2,
+    "fautes_grammaire": 0,
+    "fautes_conjugaison": 1,
+    "pourcentage_mots_bien_orthographies": 60
+  },
+  "message_general": "Dans cette dictée, tu as fait 3 petites fautes, mais pas de panique, c'est en forgeant qu'on devient forgeron, ou plutôt en grattant qu'on devient chat ! 😊",
+  "fautes": [
+    {
+      "sentence_order_number": 1,
+      "texte_eleve": "Le tigre **ait** un **annimal** **ferosse**",
+      "correction": "Le tigre *est* un *animal* *féroce*",
+      "explication": "- **ait** est utilisé à la place du verbe être. Ici, il faut utiliser *est* pour indiquer la forme correcte du verbe être à la troisième personne du singulier.\n- **annimal** a une lettre 'n' en trop. Le mot s'écrit *animal* avec un seul 'n'.\n- **ferosse** a deux erreurs : c'est l'orthographe et le son. Il faut écrire *féroce* avec 'é' et 'c'.",
+      "regle": "1. **Le verbe être à la troisième personne du singulier s'écrit \"est\"**. Par exemple : *Le soleil est chaud.*\n2. **Le mot \"animal\" s'écrit avec un seul \"n\"**. Par exemple : *Un animal sauvage.*\n3. **Les accents sont importants en français : \"féroce\" s'écrit avec un 'é' et un 'c'**. Par exemple : *Un lion féroce.*"
+    }
+  ],
+  "conclusion_positive": "Super travail Noa ! Continuer à faire attention quand tu écris, c'est comme décorer un gâteau : il faut être précis pour que ce soit parfait. Je suis certain qu'avec encore un peu de pratique, tu feras fondre les dictées comme du chocolat ! 🍫 Bravo et continue sur cette lancée !"
+}

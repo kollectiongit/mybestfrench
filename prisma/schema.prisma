@@ -80,9 +80,10 @@ model category {
 
 model exercices_attempts {
   id                    String               @id(map: "training_attempts_pkey") @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  user_id               String?
+  user_id               String
   profile_id            String               @db.Uuid
-  exercise_id           String               @db.Uuid
+  exercise_id           String?               @db.Uuid
+  dictation_id          String?              @db.Uuid
   generated_question_id String?              @db.Uuid
   question_type         String
   question_text         String
@@ -91,8 +92,19 @@ model exercices_attempts {
   created_at            DateTime?            @default(now()) @db.Timestamptz(6)
   correct_answer        String?
   choices               String[]
+  correction_user_answer_errors_highlighted String?
+  correction_total_errors          Int?
+  correction_errors_spelling    Int?
+  correction_errors_grammar      Int?
+  correction_errors_conjugation    Int?
+  correction_errors_percentage Int?
+  correction_greeting_message String?
+  correction_errors_by_sentence_json       Json?
+  correction_conclusion_message String?
+  correction_full_json     String?
+  
   generated_questions   generated_questions? @relation(fields: [generated_question_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  exercises             exercises            @relation(fields: [exercise_id], references: [id], onUpdate: NoAction, map: "training_attempts_exercise_id_fkey")
+  exercises             exercises?            @relation(fields: [exercise_id], references: [id], onUpdate: NoAction, map: "training_attempts_exercise_id_fkey")
   profiles              profiles             @relation(fields: [profile_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "training_attempts_profile_id_fkey")
   user                  User?                @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "training_attempts_user_id_fkey")
 

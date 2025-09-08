@@ -1,5 +1,6 @@
 "use client";
 
+import { CurrentProfile } from "@/lib/current-profile";
 import {
   createContext,
   ReactNode,
@@ -8,7 +9,6 @@ import {
   useState,
 } from "react";
 import { toast } from "sonner";
-import { CurrentProfile } from "../../lib/current-profile";
 
 interface ProfileContextType {
   currentProfile: CurrentProfile | null;
@@ -146,6 +146,9 @@ export function ProfileProvider({
         if (data.currentProfile?.first_name) {
           toast.success(`${data.currentProfile.first_name}, à toi de jouer`);
         }
+
+        // Reload the page to refresh data based on new profile
+        window.location.reload();
       } else {
         const errorData = await response.json();
         setError(errorData.error || "Failed to set current profile");

@@ -1,0 +1,20 @@
+{
+  "stats": {
+    "total_fautes": 3,
+    "fautes_orthographe": 3,
+    "fautes_grammaire": 0,
+    "fautes_conjugaison": 0,
+    "pourcentage_mots_bien_orthographies": 50
+  },
+  "message_general": "Super Noa, tu as presque tout bon ! Un petit effort sur l'orthographe et ce sera parfait !",
+  "fautes": [
+    {
+      "sentence_order_number": 0,
+      "texte_eleve": "Le tigre **ait** un **annimal** **ferosse**",
+      "correction": "Le tigre **est** un **animal** **féroce**",
+      "explication": "'Ait' est une mauvaise conjugaison du verbe. 'Annimal' et 'ferosse' sont mal orthographiés.",
+      "regle": "**Verbe être** : *'est' est la bonne forme pour le présent avec 'le tigre'*. **Orthographe** : *'Animal' ne prend qu'un 'n' et 'féroce' s'écrit avec 'é' et 'c'.*"
+    }
+  ],
+  "conclusion_positive": "Continue comme ça, Noa ! Avec un peu plus de pratique, tu deviendrais le roi de la dictée, comme un tigre féroce dans la jungle ! Courage, tu es sur la bonne voie ! 🐾"
+}

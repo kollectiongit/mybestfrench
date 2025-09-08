@@ -1,0 +1,20 @@
+{
+  "stats": {
+    "total_fautes": 4,
+    "fautes_orthographe": 3,
+    "fautes_grammaire": 0,
+    "fautes_conjugaison": 1,
+    "pourcentage_mots_bien_orthographies": 50
+  },
+  "message_general": "Noa, tu as écrit 4 mots incorrects sur un total de 8 mots dans ta dictée. Mais pas de panique, c'est en forgeant qu'on devient forgeron, comme un expert en pâtisserie qui apprend recette par recette !",
+  "fautes": [
+    {
+      "sentence_order_number": 1,
+      "texte_eleve": "Le tigre **ait** un **annimal** **ferosse**",
+      "correction": "Le tigre *est* un *animal* *féroce*",
+      "explication": "- Le mot **ait** ne convient pas ici car il s'agit d'une faute de conjugaison pour le verbe 'être'. On utilise *est* pour indiquer la troisième personne du singulier.\n- **Annimal** est mal orthographié. La bonne orthographe est *animal*.\n- **Ferosse** est mal orthographié. La bonne orthographe est *féroce*.",
+      "regle": "- La **conjugaison du verbe 'être'** à la troisième personne du singulier est *est*, par exemple : *il est*, *elle est*.\n- Pour l'**orthographe des mots**, il faut savoir que certains mots n'ont qu'une seule 'n' ou un accent particulier. Comme *animal* qui n'a qu'un 'n' et *féroce* qui prend un accent aigu sur le 'e'."
+    }
+  ],
+  "conclusion_positive": "Bravo Noa d'avoir essayé ! C'est déjà un super départ. N'oublie pas, chaque erreur est une occasion d'apprendre, un peu comme rater un gâteau la première fois pour en faire un délicieux chez toi. Continue à travailler dur et tu deviendras un champion de l'orthographe, un vrai 'beau gosse des mots' !"
+}

@@ -1,0 +1,20 @@
+{
+  "stats": {
+    "total_fautes": 3,
+    "fautes_orthographe": 2,
+    "fautes_grammaire": 1,
+    "fautes_conjugaison": 0,
+    "pourcentage_mots_bien_orthographies": 33
+  },
+  "message_general": "Noa, tu as fait quelques erreurs et tu as un joli prénom qui commence comme celui de \"Dominique\" de ta dictée. Reprenons ensemble!",
+  "fautes": [
+    {
+      "sentence_order_number": 1,
+      "texte_eleve": "**dominique** **est** **belle**",
+      "correction": "*Dominique* *lave* *la vaisselle*",
+      "explication": "- **dominique** doit commencer par une majuscule car c'est un prénom et un début de phrase. *Dominique* doit avoir une majuscule. \n- **est** ne correspond pas à l'action de la dictée. Ici, il faut utiliser le verbe *lave* pour dire ce que Dominique fait. \n- **belle** est un adjectif qui ne correspond pas au verbe. Ici on attend le complément *la vaisselle* après le verbe *lave*.",
+      "regle": "- **Les prénoms** commencent toujours par une majuscule, par exemple : *Marie*, *Tom*.\n- Quand on parle d'une action comme *laver*, on utilise un verbe qui correspond, par exemple : *Le chat *mange* sa pâtée*.\n- **Les compléments** peuvent être des objets sur lesquels porte l'action, comme *vaisselle*."
+    }
+  ],
+  "conclusion_positive": "Bravo Noa, tu n'hésites pas à te lancer dans les dictées, et c'est super ! Avec un peu plus de concentration, tu vas écrire des phrases aussi claires que de l'eau de roche. Continue comme ça, et à toi bientôt d'écrire de belles histoires, peut-être sur les aventures de Ponyo, Spoon, et Syd ! Allez, champion, tu es sur la bonne voie ! 🏆"
+}

@@ -1,0 +1,55 @@
+{
+  "stats": {
+    "total_fautes": 10,
+    "fautes_orthographe": 5,
+    "fautes_grammaire": 3,
+    "fautes_conjugaison": 2,
+    "pourcentage_mots_bien_orthographies": 69
+  },
+  "message_general": "Bravo Noa, tu t'es vraiment bien débrouillé avec ta dictée ! On va corriger quelques petites erreurs ensemble, et tu seras bientôt un vrai pro de l'orthographe !",
+  "fautes": [
+    {
+      "sentence_order_number": 1,
+      "texte_eleve": "Noa se promène **dan** la **prèri** avec **ces** **ponés**.",
+      "correction": "Noa se promène *dans* la *prairie* avec *ses* *poneys*.",
+      "explication": "- **dan** est incorrect, il manque un 's' pour former le mot *dans*.\n- **prèri** est mal orthographié, le mot correcte est *prairie*.\n- **ces** signifie 'ceux-ci' alors que *ses* signifie 'les siens'.\n- **ponés** est incorrectement orthographié, il faut écrire *poneys*.",
+      "regle": "- **Mots invariables** : Le mot *dans* ne change jamais, il faut toujours l'écrire avec un 's'.\n- **Prairie** : Pour écrire *prairie*, pense à la sonorité - a-i-r-i-e. *Exemple : Marie aime la prairie.*\n- **Ses/Ces** : *Ses* est utilisé pour parler de quelque chose qui appartient à quelqu'un. *Exemple : Il prend ses crayons.* \n- **Poneys** : Le mot s'écrit toujours avec un 'e-y'. *Exemple : Les petits poneys sont adorables.*"
+    },
+    {
+      "sentence_order_number": 2,
+      "texte_eleve": "Il **sarrete** près d’un **gran** **chaine**.",
+      "correction": "Il *s’arrête* près d’un *grand* *chêne*.",
+      "explication": "- **sarrete** doit être écrit *s’arrête* car il manque une apostrophe et des accents.\n- **gran** doit être écrit *grand*, le mot est incomplet.\n- **chaine** doit être écrit *chêne*, il manque un accent circonflexe. ",
+      "regle": "- **Apostrophes et accents** : Quand il y a un 'e' muet, on utilise l'apostrophe et les accents sont essentiels pour la bonne prononciation. *Exemple : L'élève s'arrête.*\n- **Grand** : Le 'd' est toujours là pour *grand*. *Exemple : C'est un grand arbre.*\n- **Chêne** : L'accent circonflexe sur *chêne* est indispensable pour le différencier de *chaine*. *Exemple : Le chêne est un arbre fort.*"
+    },
+    {
+      "sentence_order_number": 3,
+      "texte_eleve": "Max a **levée** la tête pour regarder **lerbe** verte.",
+      "correction": "Max a *levé* la tête pour regarder *l’herbe* verte.",
+      "explication": "- **levée** devrait être *levé* car ici le participe passé ne doit pas s'accorder.\n- **lerbe** a une apostrophe et un 'h' manquants et doit s’écrire *l’herbe*.",
+      "regle": "- **Participe passé** : *Levé* ne change pas car il n'y a pas de COD avant le verbe auxiliaire. *Exemple : Il a levé la main.*\n- **L’herbe** : L'apostrophe remplace le 'e' de 'la' et 'h' est silencieux mais doit être écrit. *Exemple : L’herbe est verte.*"
+    },
+    {
+      "sentence_order_number": 4,
+      "texte_eleve": "Very Good **c’est arrêter** car il **voulai** un peu de **lais**.",
+      "correction": "Very Good *s’est arrêté* car il *voulait* un peu de *lait*.",
+      "explication": "- **c’est arrêter** utilise la mauvaise forme, ce devrait être *s’est arrêté* pour le passé composé.\n- **voulai** est mal conjugué, il doit être *voulait*.\n- **lais** a une erreur d’orthographe, il doit être *lait*.",
+      "regle": "- **Réflexion Passé Composé** : Utilise l'auxiliaire 'être' et accorde le participe si nécessaire. *Exemple : Il s’est arrêté.*\n- **Imparfait** : Verbe à la fin en 'ait' pour *voulait*. *Exemple : Il voulait jouer.*\n- **Lait** : Pense au son, 't' pour le bon mot *lait*. *Exemple : Un verre de lait.*"
+    },
+    {
+      "sentence_order_number": 5,
+      "texte_eleve": "Noa a trouvé une belle **bai** rouge derrière une **piere**.",
+      "correction": "Noa a trouvé une belle *baie* rouge derrière une *pierre*.",
+      "explication": "- **bai** manque un 'e', doit être *baie*.\n- **piere** manque un 'r', doit être *pierre*.",
+      "regle": "- **Baie** : Souviens-toi de l'orthographe pour les fruits. *Exemple : Une baie sucrée.*\n- **Pierre** : Deux 'r' sont nécessaires pour 'pierre'. *Exemple : Une pierre précieuse.*"
+    },
+    {
+      "sentence_order_number": 6,
+      "texte_eleve": "Il a bien **aimer** **cet** petite balade dans la nature.",
+      "correction": "Il a bien *aimé* *cette* petite balade dans la nature.",
+      "explication": "- **aimer** doit être *aimé*, le participe doit être au passé.\n- **cet** doit être *cette*, car le mot qui suit est féminin.",
+      "regle": "- **Participe passé** : *Aimé* reste avec 'é' pour le passé. *Exemple : Il a mangé le gâteau.*\n- **Cette et Cet** : *Cette* pour féminin, *Cet* pour masculin avant une voyelle. *Exemple : Cette fille, Cet arbre.*"
+    }
+  ],
+  "conclusion_positive": "Tu as pris le taureau par les cornes avec cette dictée, Noa ! Un peu comme un chef cuisinier qui corrige la recette jusqu'à obtenir le plat parfait. Continue comme ça et tu deviendras un expert des mots. N'oublie pas que chaque erreur est l'occasion d'apprendre quelque chose de nouveau - alors en avant, champion ! 😊"
+}

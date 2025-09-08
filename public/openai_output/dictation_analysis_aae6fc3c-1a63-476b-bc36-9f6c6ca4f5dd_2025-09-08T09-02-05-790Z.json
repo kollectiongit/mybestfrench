@@ -1,0 +1,20 @@
+{
+  "stats": {
+    "total_fautes": 2,
+    "fautes_orthographe": 2,
+    "fautes_grammaire": 0,
+    "fautes_conjugaison": 0,
+    "pourcentage_mots_bien_orthographies": 60
+  },
+  "message_general": "Noa, tu as fait de bonnes tentatives mais il y a quelques petites erreurs qui se sont glissées dans ta dictée. Voyons cela ensemble !",
+  "fautes": [
+    {
+      "sentence_order_number": 1,
+      "texte_eleve": "**Dominic** lave la **vaissel**",
+      "correction": "*Dominique* lave la *vaisselle*",
+      "explication": "- Le prénom \"Dominique\" doit se terminer par *-ique* et non **-ic**. \n- Le mot **vaissel** est mal orthographié. Il manque un *-le* à la fin pour former le mot *\"vaisselle\"*.",
+      "regle": "- **Les prénoms peuvent avoir des terminaisons spécifiques.** Parfois, il peut y avoir des variantes mais dans la dictée, il faut être exact selon le modèle donné : *Dominique*.\n- **Les noms communs comme \"vaisselle\" doivent être écrits en entier.** Vérifie l'orthographe complète des mots. Par exemple, pour *\"vaisselle\"*, on n'oublie pas les deux \"s\" et le \"e\" à la fin."
+    }
+  ],
+  "conclusion_positive": "Super, Noa ! Continue à t'entraîner comme ça, et bientôt tu corrigeras tes dictées comme un vrai chef pâtissier qui prépare ses gâteaux, avec attention et précision ! Belle progression et n'oublie pas la prochaine fois de bien vérifier chaque mot. Allez, on continue sur cette belle lancée !"
+}

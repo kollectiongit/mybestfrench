@@ -1,0 +1,49 @@
+{
+  "bilan_global": {
+    "total_fautes": 12,
+    "fautes_orthographe": 7,
+    "fautes_grammaire": 3,
+    "fautes_conjugaison": 2,
+    "pourcentage_mots_bien_orthographies": 71.43
+  },
+  "message_general": "Bonjour Noa ! Tu as fait de gros efforts sur ta dictée, bravo ! Nous allons voir ensemble les petites erreurs pour que tu puisses t'améliorer encore plus fort la prochaine fois.",
+  "fautes": [
+    {
+      "texte_noa": "Noa se promène dan la prèri avec ces ponés.",
+      "correction": "Noa se promène dans la prairie avec ses poneys.",
+      "explication": "Il manque un 's' à 'dans', 'prèri' ne s'écrit pas correctement, 'ces' n'est pas le bon mot, et 'ponés' n'est pas bien orthographié.",
+      "regle": "-'Dans' s'écrit avec un 's' car on parle de l'intérieur de quelque chose. -'Prairie' prend un 'e' à la fin et a un 'ai' au milieu. -'Ses' indique que quelque chose appartient à Noa, contrairement à 'ces' qui montre quelque chose de désigné. -'Poneys' prend un 'ey' à la fin."
+    },
+    {
+      "texte_noa": "Il sarrete près d’un gran chaine.",
+      "correction": "Il s’arrête près d’un grand chêne.",
+      "explication": "Il manque des accents et le mot 'gran' n'est pas complet.",
+      "regle": "-'S’arrête' doit s'écrire avec un apostrophe car c'est une contraction de 'se arrête' et le 'ê' pour le son 'è'. -On écrit 'grand' avec un 'd'. -'Chêne' prend un 'ê' et un 'e' à la fin."
+    },
+    {
+      "texte_noa": "Max a levée la tête pour regarder lerbe verte.",
+      "correction": "Max a levé la tête pour regarder l’herbe verte.",
+      "explication": "'Levée' est au féminin alors que ça doit être masculin ici, 'lerbe' est un problème d'apostrophe et d'orthographe.",
+      "regle": "-'Levée' est féminin ; on doit accorder avec Max qui est masculin. -On utilise l'apostrophe dans 'l’herbe' parce que 'herbe' commence par une voyelle."
+    },
+    {
+      "texte_noa": "Very Good c’est arrêter car il voulais un peu de lais.",
+      "correction": "Very Good s’est arrêté car il voulait un peu de lait.",
+      "explication": "Il y a confusion entre 's'est' et 'c'est', 'arrêter' n'est pas au bon temps, 'voulais' n'est pas bien conjugué et 'lais' est mal orthographié.",
+      "regle": "-'S’est' avec un 's' montre qu'il s'agit de lui-même, alors que 'c'est' parle de quelque chose. -'Arrêté' doit être conjugué au participe passé car c'est une action terminée. -'Voulais' doit être 'voulait' à l'imparfait. -'Lait' s'écrit avec un 't' à la fin."
+    },
+    {
+      "texte_noa": "Noa a trouvé une belle bai rouge derrière une piere.",
+      "correction": "Noa a trouvé une belle baie rouge derrière une pierre.",
+      "explication": "'Bai' est mal orthographié et 'piere' est aussi mal écrit.",
+      "regle": "-'Baie' s'écrit avec 'ie' à la fin. -'Pierre' a deux 'r' pour bien former le mot."
+    },
+    {
+      "texte_noa": "Il a bien aimer cet petite balade dans la nature.",
+      "correction": "Il a bien aimé cette petite balade dans la nature.",
+      "explication": "'Aimer' doit être au participe passé et 'cet' n'est pas le bon article.",
+      "regle": "-'Aimé' est le participe passé qui s'accorde dans la même structure verbale de la phrase. -'Cette' est le bon mot car 'balade' est féminin."
+    }
+  ],
+  "conclusion_positive": "Tu as vraiment bien écrit beaucoup de mots ! En continuant à travailler sur les fautes que nous avons relevées ensemble, tu vas devenir un champion de l'écriture. Continue tes efforts, tu es sur la bonne voie ! 😊"
+}

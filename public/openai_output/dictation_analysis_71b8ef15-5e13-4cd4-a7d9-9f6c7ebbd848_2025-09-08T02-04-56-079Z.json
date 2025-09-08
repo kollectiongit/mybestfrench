@@ -1,0 +1,20 @@
+{
+  "stats": {
+    "total_fautes": 3,
+    "fautes_orthographe": 2,
+    "fautes_grammaire": 0,
+    "fautes_conjugaison": 1,
+    "pourcentage_mots_bien_orthographies": 40
+  },
+  "message_general": "Noa, tu as bien essayé, mais il y a quelques erreurs à corriger. Ne t'inquiète pas, on va les comprendre ensemble !",
+  "fautes": [
+    {
+      "sentence_order_number": 1,
+      "texte_eleve": "Le tigre **ait** un **annimal** **ferosse**",
+      "correction": "Le tigre **est** un **animal** **féroce**",
+      "explication": "- **ait** : Erreur de conjugaison. Le verbe correct ici est *est*. \n- **annimal** : Erreur d'orthographe. On devrait écrire *animal*.\n- **ferosse** : Erreur d'orthographe. On devrait écrire *féroce*.",
+      "regle": "- Pour le verbe : **Les verbes au présent doivent être conjugués correctement**. Ici, c'est *être* qui est utilisé pour décrire le tigre (*Le tigre est...\").\n- Pour l'orthographe : **Certains mots ont des orthographes spécifiques qu'il faut mémoriser**. Par exemple, *animal* n'a qu'un seul 'n' et *féroce* commence par 'féroce', pas 'ferosse'. Souviens-toi que mémoriser est comme apprendre une recette de cuisine, il faut le répéter pour le retenir!"
+    }
+  ],
+  "conclusion_positive": "Bravo Noa, même si tu as fait quelques erreurs, c'est en faisant des petits pas qu'on arrive à un grand gâteau bien délicieux ! Continue de t'entraîner, et bientôt, tu écriras aussi facilement que tu fais des gâteaux avec ton papa. Courage et amuse-toi bien avec tes révisions. Tu es un champion en devenir !"
+}

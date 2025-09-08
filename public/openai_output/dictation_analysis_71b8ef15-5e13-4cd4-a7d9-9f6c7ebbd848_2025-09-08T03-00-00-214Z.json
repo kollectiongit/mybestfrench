@@ -1,0 +1,20 @@
+{
+  "stats": {
+    "total_fautes": 3,
+    "fautes_orthographe": 2,
+    "fautes_grammaire": 0,
+    "fautes_conjugaison": 1,
+    "pourcentage_mots_bien_orthographies": 67
+  },
+  "message_general": "Bravo Noa pour tes efforts ! Avec un peu plus d'attention sur l'orthographe et la conjugaison, tu vas faire des progrès rapides.",
+  "fautes": [
+    {
+      "sentence_order_number": 1,
+      "texte_eleve": "Le tigre **ait** un **annimal** **ferosse**",
+      "correction": "Le tigre *est* un *animal* *féroce*",
+      "explication": "- Le mot **ait** est incorrect ici car c'est le verbe avoir conjugué, alors qu'il faut le verbe être.\n- Le mot **annimal** a une lettre 'n' de trop.\n- Le mot **ferosse** n'est pas bien orthographié, le son \"cé\" à la fin s'écrit avec un 'c'.",
+      "regle": "- **Conjugaison du verbe être au présent :** Les verbes être et avoir sont souvent confondus. *Est* est la bonne forme quand on parle de quelque chose comme le fait d'être féroce.\n- **Attention aux lettres doublées :** En français, on n'utilise qu'un seul 'n' dans le mot *animal*.\n- **Orthographe des mots avec le son \"cé\" :** En fin de mot, ce son s'écrit souvent avec un 'c' comme dans *féroce*."
+    }
+  ],
+  "conclusion_positive": "Continue à t'appliquer, Noa ! Ta passion pour les animaux te donne déjà un super sujet pour progresser. Avec ton enthousiasme, je suis sûr que la prochaine fois, tu feras encore moins de fautes. Et qui sait, peut-être pourras-tu même écrire une histoire sur les chats Ponyo, Spoon, et Syd avec plein de mots bien orthographiés ! 🐾"
+}

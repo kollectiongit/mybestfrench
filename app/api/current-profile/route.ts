@@ -1,6 +1,6 @@
+import { auth } from "@/lib/auth";
+import { clearCurrentProfileCookie, getCurrentProfileFromCookie, setCurrentProfileCookie } from "@/lib/profile-cookies";
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "../../../lib/auth";
-import { clearCurrentProfileCookie, getCurrentProfileFromCookie, setCurrentProfileCookie } from "../../../lib/profile-cookies";
 import { PrismaClient } from "../../generated/prisma";
 
 const prisma = new PrismaClient();

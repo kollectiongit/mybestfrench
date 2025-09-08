@@ -1,0 +1,49 @@
+{
+  "bilan_global": {
+    "total_fautes": 12,
+    "fautes_orthographe": 6,
+    "fautes_grammaire": 3,
+    "fautes_conjugaison": 3,
+    "pourcentage_mots_bien_orthographies": 73.33
+  },
+  "message_general": "Bravo Noa ! Tu as fait des efforts et il y a pleins de mots que tu as bien écrits malgré quelques petites erreurs, mais c'est comme ça qu'on apprend !",
+  "fautes": [
+    {
+      "texte_noa": "Noa se promène dan la prèri avec ces ponés.",
+      "correction": "Noa se promène dans la prairie avec ses poneys.",
+      "explication": "\"dan\" manque d'un 's'. \"prèri\" a plusieurs fautes à corriger et \"ponés\" n'est pas bien écrit. \"ces\" devrait être \"ses\" pour indiquer que ce sont les poneys de Noa.",
+      "regle": "- \"Dans\" est une préposition, ainsi on ajoute un 's'. \n- \"Prairie\" doit s'écrire avec un 'a' et un 'e' à la fin. \n- \"Poneys\" prend un 'e' et un 'y' à la fin. \n- \"Ses\" indique l'appartenance tandis que \"ces\" est utilisé pour montrer."
+    },
+    {
+      "texte_noa": "Il sarrete près d’un gran chaine.",
+      "correction": "Il s’arrête près d’un grand chêne.",
+      "explication": "Manque l'apostrophe dans \"s’arrete\", il faut un 'd' à \"grand\", et \"chaine\" doit être écrit avec un 'ê'.",
+      "regle": "- Utilise une apostrophe quand le 'e' de \"se\" disparait devant une voyelle. \n- \"Grand\" s’écrit toujours avec un 'd'. \n- \"Chêne\" prend un accent circonflexe sur le 'ê'."
+    },
+    {
+      "texte_noa": "Max a levée la tête pour regarder lerbe verte.",
+      "correction": "Max a levé la tête pour regarder l’herbe verte.",
+      "explication": "\"Levée\" doit être \"levé\" car ce n'est pas un féminin ici. L'apostrophe avant \"herbe\" est manquante.",
+      "regle": "- Avec avoir, le participe passé ne s’accorde pas avec le sujet, seulement si un complément d’objet direct est avant. \n- L’apostrophe est utilisée ici car \"le\" devient \"l’\" devant une voyelle."
+    },
+    {
+      "texte_noa": "Very Good c’est arrêter car il voulais un peu de lais.",
+      "correction": "Very Good s’est arrêté car il voulait un peu de lait.",
+      "explication": "La forme pronominale \"c'est\" est incorrecte ici. \"Arrêter\" doit s’accorder au masculin singulier. La forme incorrecte \"voulais\" devrait être \"voulait\". \"Lais\" est mal orthographié.",
+      "regle": "- \"S’est\" est pour les verbes réfléchis au passé composé. \n- \"Arrêté\" s’accorde avec \"être\". \n- \"Voulait\" est le verbe vouloir à l’imparfait, troisième personne du singulier. \n- \"Lait\" prend un 't' à la fin."
+    },
+    {
+      "texte_noa": "Noa a trouvé une belle bai rouge derrière une piere.",
+      "correction": "Noa a trouvé une belle baie rouge derrière une pierre.",
+      "explication": "\"Bai\" et \"piere\" sont mal orthographiés, il manque des lettres à la fin.",
+      "regle": "- \"Baie\" s’écrit avec un 'e' à la fin. \n- \"Pierre\" double le 'r' et prend un 'e' à la fin."
+    },
+    {
+      "texte_noa": "Il a bien aimer cet petite balade dans la nature.",
+      "correction": "Il a bien aimé cette petite balade dans la nature.",
+      "explication": "\"Aimer\" doit être au participe passé. \"Cet\" est incorrect car le mot qui suit commence par une consonne.",
+      "regle": "- Le participe passé \"aimé\" s’écrit avec un 'é' avec 'avoir'. \n- \"Cette\" pour un mot féminin singulier comme \"petite\"."
+    }
+  ],
+  "conclusion_positive": "C'est fantastique de te voir progresser ainsi, Noa ! Continue à lire et à écrire, et tes mots seront bientôt aussi parfaits que lorsque tu vis tes aventures avec Very Good ! Keep up the great work ! 🎉"
+}

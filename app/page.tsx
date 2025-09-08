@@ -31,7 +31,7 @@ export default function Home() {
     <div className="h-[calc(100vh-4rem)] flex items-center justify-center relative">
       <BackgroundSnippet />
       <SplashCursor />
-      <div className="w-xl mx-auto text-center px-6 relative z-10">
+      <div className="w-2xl mx-auto text-center px-6 relative z-10">
         <div className="bg-white/60 backdrop-blur-xl border border-white/30 rounded-2xl p-16 shadow-2xl space-y-6">
           <h1 className="text-4xl font-bold text-gray-900">
             👋 Salut {profile?.first_name || ""}
@@ -50,7 +50,7 @@ export default function Home() {
                 className="w-full group cursor-pointer transition-all duration-300 ease-in-out hover:scale-105 hover:text-white hover:bg-gradient-to-r hover:from-purple-500 hover:via-pink-500 hover:to-orange-400"
               >
                 <span className="flex items-center justify-center gap-2">
-                  {profile ? "Commencer" : "Se connecter"}
+                  {profile ? "Commencer" : "Me connecter"}
                   <ArrowRight className="w-4 h-4 transition-transform duration-300 ease-in-out group-hover:translate-x-1" />
                 </span>
               </Button>

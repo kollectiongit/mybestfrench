@@ -1,0 +1,20 @@
+{
+  "stats": {
+    "total_fautes": 3,
+    "fautes_orthographe": 2,
+    "fautes_grammaire": 0,
+    "fautes_conjugaison": 1,
+    "pourcentage_mots_bien_orthographies": 67
+  },
+  "message_general": "Bon travail Noa ! Tu as bien écrit 2 mots sur 3. Il y a quelques petites erreurs à corriger pour la prochaine fois.",
+  "fautes": [
+    {
+      "sentence_order_number": 1,
+      "texte_eleve": "Le tigre **ait** un **annimal** **ferosse**",
+      "correction": "Le tigre **est** un **animal** **féroce**",
+      "explication": "- **ait** est une erreur de conjugaison. La forme correcte pour l'auxiliaire être au présent avec 'il' est *est*.\n- **annimal** est une erreur d'orthographe. On écrit *animal* avec un seul 'n'.\n- **ferosse** est une autre erreur d'orthographe. Le mot correct est *féroce* qui s'écrit avec un 'é' au début et un 'c' à la fin.",
+      "regle": "- Pour le verbe être, **le présent de l'indicatif** s'écrit *je suis, tu es, il/elle/on est*, etc. Par exemple, *Il est un chat.*\n- Pour écrire **animal**, il n'y a qu'un seul 'n'. Par exemple, *J'aime cet animal.*\n- **Féroce** prend un 'é' et se termine par 'ce'. C'est comme si le mot voulait donner un petit coup de griffe ! Par exemple, *Le lion est féroce.*"
+    }
+  ],
+  "conclusion_positive": "Bravo Noa ! Tu as bien écrit 'Le tigre', ce qui est un super début ! C'est en forgeant qu'on devient forgeron, ou en pâtisserant qu'on devient pâtissier, et en lisant qu'on devient champion d'orthographe ! Continue comme ça et tu deviendras un expert des dictées, prêt à écrire des histoires pour Ponyo, Spoon et Syd... et peut-être même un jour écrire une recette secrète pour les gâteaux avec papa ! 🍰🐯"
+}

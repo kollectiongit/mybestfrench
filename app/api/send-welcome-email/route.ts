@@ -1,5 +1,5 @@
-import { sendEmail } from "../../../lib/auth";
-import { WelcomeEmail } from "../../../src/components/email-templates/welcome-email";
+import { WelcomeEmail } from "@/components/email-templates/welcome-email";
+import { sendEmail } from "@/lib/auth";
 
 export async function POST(request: Request) {
   try {

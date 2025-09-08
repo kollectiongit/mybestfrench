@@ -1,0 +1,20 @@
+{
+  "stats": {
+    "total_fautes": 3,
+    "fautes_orthographe": 2,
+    "fautes_grammaire": 0,
+    "fautes_conjugaison": 1,
+    "pourcentage_mots_bien_orthographies": 71
+  },
+  "message_general": "Super travail Noa ! Sur 7 mots, tu en as 5 qui sont corrects. On va regarder d'un peu plus près les petites coquilles pour que tu deviennes encore meilleur !",
+  "fautes": [
+    {
+      "sentence_order_number": 1,
+      "texte_eleve": "Le tigre **ait** un **annimal** **ferosse**.",
+      "correction": "Le tigre *est* un *animal* *féroce*.",
+      "explication": "- Le mot **ait** est incorrect ici car ce n'est pas la bonne conjugaison du verbe 'être'. Il faut utiliser *est* pour désigner une caractéristique.\n- **annimal** a un 'n' en trop. \n- Le mot **ferosse** est mal orthographié ; il faut écrire *féroce*.",
+      "regle": "- **Conjugaison du verbe être au présent :** il s'écrit *est* pour 'Le tigre est'. Les verbes s'accordent en fonction de la personne et du sujet. *Exemple : Je suis, Tu es, Il/Elle est.*\n- **Double consonnes inutiles :** On n'ajoute pas de 'n' supplémentaire à *animal*. La bonne orthographe est *animal*.\n- **Orthographe des adjectifs :** Féroce s'écrit avec 'é' et non 'ero'. La bonne orthographe est *féroce*. Vérifie dans le dictionnaire si tu hésites."
+    }
+  ],
+  "conclusion_positive": "Bravo Noa, tu t'en sors vraiment bien ! Tu es sur le bon chemin pour devenir un as de l'orthographe, et bientôt tu écriras aussi bien que tu fais des gâteaux. N'oublie pas de bien écouter quand on parle des tigres, tu les écriras sans faute ! Continue comme ça, champion ! 😄"
+}

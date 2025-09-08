@@ -1,0 +1,20 @@
+{
+  "stats": {
+    "total_fautes": 4,
+    "fautes_orthographe": 1,
+    "fautes_grammaire": 1,
+    "fautes_conjugaison": 2,
+    "pourcentage_mots_bien_orthographies": 0
+  },
+  "message_general": "Oups, on dirait que tu as un peu mélangé les pinceaux et les mots ! Tu as écrit \"coucou\" au lieu de la phrase demandée. Ça arrive à tout le monde de se tromper, et puis ton \"coucou\" est sympathique et accueillant comme toi, mais malheureusement, ça ne correspond pas du tout à la dictée. Reprenons ensemble pour voir comment corriger ça et progresser !",
+  "fautes": [
+    {
+      "sentence_order_number": 1,
+      "texte_eleve": "**coucou**",
+      "correction": "*Dominique* *lave* *la* *vaisselle*",
+      "explication": "Tu as écrit **coucou**, mais ce n'est pas du tout le même sens que la phrase demandée. Nous avions besoin d'une phrase avec quelqu'un qui fait une action spécifique, ici Dominique qui lave la vaisselle.",
+      "regle": "Pour bien faire les dictées, **écoute attentivement** ou **lis bien la phrase à écrire** avant de te lancer. Assure-toi de comprendre chaque mot. Essaye de toujours visualiser ce que tu écris. Tu pourrais imaginer Dominique en train de *laver la vaisselle* la prochaine fois !"
+    }
+  ],
+  "conclusion_positive": "Ne t'en fais pas, Noa, on a tous des petits moments où l'on se trompe. L'important, c'est de s'amuser avec les mots comme tu t'amuses à jouer à Roblox, et de progresser petit à petit. Allez, la prochaine dictée, on va l'écraser comme un gâteau bien savoureux que tu fais avec ton papa ! Tu es un vrai chef des mots en devenir, continue comme ça !"
+}

@@ -14,10 +14,10 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { authClient } from "@/lib/auth-client";
 import { Contact, GraduationCap, Home } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { authClient } from "../../../lib/auth-client";
 
 // Navigation links array to be used in both desktop and mobile menus
 const navigationLinks = [
