@@ -1,0 +1,20 @@
+{
+  "stats": {
+    "total_fautes": 1,
+    "fautes_orthographe": 1,
+    "fautes_grammaire": 0,
+    "fautes_conjugaison": 0,
+    "pourcentage_mots_bien_orthographies": 0
+  },
+  "message_general": "Coucou Enzo ! Alors, pour cette dictée, on va dire qu'on a eu un petit raté, mais c'est pas grave, on va transformer cette erreur en quelque chose d'amusant à apprendre !",
+  "fautes": [
+    {
+      "sentence_order_number": 1,
+      "texte_eleve": "**coucou**",
+      "correction": "*Avant d'entrer en scène, les danseuses font quelques mouvements d'assouplissement dans les coulisses.*",
+      "explication": "Au lieu de la phrase complète de la dictée, tu as écrit simplement **coucou**. N'oublie pas qu'une dictée demande de retranscrire plus que ça, comme un message assez long à recopier correctement.",
+      "regle": "**Il est important de recopier intégralement la phrase dictée.** La dictée vise à te permettre de t'entraîner à l'orthographe, à la grammaire et à la conjugaison en recréant ce que tu as entendu. Ça aide aussi à améliorer ta mémoire et ta compréhension du langage !"
+    }
+  ],
+  "conclusion_positive": "Ne t'inquiète pas Enzo, même les plus grands champions ont parfois des départs hésitants ! Ce n'est qu'un petit faux pas, mais je suis sûr qu'avec ton charme de beau gosse et ta détermination, tu vas rebondir et nous écrire une super copie la prochaine fois. Continue sur ta lancée et prends ça comme une drôle d'aventure d'apprentissage ! 🌟"
+}

@@ -2,10 +2,8 @@ import { createClient } from "@supabase/supabase-js";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_SERVICE_KEY!;
-const supabaseServiceKey =
-  process.env.NEXT_PUBLIC_SUPABASE_SERVICE_KEY || supabaseAnonKey;
-const supabase = createClient(supabaseUrl, supabaseServiceKey);
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 interface UseImageUploadProps {
   onUpload?: (url: string) => void;
@@ -65,27 +63,7 @@ export function useImageUpload({
         // Upload to Supabase
         const uniqueFileName = generateUniqueFileName(file.name);
 
-        // Ensure bucket exists
-        const { data: buckets } = await supabase.storage.listBuckets();
-        const bucketExists = buckets?.some((b) => b.name === bucket);
-
-        if (!bucketExists) {
-          const { error: createError } = await supabase.storage.createBucket(
-            bucket,
-            {
-              public: true,
-              allowedMimeTypes: ["image/jpeg", "image/jpg", "image/png"],
-              fileSizeLimit: 5242880, // 5MB
-            }
-          );
-
-          if (createError) {
-            console.error("Bucket creation error:", createError);
-            alert("Erreur lors de la création du bucket de stockage");
-            setUploading(false);
-            return;
-          }
-        }
+        // Bucket must exist server-side; do not create buckets from the client
 
         const { error } = await supabase.storage
           .from(bucket)
