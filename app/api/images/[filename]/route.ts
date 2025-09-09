@@ -1,9 +1,5 @@
-import { createClient } from "@supabase/supabase-js";
+import { createSupabaseServerClient } from "@/lib/supabase-server";
 import { NextRequest, NextResponse } from "next/server";
-
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseSecretKey = process.env.SUPABASE_SECRET_KEY!;
-const supabase = createClient(supabaseUrl, supabaseSecretKey);
 
 export async function GET(
   request: NextRequest,
@@ -17,6 +13,7 @@ export async function GET(
     }
 
     // Download the file from Supabase storage
+    const supabase = createSupabaseServerClient();
     const { data, error } = await supabase.storage
       .from("images")
       .download(filename);

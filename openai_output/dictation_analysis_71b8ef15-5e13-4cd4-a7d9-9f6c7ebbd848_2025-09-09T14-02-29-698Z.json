@@ -1,0 +1,20 @@
+{
+  "stats": {
+    "total_fautes": 1,
+    "fautes_orthographe": 1,
+    "fautes_grammaire": 0,
+    "fautes_conjugaison": 0,
+    "pourcentage_mots_bien_orthographies": 80
+  },
+  "message_general": "Bravo Noa ! Tu as très bien écrit la majorité des mots de ta dictée. Il n'y a qu'une petite faute à corriger, mais tu es sur la bonne voie. Continue comme ça !",
+  "fautes": [
+    {
+      "sentence_order_number": 1,
+      "texte_eleve": "Le tigre est un animal **feroce**",
+      "correction": "Le tigre est un animal *féroce*",
+      "explication": "Le mot **feroce** est incorrect car il manque l'accent aigu sur le 'e'.",
+      "regle": "**Les accents aigus** doivent être utilisés sur certaines voyelles pour donner le bon son. Par exemple, on écrit *féroce* avec un accent aigu sur le 'e', tout comme on écrit *éléphant*."
+    }
+  ],
+  "conclusion_positive": "Continue à bien écouter et pratiquer, Noa ! Avec ton enthousiasme et ton sérieux, tu vas devenir un as de l'orthographe en un rien de temps. N'oublie pas que chaque petite erreur te permet d'apprendre et de t'améliorer, tout comme quand tu apprends à faire de délicieux gâteaux avec ton papa. N'oublie pas de me raconter d'autres blagues la prochaine fois que tu me vois, gros beau gosse ! 😄"
+}

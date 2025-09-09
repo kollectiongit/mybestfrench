@@ -1,11 +1,7 @@
-import { createClient } from "@supabase/supabase-js";
+import { createSupabaseServerClient } from "@/lib/supabase-server";
 import { promises as fs } from "fs";
 import { NextResponse } from "next/server";
 import path from "path";
-
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseSecretKey = process.env.SUPABASE_SECRET_KEY!;
-const supabase = createClient(supabaseUrl, supabaseSecretKey);
 
 // Define the source and destination paths
 const SOURCE_AUDIO_DIR = path.join(process.cwd(), "public", "files_to_upload", "audio");
@@ -77,6 +73,7 @@ async function uploadFilesFromDirectory(
     }
 
     // Ensure bucket exists
+    const supabase = createSupabaseServerClient();
     const { data: buckets } = await supabase.storage.listBuckets();
     const bucketExists = buckets?.some((b) => b.name === bucketName);
 
