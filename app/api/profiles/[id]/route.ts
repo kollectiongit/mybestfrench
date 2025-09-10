@@ -22,6 +22,15 @@ export async function PUT(
     const body = await request.json();
     const { first_name, last_name, avatar_url, age, description } = body;
 
+    console.log("Profile update API: Received data:", {
+      id,
+      first_name,
+      last_name,
+      avatar_url,
+      age,
+      description
+    });
+
     // Validate required fields
     if (!first_name) {
       return NextResponse.json(

@@ -124,6 +124,10 @@ export default function ProfilesPageClient() {
       description: profile.description || "",
     });
     setAvatarFilename(profile.avatar_url || "");
+    console.log(
+      "Frontend: Setting avatar filename to:",
+      profile.avatar_url || ""
+    );
     const initialLevelIds =
       profile.profile_levels?.map((pl: ProfileLevel) => pl.level_id) || [];
     setSelectedLevelIds(initialLevelIds);
@@ -134,10 +138,13 @@ export default function ProfilesPageClient() {
     e.preventDefault();
     if (!editingProfile) return;
     try {
+      const updateData = { ...formData, avatar_url: avatarFilename };
+      console.log("Frontend: Updating profile with data:", updateData);
+
       const response = await fetch(`/api/profiles/${editingProfile.id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...formData, avatar_url: avatarFilename }),
+        body: JSON.stringify(updateData),
       });
       if (response.ok) {
         const updatedProfile = await response.json();

@@ -65,6 +65,10 @@ export function useImageUpload({
 
         const result = await response.json();
 
+        console.log(
+          "Image upload hook: Upload successful, calling onUpload with:",
+          result.filename
+        );
         setUploadedUrl(result.publicUrl);
         setUploadedFilename(result.filename);
         onUpload?.(result.filename); // Pass only the filename, not the full URL
