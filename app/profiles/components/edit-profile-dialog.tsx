@@ -29,6 +29,8 @@ export default function EditProfileDialog({
   onSubmit,
   avatarFilename,
   setAvatarFilename,
+  onUploadStateChange,
+  isUploading,
   editingProfile,
   onDelete,
   setSelectedLevelIds,
@@ -42,6 +44,8 @@ export default function EditProfileDialog({
   onSubmit: (e: React.FormEvent) => void;
   avatarFilename: string;
   setAvatarFilename: (v: string) => void;
+  onUploadStateChange: (isUploading: boolean) => void;
+  isUploading: boolean;
   editingProfile: CurrentProfile | null;
   onDelete: () => void;
   setSelectedLevelIds: (v: number[]) => void;
@@ -98,6 +102,7 @@ export default function EditProfileDialog({
           <div className="space-y-2">
             <ImageUpload
               onUpload={setAvatarFilename}
+              onUploadStateChange={onUploadStateChange}
               initialFilename={avatarFilename}
             />
           </div>
@@ -125,7 +130,9 @@ export default function EditProfileDialog({
               >
                 Annuler
               </Button>
-              <Button type="submit">Mettre à jour</Button>
+              <Button type="submit" disabled={isUploading}>
+                {isUploading ? "Mise à jour en cours..." : "Mettre à jour"}
+              </Button>
             </div>
           </div>
         </form>

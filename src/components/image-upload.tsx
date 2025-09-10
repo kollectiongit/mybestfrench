@@ -4,14 +4,19 @@ import { useImageUpload } from "@/hooks/use-image-upload";
 import { cn } from "@/lib/utils";
 import { ImagePlus, Trash2, Upload } from "lucide-react";
 import Image from "next/image";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 interface ImageUploadProps {
   onUpload: (filename: string) => void;
+  onUploadStateChange?: (isUploading: boolean) => void;
   initialFilename?: string;
 }
 
-export function ImageUpload({ onUpload, initialFilename }: ImageUploadProps) {
+export function ImageUpload({
+  onUpload,
+  onUploadStateChange,
+  initialFilename,
+}: ImageUploadProps) {
   const {
     previewUrl,
     uploadedUrl,
@@ -26,6 +31,11 @@ export function ImageUpload({ onUpload, initialFilename }: ImageUploadProps) {
   });
 
   const [isDragging, setIsDragging] = useState(false);
+
+  // Notify parent of upload state changes
+  useEffect(() => {
+    onUploadStateChange?.(uploading);
+  }, [uploading, onUploadStateChange]);
 
   // Generate public URL from filename
   const getPublicUrl = (filename: string) => {

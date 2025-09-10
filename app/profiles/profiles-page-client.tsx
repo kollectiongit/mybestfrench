@@ -39,6 +39,7 @@ export default function ProfilesPageClient() {
     description: "",
   });
   const [avatarFilename, setAvatarFilename] = useState<string>("");
+  const [isUploading, setIsUploading] = useState(false);
   const [selectedLevelIds, setSelectedLevelIds] = useState<number[]>([]);
 
   useEffect(() => {
@@ -137,6 +138,18 @@ export default function ProfilesPageClient() {
   const handleUpdateProfile = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingProfile) return;
+
+    // If currently uploading, wait for it to complete
+    if (isUploading) {
+      console.log("Frontend: Waiting for image upload to complete...");
+      // Wait for upload to complete (poll every 100ms for up to 10 seconds)
+      let attempts = 0;
+      while (isUploading && attempts < 100) {
+        await new Promise((resolve) => setTimeout(resolve, 100));
+        attempts++;
+      }
+    }
+
     try {
       const updateData = { ...formData, avatar_url: avatarFilename };
       console.log("Frontend: Updating profile with data:", updateData);
@@ -264,6 +277,8 @@ export default function ProfilesPageClient() {
         onSubmit={handleUpdateProfile}
         avatarFilename={avatarFilename}
         setAvatarFilename={setAvatarFilename}
+        onUploadStateChange={setIsUploading}
+        isUploading={isUploading}
         editingProfile={editingProfile}
         onDelete={() => {
           setIsEditDialogOpen(false);
