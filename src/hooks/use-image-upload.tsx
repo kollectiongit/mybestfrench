@@ -1,7 +1,4 @@
-import { createSupabaseClient } from "@/lib/supabase-client";
 import { useCallback, useEffect, useRef, useState } from "react";
-
-const supabase = createSupabaseClient();
 
 interface UseImageUploadProps {
   onUpload?: (url: string) => void;
@@ -19,13 +16,6 @@ export function useImageUpload({
   const [uploading, setUploading] = useState(false);
   const [uploadedUrl, setUploadedUrl] = useState<string | null>(null);
   const [uploadedFilename, setUploadedFilename] = useState<string | null>(null);
-
-  const generateUniqueFileName = (originalName: string): string => {
-    const timestamp = Date.now();
-    const randomString = Math.random().toString(36).substring(2, 15);
-    const extension = originalName.split(".").pop();
-    return `profile_${timestamp}_${randomString}.${extension}`;
-  };
 
   const handleThumbnailClick = useCallback(() => {
     fileInputRef.current?.click();
@@ -58,34 +48,26 @@ export function useImageUpload({
         setPreviewUrl(url);
         previewRef.current = url;
 
-        // Upload to Supabase
-        const uniqueFileName = generateUniqueFileName(file.name);
+        // Upload via API route (server-side authentication)
+        const formData = new FormData();
+        formData.append("file", file);
+        formData.append("bucket", bucket);
 
-        // Bucket must exist server-side; do not create buckets from the client
+        const response = await fetch("/api/upload-image", {
+          method: "POST",
+          body: formData,
+        });
 
-        const { error } = await supabase.storage
-          .from(bucket)
-          .upload(uniqueFileName, file, {
-            cacheControl: "3600",
-            upsert: false,
-          });
-
-        if (error) {
-          console.error("Upload error:", error);
-          alert("Erreur lors de l'upload du fichier");
-          setUploading(false);
-          return;
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || "Upload failed");
         }
 
-        // Get public URL
-        const { data: publicData } = supabase.storage
-          .from(bucket)
-          .getPublicUrl(uniqueFileName);
+        const result = await response.json();
 
-        const publicUrl = publicData.publicUrl;
-        setUploadedUrl(publicUrl);
-        setUploadedFilename(uniqueFileName);
-        onUpload?.(uniqueFileName); // Pass only the filename, not the full URL
+        setUploadedUrl(result.publicUrl);
+        setUploadedFilename(result.filename);
+        onUpload?.(result.filename); // Pass only the filename, not the full URL
       } catch (error) {
         console.error("Upload error:", error);
         alert("Erreur lors de l'upload du fichier");
@@ -100,7 +82,20 @@ export function useImageUpload({
     // Delete from Supabase if uploaded
     if (uploadedFilename) {
       try {
-        await supabase.storage.from(bucket).remove([uploadedFilename]);
+        const response = await fetch("/api/delete-image", {
+          method: "DELETE",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            filename: uploadedFilename,
+            bucket: bucket,
+          }),
+        });
+
+        if (!response.ok) {
+          console.error("Error deleting file from server");
+        }
       } catch (error) {
         console.error("Error deleting file:", error);
       }

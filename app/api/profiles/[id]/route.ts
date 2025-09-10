@@ -109,8 +109,9 @@ export async function DELETE(
     // Delete associated avatar file from Supabase if exists
     if (existingProfile.avatar_url) {
       try {
-        const { createSupabaseServerClient } = await import("@/lib/supabase-server");
-        const supabase = createSupabaseServerClient();
+        const { createClient } = await import("@/utils/supabase/server");
+        const { cookies } = await import("next/headers");
+        const supabase = await createClient(await cookies());
         
         await supabase.storage.from("avatars").remove([existingProfile.avatar_url]);
       } catch (error) {

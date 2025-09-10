@@ -1,5 +1,6 @@
-import { createSupabaseServerClient } from "@/lib/supabase-server";
+import { createClient } from "@/utils/supabase/server";
 import { promises as fs } from "fs";
+import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import path from "path";
 
@@ -73,9 +74,9 @@ async function uploadFilesFromDirectory(
     }
 
     // Ensure bucket exists
-    const supabase = createSupabaseServerClient();
+    const supabase = await createClient(await cookies());
     const { data: buckets } = await supabase.storage.listBuckets();
-    const bucketExists = buckets?.some((b) => b.name === bucketName);
+    const bucketExists = buckets?.some((b: { name: string }) => b.name === bucketName);
 
     if (!bucketExists) {
       const { error: createError } = await supabase.storage.createBucket(

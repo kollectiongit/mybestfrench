@@ -1,4 +1,5 @@
-import { createSupabaseServerClient } from "@/lib/supabase-server";
+import { createClient } from "@/utils/supabase/server";
+import { cookies } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(
@@ -13,7 +14,7 @@ export async function GET(
     }
 
     // Download the file from Supabase storage
-    const supabase = createSupabaseServerClient();
+    const supabase = await createClient(await cookies());
     const { data, error } = await supabase.storage
       .from("avatars")
       .download(filename);

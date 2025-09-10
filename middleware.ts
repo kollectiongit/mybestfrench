@@ -1,8 +1,10 @@
 import { getSessionCookie } from "better-auth/cookies";
 import { NextRequest, NextResponse } from "next/server";
 import { getCurrentProfileFromCookie } from "./src/lib/profile-cookies";
+import { createClient } from "./src/utils/supabase/middleware";
 
 export async function middleware(request: NextRequest) {
+  const { response } = createClient(request);
   const sessionCookie = getSessionCookie(request);
   
   // If user is authenticated and trying to access auth pages, redirect to dashboard
@@ -38,7 +40,6 @@ export async function middleware(request: NextRequest) {
   // For authenticated users, add current profile ID to headers for SSR access
   if (sessionCookie) {
     const currentProfileId = await getCurrentProfileFromCookie(request);
-    const response = NextResponse.next();
     
     // Add current profile ID to request headers so it's available in SSR
     if (currentProfileId) {
@@ -48,7 +49,7 @@ export async function middleware(request: NextRequest) {
     return response;
   }
   
-  return NextResponse.next();
+  return response;
 }
 
 export const config = {

@@ -1,11 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
 
-/**
- * Creates a Supabase client for client-side operations
- * Uses different keys based on environment:
- * - Production: NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY + NEXT_PUBLIC_SUPABASE_URL
- * - Local: NEXT_PUBLIC_SUPABASE_ANON_KEY + NEXT_PUBLIC_SUPABASE_URL
- */
+
 export function createSupabaseClient() {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   
@@ -19,9 +14,9 @@ export function createSupabaseClient() {
   let supabaseKey: string;
   
   if (isProduction) {
-    supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!;
+    supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY!;
     if (!supabaseKey) {
-      throw new Error("NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY is not defined in production");
+      throw new Error("NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY is not defined in production");
     }
   } else {
     supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_SERVICE_KEY!;
