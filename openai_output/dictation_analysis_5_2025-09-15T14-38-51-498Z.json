@@ -1,0 +1,20 @@
+{
+  "stats": {
+    "total_fautes": 6,
+    "fautes_orthographe": 3,
+    "fautes_grammaire": 2,
+    "fautes_conjugaison": 1,
+    "pourcentage_mots_bien_orthographies": 0
+  },
+  "message_general": "Noa, tu as écrit « coucou » (trop mignon, on dirait Ponyo qui passe dire bonjour), mais la dictée était « Tu comptes les points. ». On va revoir ensemble comment écrire exactement la phrase entendue, avec majuscule, verbe et point final. Tu vas voir, c’est comme compter des gâteaux: un, deux, trois… facile !",
+  "fautes": [
+    {
+      "sentence_order_number": 1,
+      "texte_eleve": "**coucou**",
+      "correction": "*Tu* *comptes* *les* *points*.",
+      "explication": "- Le mot **coucou** ne reprend pas les mots dictés. Il fallait commencer par *Tu*.\n- Il manque le verbe: on attendait *comptes* (verbe compter avec tu).\n- Il manque l'article: *les*.\n- Il manque le nom: *points* (au pluriel, avec un s).\n- Pas de majuscule au début de la phrase.\n- Pas de point à la fin de la phrase.",
+      "regle": "- **On écrit exactement la phrase dictée, mot par mot.** Exemple: *Tu comptes les points.*\n- **Une phrase commence par une majuscule et finit par un point.** Exemples: *Tu joues.* ; *Les chats dorment.*\n- **La phrase simple = sujet + verbe + complément.** Exemple: *Tu comptes les points.*\n- **Le verbe s'accorde avec le sujet.** Avec tu, on écrit: *tu comptes*, *tu manges*, *tu joues*.\n- **Le nom au pluriel prend souvent un s et on met l'article qui convient.** Exemples: *les points*, *les gâteaux*, *les poneys*. "
+    }
+  ],
+  "conclusion_positive": "Bravo Noa d’avoir joué le jeu ! La prochaine fois, on capte la phrase comme un pro de Rivals, et on la recopie mot pour mot: majuscule, verbe, petit point à la fin. Tu es un gros beau gosse de l’orthographe en devenir: avec deux ou trois entraînements, tu vas compter les points plus vite que Very Good au galop. Allez, on repart, et après on fête ça avec un bon gâteau (et une caresse à Spoon, Ponyo et Syd) !"
+}

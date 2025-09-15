@@ -1,0 +1,20 @@
+{
+  "stats": {
+    "total_fautes": 1,
+    "fautes_orthographe": 1,
+    "fautes_grammaire": 0,
+    "fautes_conjugaison": 0,
+    "pourcentage_mots_bien_orthographies": 95
+  },
+  "message_general": "Bravo Noa ! Presque tous tes mots sont bien orthographiés, tu progresses très vite. Seulement une petite faute à corriger et c'est parfait !",
+  "fautes": [
+    {
+      "sentence_order_number": 1,
+      "texte_eleve": "Tu comptes les **point**.",
+      "correction": "Tu comptes les *points*.",
+      "explication": "Le mot **point** est au singulier alors qu'il devrait être au pluriel ici, car le verbe **comptes** suggère un dénombrement de plusieurs éléments.",
+      "regle": "**Quand on parle de plusieurs choses, on met les mots au pluriel.** En général, on ajoute un -s à la fin du mot pour le mettre au pluriel. Par exemple, on a une *pomme*, mais des *pommes*."
+    }
+  ],
+  "conclusion_positive": "Continue comme ça, Noa ! Avec un peu de pratique, tu pourrais être aussi fort en orthographe qu'un chef pâtissier l'est pour ses recettes de gâteaux. Tu es sur la bonne voie pour devenir un vrai champion des mots (et des gâteaux) ! 😄"
+}

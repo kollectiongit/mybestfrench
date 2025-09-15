@@ -53,7 +53,7 @@ export async function POST(request: NextRequest) {
 
     const body = await request.json();
     const { 
-      dictationId, 
+      dictationId: incomingDictationId, 
       studentText, 
       originalText, 
       profileAge, 
@@ -62,7 +62,9 @@ export async function POST(request: NextRequest) {
       profileLevels 
     } = body;
 
-    if (!dictationId || !studentText || !originalText || !profileAge) {
+    const dictationId = Number(incomingDictationId);
+
+    if (!incomingDictationId || Number.isNaN(dictationId) || !studentText || !originalText || !profileAge) {
       return NextResponse.json(
         { error: "Missing required fields" },
         { status: 400 }
@@ -89,32 +91,37 @@ Ton rôle est d'aider ton élève à progresser en orthographe, grammaire et con
 - Niveaux : ${profileLevels || 'CE1 à CM2'}
 - Présentation : ${profileDescription || 'Élève motivé et curieux'}
 
-# Dictée correcte
-${originalText}
 
-# Copie de l'élève
-${studentText}
 
-# Tâches
-1. Donne un **bilan global** :
-   - Nombre total de fautes  
-   - Répartition : fautes d'orthographe / de grammaire / de conjugaison  
-   - % de mots bien orthographiés  
-
-2. Analyse **chaque faute** en regroupant par phrase :
-   - a. Ce que ${profileFirstName || 'ton élève'} a écrit  
-   - b. La bonne correction  
-   - c. Pourquoi c'est une faute  
-   - d. La règle expliquée simplement  
-
-3. Termine par une **conclusion encourageante** pour motiver ${profileFirstName || 'ton élève'}.
 
 `;
 
-    const userPrompt = `Analyse cette dictée selon les instructions données et réponds en JSON avec la structure exacte demandée.`;
+    const userPrompt = `# Dictée donnée à l'élève (réponse correcte)
+    ${originalText}
+
+    # Copie de l'élève
+    ${studentText}
+
+    # Tâches
+    1. Analyse la copie de l'élève et la compare à la dictée correcte.
+
+    2. Donne un **bilan global** :
+      - Nombre total de fautes  
+      - Répartition : fautes d'orthographe / de grammaire / de conjugaison  
+      - % de mots bien orthographiés  
+
+    3. Analyse **chaque faute** en regroupant par phrase :
+      - a. Ce que ${profileFirstName || 'ton élève'} a écrit  
+      - b. La bonne correction  
+      - c. Pourquoi c'est une faute  
+      - d. La règle expliquée simplement  
+
+    4. Termine par une **conclusion encourageante** pour motiver ${profileFirstName || 'ton élève'}.
+    
+    Analyse cette dictée selon les instructions données et réponds en JSON avec la structure exacte demandée.`;
 
     const response = await client.chat.completions.create({
-      model: "gpt-4o",
+      model: "gpt-5",
       messages: [
         { role: "system", content: systemPrompt },
         { role: "user", content: userPrompt },

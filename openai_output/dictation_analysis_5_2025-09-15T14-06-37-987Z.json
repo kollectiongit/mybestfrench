@@ -1,0 +1,48 @@
+{
+  "stats": {
+    "total_fautes": 5,
+    "fautes_orthographe": 3,
+    "fautes_grammaire": 1,
+    "fautes_conjugaison": 1,
+    "pourcentage_mots_bien_orthographies": 85
+  },
+  "message_general": "Pas mal du tout Noa ! Tu es sur la bonne voie avec seulement quelques petites erreurs à corriger. Continue à t'appliquer et à faire attention aux détails !",
+  "fautes": [
+    {
+      "sentence_order_number": 1,
+      "texte_eleve": "Le **chats** de **tonton** Floflo **mange** des croquettes.",
+      "correction": "Les *chats* de *Tonton* Floflo *mangent* des croquettes.",
+      "explication": "- **chats** doit être au pluriel car il y a plus d'un chat (Ponyo et Spoon). - **tonton** doit s'écrire avec une majuscule car c'est un nom de personne. - **mange** doit être au pluriel (troisième personne du pluriel) car il y a plusieurs chats.",
+      "regle": "- **Les noms en français s'accordent en nombre.** Donc si on parle de plusieurs chats, on ajoute un *s* à la fin : *chats*. - **Les noms de personnes et de titres s'écrivent avec une majuscule.** Par exemple, *Tonton*, *Tata*, *Papa*. - **Le verbe doit s'accorder avec le sujet.** Quand le sujet est pluriel comme *les chats*, le verbe doit aussi être pluriel, donc *mangent*."
+    },
+    {
+      "sentence_order_number": 2,
+      "texte_eleve": "**Ponyo et Spoon* est trop mignons.",
+      "correction": "*Ponyo et Spoon* *sont* trop mignons.",
+      "explication": "- **est** doit être conjugué au pluriel car Ponyo et Spoon sont deux chats, donc on utilise *sont*.",
+      "regle": "- **Le verbe être doit correspondre au nombre du sujet.** Si le sujet est pluriel, comme *Ponyo et Spoon*, alors on utilise *sont* au lieu de *est*."
+    },
+    {
+      "sentence_order_number": 3,
+      "texte_eleve": "Syd le chat de **Tata** Tchoopy **joue** avec une balle.",
+      "correction": "Syd le chat de *Tata* Tchoopy *joue* avec une balle.",
+      "explication": "Pas d'erreur ici, tout est correct ! Bravo Noa !",
+      "regle": "**Révision** : Quand tout est correct, on continue à s'entraîner pour maintenir ce super niveau !"
+    },
+    {
+      "sentence_order_number": 4,
+      "texte_eleve": "Max et Very good **cour** dans le jardin.",
+      "correction": "Max et Very good *courent* dans le jardin.",
+      "explication": "- **cour** doit être conjugué au pluriel car Max et Very good sont deux, donc on utilise *courent*.",
+      "regle": "- **Les verbes doivent s'accorder avec leur sujet en nombre.** Comme Max et Very good sont deux poneys, le verbe doit être *courent*."
+    },
+    {
+      "sentence_order_number": 5,
+      "texte_eleve": "Il **fais** beau aujourd'hui.",
+      "correction": "Il *fait* beau aujourd'hui.",
+      "explication": "- **fais** est mal conjugué avec *il*. On utilise *fait* à la troisième personne du singulier.",
+      "regle": "- **Les verbes doivent être correctement conjugués avec leur sujet.** Pour *il*, on utilise *fait* : *Il fait beau*."
+    }
+  ],
+  "conclusion_positive": "Bravo Noa, tu progresses vraiment bien en orthographe et en grammaire ! Tu as juste quelques petites corrections à faire, mais tu es sur la bonne voie ! Continue comme ça et tu deviendras un véritable pro des mots. Et n'oublie pas de te récompenser avec un bon gâteau ou un jeu avec tes chats préférés Ponyo et Spoon !"
+}

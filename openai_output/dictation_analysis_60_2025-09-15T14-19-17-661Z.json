@@ -1,0 +1,20 @@
+{
+  "stats": {
+    "total_fautes": 1,
+    "fautes_orthographe": 1,
+    "fautes_grammaire": 0,
+    "fautes_conjugaison": 0,
+    "pourcentage_mots_bien_orthographies": 50
+  },
+  "message_general": "Il y a juste une petite faute d'orthographe à rectifier. C'est presque parfait, Noa !",
+  "fautes": [
+    {
+      "sentence_order_number": 1,
+      "texte_eleve": "**salut** toi",
+      "correction": "*Salut* toi",
+      "explication": "Le mot **salut** devrait commencer par une majuscule parce que c'est le début d'une phrase.",
+      "regle": "**La règle des majuscules au début d'une phrase** : En français, chaque phrase commence par une majuscule. Par exemple, *Bonjour monsieur*, *Comment ça va ?* C'est comme ouvrir un cadeau, il faut toujours commencer avec une majuscule pour bien débuter la phrase."
+    }
+  ],
+  "conclusion_positive": "Bravo, Noa ! Même si tu as fait une petite faute, tu t'es super bien débrouillé. Continue comme ça, tu progresses et bientôt les dictées n'auront plus aucun secret pour toi. J'espère qu'on pourra bientôt ajouter tes phrases à un livre de recettes pour les super gâteaux que tu vas faire !"
+}

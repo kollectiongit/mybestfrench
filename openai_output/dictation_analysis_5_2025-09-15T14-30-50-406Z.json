@@ -1,0 +1,12 @@
+{
+  "stats": {
+    "total_fautes": 0,
+    "fautes_orthographe": 0,
+    "fautes_grammaire": 0,
+    "fautes_conjugaison": 0,
+    "pourcentage_mots_bien_orthographies": 100
+  },
+  "message_general": "Félicitations Noa ! Tu as parfaitement écrit le mot 'coucou'.",
+  "fautes": [],
+  "conclusion_positive": "Bravo Noa ! Aucun chat, ni poney, ne saurait dire \"coucou\" mieux que toi ! Continue sur cette lancée et avec un peu de pratique, tu deviendras un vrai champion en orthographe. Peut-être qu'un jour, tu écriras des recettes de gâteaux que tu pourras partager avec toute ta famille. Continue à t'amuser en apprenant et souviens-toi que même les plus grands écrivains ont commencé par de petits mots comme celui-ci. 🐱🎂"
+}

@@ -1,0 +1,34 @@
+{
+  "stats": {
+    "total_fautes": 5,
+    "fautes_orthographe": 3,
+    "fautes_grammaire": 1,
+    "fautes_conjugaison": 1,
+    "pourcentage_mots_bien_orthographies": 80
+  },
+  "message_general": "Bravo Noa ! Tu as réussi à écrire 80% des mots correctement, c'est un bon début. Il y a quelques petites erreurs à corriger, mais avec un peu de pratique, tu vas vite progresser.",
+  "fautes": [
+    {
+      "sentence_order_number": 1,
+      "texte_eleve": "Les **chats** de tonton Floflo, **pend** et **Spoone**, et de tata Tchoupi, **Syde**, sont magnifiques.",
+      "correction": "Les *chats* de tonton Floflo, *Ponyo* et *Spoon*, et de tata Tchoopy, *Syd*, sont magnifiques.",
+      "explication": "- **chats** devait être singulier ici car il s'agit de *Ponyo* et *Spoon*, donc c'est singulier pour chaque phrase.\n- **pend**, **Spoone** et **Syde** ont été mal orthographiés. Les noms propres doivent être respectés dans leur orthographe exacte.",
+      "regle": "**L'orthographe des noms propres est invariable**. Attention aux noms propres comme *Ponyo* et *Spoon*. **Les noms propres ne changent pas quelle que soit leur position dans la phrase**. Par exemple, *Jean* reste toujours *Jean* et ne devient pas *Jeanne*."
+    },
+    {
+      "sentence_order_number": 2,
+      "texte_eleve": "Noa **jeux** souvent avec Enzo a **Rivales** sur Roblox.",
+      "correction": "Noa *joue* souvent avec Enzo à *Rivals* sur Roblox.",
+      "explication": "- **jeux** est incorrect pour parler de l'action de jouer. Le verbe 'jouer' doit être à la forme conjugée *joue* pour Noa.\n- **Rivales** est mal orthographié : le nom du jeu est *Rivals*.",
+      "regle": "**Les verbes doivent être correctement conjugués selon le sujet et le temps**. Pour Noa, un verbe au présent se termine souvent par 'e', comme dans *joue*."
+    },
+    {
+      "sentence_order_number": 3,
+      "texte_eleve": "J'aime bien les gateaux avec beaucoup de **sucree**.",
+      "correction": "J'aime bien les gâteaux avec beaucoup de *sucre*.",
+      "explication": "- **sucree** est incorrect parce que le mot 'sucre' est un nom masculin singulier et ne prend pas de 'e' final ici.",
+      "regle": "**Les noms masculins singuliers ne prennent pas de 'e' final** quand ils se terminent par un son [e]. Par exemple, on écrit *café* et non *caféé*."
+    }
+  ],
+  "conclusion_positive": "Tu te débrouilles très bien, Noa, et je suis sûr que les chats de tonton Floflo et tata Tchoopy seraient fiers de toi ! Continue à faire des efforts et bientôt tu pourras écrire tes recettes de gâteaux sans aucune faute. Bravo pour ton travail !"
+}

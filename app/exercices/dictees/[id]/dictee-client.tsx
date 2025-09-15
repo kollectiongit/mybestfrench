@@ -25,7 +25,7 @@ interface Level {
 interface DictationLevel {
   id: number;
   level_id: number;
-  dictation_id: string;
+  dictation_id: number;
   levels: Level;
 }
 
@@ -54,7 +54,7 @@ interface ExerciceAttempt {
 }
 
 interface Dictation {
-  id: string;
+  id: number;
   topic_id: number;
   original_text: string | null;
   audio_file: string | null;
@@ -68,7 +68,7 @@ interface Dictation {
   exercicesAttempts: ExerciceAttempt[];
 }
 
-export default function DicteeClient({ dictationId }: { dictationId: string }) {
+export default function DicteeClient({ dictationId }: { dictationId: number }) {
   const { profile, isLoading: profileLoading } = useCurrentProfile();
   const router = useRouter();
 

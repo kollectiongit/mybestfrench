@@ -1,0 +1,12 @@
+{
+  "stats": {
+    "total_fautes": 0,
+    "fautes_orthographe": 0,
+    "fautes_grammaire": 0,
+    "fautes_conjugaison": 0,
+    "pourcentage_mots_bien_orthographies": 100
+  },
+  "message_general": "Bravo Noa, ta dictée est parfaite!",
+  "fautes": [],
+  "conclusion_positive": "Génial, Noa! Tu as réussi à faire une dictée sans aucune faute. Continue à t'entraîner de cette façon et tu deviendras un véritable champion de l'orthographe. En plus, tu pourras lire des recettes de gâteaux encore plus compliquées et réaliser des desserts encore plus gourmands! On se retrouvera pour la prochaine dictée, continue comme ça!"
+}

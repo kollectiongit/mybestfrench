@@ -17,7 +17,7 @@ interface Level {
 interface DictationLevel {
   id: number;
   level_id: number;
-  dictation_id: string;
+  dictation_id: number;
   levels: Level;
 }
 

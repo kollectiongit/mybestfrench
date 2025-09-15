@@ -1,0 +1,12 @@
+{
+  "stats": {
+    "total_fautes": 0,
+    "fautes_orthographe": 0,
+    "fautes_grammaire": 0,
+    "fautes_conjugaison": 0,
+    "pourcentage_mots_bien_orthographies": 100
+  },
+  "message_general": "Bravo Noa, tu n'as fait aucune faute dans ta dictée !",
+  "fautes": [],
+  "conclusion_positive": "C'est super Noa, tu as écrit toute ta dictée sans faire une seule erreur ! Continue comme ça et tu deviendras un vrai champion de l'orthographe ! Peut-être qu'un jour tu écriras même un livre de recettes de gâteaux. Continue à bien travailler tout en gardant ton sourire de beau gosse ! 🎉"
+}
