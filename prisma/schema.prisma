@@ -23,7 +23,6 @@ model User {
   profiles            profiles[]
   sessions            Session[]
 
-
   @@map("user")
 }
 
@@ -72,41 +71,41 @@ model Verification {
 }
 
 model category {
-  id    Int     @id @default(autoincrement())
+  id    Int     @id @unique @default(autoincrement())
   name  String  @db.VarChar(100)
   slug  String  @unique(map: "categories_slug_key") @db.VarChar(100)
   topic topic[]
 }
 
 model exercices_attempts {
-  id                    String               @id(map: "training_attempts_pkey") @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  user_id               String
-  profile_id            String               @db.Uuid
-  exercise_id           String?               @db.Uuid
-  dictation_id          String?              @db.Uuid
-  generated_question_id String?              @db.Uuid
-  question_type         String
-  question_text         String
-  user_answer           String?
-  is_correct            Boolean
-  created_at            DateTime?            @default(now()) @db.Timestamptz(6)
-  correct_answer        String?
-  choices               String[]
+  id                                        Int                  @id @unique @default(autoincrement())
+  user_id                                   String
+  profile_id                                String               @db.Uuid
+  exercise_id                               Int?
+  dictation_id                              Int?
+  generated_question_id                     Int?
+  question_type                             String
+  question_text                             String
+  user_answer                               String?
+  is_correct                                Boolean
+  created_at                                DateTime?            @default(now()) @db.Timestamptz(6)
+  correct_answer                            String?
+  choices                                   String[]
   correction_user_answer_errors_highlighted String?
-  correction_total_errors          Int?
-  correction_errors_spelling    Int?
-  correction_errors_grammar      Int?
-  correction_errors_conjugation    Int?
-  correction_errors_percentage Int?
-  correction_greeting_message String?
-  correction_errors_by_sentence_json       Json?
-  correction_conclusion_message String?
-  correction_full_json     String?
-  
-  generated_questions   generated_questions? @relation(fields: [generated_question_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  exercises             exercises?            @relation(fields: [exercise_id], references: [id], onUpdate: NoAction, map: "training_attempts_exercise_id_fkey")
-  profiles              profiles             @relation(fields: [profile_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "training_attempts_profile_id_fkey")
-  user                  User?                @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "training_attempts_user_id_fkey")
+  correction_total_errors                   Int?
+  correction_errors_spelling                Int?
+  correction_errors_grammar                 Int?
+  correction_errors_conjugation             Int?
+  correction_errors_percentage              Int?
+  correction_greeting_message               String?
+  correction_errors_by_sentence_json        Json?
+  correction_conclusion_message             String?
+  correction_full_json                      String?
+  dictation                                 dictation?           @relation(fields: [dictation_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  generated_questions                       generated_questions? @relation(fields: [generated_question_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  exercises                                 exercises?           @relation(fields: [exercise_id], references: [id], onUpdate: NoAction, map: "training_attempts_exercise_id_fkey")
+  profiles                                  profiles             @relation(fields: [profile_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "training_attempts_profile_id_fkey")
+  user                                      User                 @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "training_attempts_user_id_fkey")
 
   @@index([user_id, created_at], map: "idx_training_attempts_user_created")
   @@index([exercise_id], map: "idx_training_attempts_exercise")
@@ -114,7 +113,7 @@ model exercices_attempts {
 }
 
 model exercise_levels {
-  exercise_id String    @db.Uuid
+  exercise_id Int
   level_id    Int
   id          Int       @id @default(autoincrement())
   exercises   exercises @relation(fields: [exercise_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
@@ -122,7 +121,7 @@ model exercise_levels {
 }
 
 model exercises {
-  id                        String                @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  id                        Int                   @id @default(autoincrement())
   title                     String                @db.VarChar(200)
   rules_text                String
   examples_text             String
@@ -136,10 +135,10 @@ model exercises {
   answer_example            String?
   answer_choices_example    String[]
   supports_single_choice    Boolean?
-  topic_id                  Int?
+  topic_id                  Int
   exercices_attempts        exercices_attempts[]
   exercise_levels           exercise_levels[]
-  topic                     topic?                @relation(fields: [topic_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  topic                     topic                 @relation(fields: [topic_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
   generated_questions       generated_questions[]
 }
 
@@ -159,10 +158,10 @@ model filter_preferences {
 }
 
 model generated_questions {
-  id                    String               @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  id                    Int                  @id @default(autoincrement())
   user_id               String?
   profile_id            String               @db.Uuid
-  exercise_id           String               @db.Uuid
+  exercise_id           Int
   payload               Json
   model_name            String?              @db.VarChar(100)
   llm_latency_ms        Int?
@@ -183,26 +182,26 @@ model generated_questions {
 }
 
 model levels {
-  id              Int               @id @default(autoincrement())
-  code            String            @unique @db.VarChar(10)
-  label           String            @db.VarChar(100)
-  rank            Int
-  exercise_levels exercise_levels[]
-  profile_levels  profile_levels[]
-  topics_levels   topics_levels[]
+  id                Int                 @id @default(autoincrement())
+  code              String              @unique @db.VarChar(10)
+  label             String              @db.VarChar(100)
+  rank              Int
   dictations_levels dictations_levels[]
+  exercise_levels   exercise_levels[]
+  profile_levels    profile_levels[]
+  topics_levels     topics_levels[]
 }
 
 model profile_levels {
   profile_id String   @db.Uuid
   level_id   Int
-  id         Int      @id @default(autoincrement())
-  levels     levels   @relation(fields: [level_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  id         Int      @id @unique @default(autoincrement())
+  levels     levels   @relation(fields: [level_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
   profiles   profiles @relation(fields: [profile_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
 }
 
 model profiles {
-  id                  String                @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  id                  String                @id @unique @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   user_id             String
   first_name          String                @db.VarChar(100)
   last_name           String?               @db.VarChar(100)
@@ -218,47 +217,61 @@ model profiles {
 }
 
 model topic {
-  id          Int         @id @default(autoincrement())
-  category_id Int
-  name        String      @db.VarChar(100)
-  slug        String      @unique()
+  id                        Int              @id @unique @default(autoincrement())
+  category_id               Int
+  name                      String          @db.VarChar(100)
+  slug                      String          @unique
   rules_explanation_message String?
-  exercises   exercises[]
-  category    category    @relation(fields: [category_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  dictation   dictation[]
-  topics_levels topics_levels[]
+  dictation                 dictation[]
+  exercises                 exercises[]
+  category                  category        @relation(fields: [category_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  topics_levels             topics_levels[]
 }
 
 model topics_levels {
-  id             BigInt   @id() @default(autoincrement())
-  created_at     DateTime @default(now()) @db.Timestamptz(6)
-  topic_id Int?
-  level_id       Int?
-  levels         levels?  @relation(fields: [level_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  topic          topic?   @relation(fields: [topic_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  id         Int      @id @unique @default(autoincrement())
+  created_at DateTime @default(now()) @db.Timestamptz(6)
+  topic_id   Int
+  level_id   Int
+  levels     levels   @relation(fields: [level_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  topic      topic    @relation(fields: [topic_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
 }
 
 model dictation {
-  id              String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  topic_id        Int
-  original_text   String?
-  audio_file     String?
-  screenshot_file String?
-  picture_file    String?
-  count_words     Int?
-  created_at      DateTime @default(now()) @db.Timestamptz(6)
-  updated_at      DateTime @default(now()) @db.Timestamptz(6) @updatedAt
-  topic          topic   @relation(fields: [topic_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  dictations_levels dictations_levels[]
+  id                 Int                  @id @unique @default(autoincrement())
+  topic_id           Int
+  title              String
+  original_text      String
+  audio_file         String?
+  screenshot_file    String?
+  picture_file       String?
+  count_words        Int?
+  created_at         DateTime             @default(now()) @db.Timestamptz(6)
+  updated_at         DateTime             @default(now()) @updatedAt @db.Timestamptz(6)
+  topic              topic                @relation(fields: [topic_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  dictations_levels  dictations_levels[]
+  exercices_attempts exercices_attempts[]
+  dictation_sentences dictation_sentence[]
 }
 
 model dictations_levels {
-  id           Int       @id @default(autoincrement())
+  id           Int       @id @unique @default(autoincrement())
   level_id     Int
-  dictation_id String    @db.Uuid
+  dictation_id Int
   created_at   DateTime  @default(now()) @db.Timestamptz(6)
-  updated_at   DateTime  @default(now()) @db.Timestamptz(6) @updatedAt
-  levels       levels    @relation(fields: [level_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  updated_at   DateTime  @default(now()) @updatedAt @db.Timestamptz(6)
+  dictation    dictation @relation(fields: [dictation_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  levels       levels    @relation(fields: [level_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model dictation_sentence {
+  id           Int       @id @unique @default(autoincrement())
+  text         String
+  order        Int?
+  audio_file   String?
+  dictation_id Int
+  created_at   DateTime  @default(now()) @db.Timestamptz(6)
+  updated_at   DateTime  @default(now()) @updatedAt @db.Timestamptz(6)
   dictation    dictation @relation(fields: [dictation_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
 }
 

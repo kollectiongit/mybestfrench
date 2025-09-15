@@ -102,17 +102,21 @@ async function uploadFilesFromDirectory(
         // Upload to Supabase
         const { error: uploadError } = await supabase.storage
           .from(bucketName)
-          .upload(filename, fileBuffer, {
-            cacheControl: "3600",
-            upsert: false,
-            contentType: getContentType(filename),
-          });
-
+          .upload(
+            bucketName === "audio" ? `dictation/${filename}` : filename,
+            fileBuffer,
+            {
+              cacheControl: "3600",
+              upsert: false,
+              contentType: getContentType(filename),
+            }
+          );
+        
         if (uploadError) {
           errors.push(`Failed to upload ${filename}: ${uploadError.message}`);
           continue;
         }
-
+        
         // Move file to destination directory
         const destPath = path.join(destDir, filename);
         await fs.rename(filePath, destPath);
