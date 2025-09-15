@@ -12,8 +12,9 @@ export async function GET(
 ) {
   try {
     const { id } = await params;
+    const dictationId = Number(id);
 
-    if (!id) {
+    if (!id || Number.isNaN(dictationId)) {
       return NextResponse.json(
         { error: "Dictation ID is required" },
         { status: 400 }
@@ -37,7 +38,7 @@ export async function GET(
 
     const dictation = await prisma.dictation.findUnique({
       where: {
-        id: id,
+        id: dictationId,
       },
       include: {
         topic: {
@@ -79,7 +80,7 @@ export async function GET(
 
     // Fetch exercices_attempts for this dictation and current profile
     let exercicesAttempts: Array<{
-      id: string;
+      id: number;
       created_at: Date | null;
       correction_total_errors: number | null;
       correction_errors_spelling: number | null;
@@ -92,7 +93,7 @@ export async function GET(
     if (currentProfileId) {
       exercicesAttempts = await prisma.exercices_attempts.findMany({
         where: {
-          dictation_id: id,
+          dictation_id: dictationId,
           profile_id: currentProfileId,
         },
         orderBy: {
