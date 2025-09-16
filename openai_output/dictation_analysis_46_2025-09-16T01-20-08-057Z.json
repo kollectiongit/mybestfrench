@@ -1,0 +1,20 @@
+{
+  "stats": {
+    "total_fautes": 1,
+    "fautes_orthographe": 1,
+    "fautes_grammaire": 0,
+    "fautes_conjugaison": 0,
+    "pourcentage_mots_bien_orthographies": 0
+  },
+  "message_general": "Bravo Noa ! Tu as écrit “Lien affectueux”. C’est un joli petit titre (on dirait le nom d’un gâteau trop mignon), mais pour une dictée on doit écrire exactement la phrase entendue : “La chienne lèche la main de sa maîtresse.” Pas grave du tout : on va s’entraîner à écouter mot par mot, comme quand tu suis une recette. Tu vas voir, ça va marcher… et peut-être même lécher, hihi !",
+  "fautes": [
+    {
+      "sentence_order_number": 1,
+      "texte_eleve": "**Lien** **affectueux**",
+      "correction": "*La* *chienne* *lèche* *la* *main* *de* *sa* *maîtresse.*",
+      "explication": "- Tu as écrit **Lien** **affectueux**, mais ces mots ne font pas partie de la phrase dictée.\n- La dictée demandait d’écrire tous les mots de la phrase *La chienne lèche la main de sa maîtresse.*\n- On n’invente pas un titre ou d’autres mots en dictée, on recopie exactement ce qu’on entend.",
+      "regle": "**En dictée, on écrit exactement les mots entendus, dans le bon ordre, sans en ajouter ni en changer.**\n- J’écoute la phrase en entier, puis je la répète dans ma tête.\n- J’écris mot par mot ce que j’entends.\n- Je fais attention aux accents et aux lettres muettes.\n- Je relis en pointant chaque mot avec mon doigt pour vérifier.\nExemples :\n- Dictée : *Le chat dort.* → À écrire : *Le chat dort.*\n- Dictée : *La chienne lèche la main de sa maîtresse.* → À écrire : *La chienne lèche la main de sa maîtresse.*"
+    }
+  ],
+  "conclusion_positive": "Super Noa, merci pour ton effort ! Tu as eu une bonne idée de “titre”, et maintenant tu sais que pour une dictée on suit la phrase comme une recette de gâteau, étape par étape. La prochaine fois, on fera ça ensemble : écoute, écris, relis. Avec ton niveau de champion (et de gros beau gosse), tu vas assurer comme Ponyo, Spoon et Syd quand ils sautent sur une friandise !"
+}

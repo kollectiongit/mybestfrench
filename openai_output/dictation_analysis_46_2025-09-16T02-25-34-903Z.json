@@ -1,0 +1,20 @@
+{
+  "stats": {
+    "total_fautes": 6,
+    "fautes_orthographe": 5,
+    "fautes_grammaire": 1,
+    "fautes_conjugaison": 0,
+    "pourcentage_mots_bien_orthographies": 38
+  },
+  "message_general": "Bravo Noa ! Tu as bien écrit les mots « la », « main » et « de ». On corrige le reste ensemble, pas à pas, comme une recette de gâteau au chocolat: facile et délicieux pour ton cerveau !",
+  "fautes": [
+    {
+      "sentence_order_number": 1,
+      "texte_eleve": "**la** **chiene** **laiche** la main de **ça** **maitres**",
+      "correction": "*La* *chienne* *lèche* la main de *sa* *maîtresse*.",
+      "explication": "- Au début, **la** doit commencer par une majuscule: on écrit *La*.\n- **chiene** s’écrit *chienne* avec deux n, parce que c’est la femelle du chien.\n- **laiche** s’écrit *lèche* avec un accent grave sur le è, et sans « ai ».\n- **ça** n’est pas le bon mot ici. On parle de possession: on doit écrire *sa* (la main qui appartient à la maîtresse).\n- **maitres** n’est pas le bon mot: on veut la forme féminine et au singulier, on écrit *maîtresse* (avec le chapeau sur le i: î, et deux s + e).\n- Il manque le point final. Une phrase finit par un point, comme on finit un niveau à Roblox !",
+      "regle": "- **Majuscule et point**: Une phrase commence par une majuscule et se termine par un point. Exemple: *La chienne mange.*\n- **Féminin de certains noms en -en**: Le mot « chien » devient « chienne » avec deux n au féminin. Exemple: *un chien / une chienne*.\n- **Les accents changent tout**: Le son « è » s’écrit souvent avec è (accent grave) et pas « ai » dans ce mot. Exemple: *lèche*, *père*, *très*.\n- **Homophones sa/ça**: « sa » = ce qui lui appartient; « ça » = cela. Astuce: si tu peux remplacer par « cela », c’est « ça ». Exemple: *sa patte*, *ça (cela) mord ?*\n- **Masculin/féminin des mots maître/maîtresse**: un homme = « maître », une femme = « maîtresse ». Exemple: *son maître* / *sa maîtresse*. Et on n’oublie pas le chapeau sur le i: « î ». "
+    }
+  ],
+  "conclusion_positive": "Super Noa ! Tu as déjà 3 mots nickel, et tu as repéré une super longue phrase. Avec ces petites règles, tu vas écrire aussi bien que tu fais lever un gâteau au four. La prochaine fois, on dompte les accents comme un vrai cavalier avec Max et Very Good, et on met la majuscule et le point plus vite que Ponyo et Spoon ne sautent sur une croquette. T’es un gros beau gosse de l’orthographe en devenir: on continue, tu vas tout déchirer !"
+}

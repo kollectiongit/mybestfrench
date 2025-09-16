@@ -1,6 +1,6 @@
 "use client";
 
-import { EnhancedAudioPlayer } from "@/components/enhanced-audio-player";
+import { EnhancedAudioPlayer } from "./audio-player";
 
 export default function DicteeAudio({
   audioFile,

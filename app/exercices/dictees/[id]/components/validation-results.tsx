@@ -51,7 +51,7 @@ export default function ValidationResults({
           </div>
           <div className="text-center p-3 bg-white rounded">
             <div className="text-2xl font-bold text-green-600">
-              {analysis.stats.pourcentage_mots_bien_orthographies}%
+              {analysis.stats.pourcentage_reussite}%
             </div>
             <div className="text-sm text-gray-600">Mots corrects</div>
           </div>

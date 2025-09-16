@@ -1,101 +1,231 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { Check, CircleX, X } from "lucide-react";
+import { BadgeCheck, Check, CircleX, X } from "lucide-react";
 
-interface Level {
-  id: number;
-  code: string;
-  label: string;
-  rank: number;
-}
-interface DictationLevel {
-  id: number;
-  level_id: number;
-  dictation_id: number;
-  levels: Level;
-}
 interface Topic {
   id: number;
   name: string;
-  slug: string;
-  category: { id: number; name: string; slug: string };
+  category: {
+    name: string;
+  };
 }
+
 export interface Dictation {
-  id: string;
-  topic_id: number;
-  original_text: string | null;
-  audio_file: string | null;
-  screenshot_file: string | null;
-  picture_file: string | null;
+  id: number;
+  title: string;
   count_words: number | null;
-  created_at: string;
-  updated_at: string;
   topic: Topic;
-  dictations_levels: DictationLevel[];
+  levels: string[];
+  audio_files: string[];
+  sentences_count: number;
+  attempts_count: number;
+  latest_attempt_at: string | null;
+  errors_range: string | null;
 }
 
 export default function Filters({
   dictations,
   selectedTopics,
   setSelectedTopics,
+  showAttemptedOnly,
+  setShowAttemptedOnly,
+  showNotAttemptedOnly,
+  setShowNotAttemptedOnly,
 }: {
   dictations: Dictation[];
   selectedTopics: number[];
   setSelectedTopics: (v: number[]) => void;
+  showAttemptedOnly: boolean;
+  setShowAttemptedOnly: (v: boolean) => void;
+  showNotAttemptedOnly: boolean;
+  setShowNotAttemptedOnly: (v: boolean) => void;
 }) {
+  // Create unique categories
+  const categories = Array.from(
+    new Set(dictations.map((d) => d.topic.category.name))
+  ).map((categoryName) => {
+    const categoryDictations = dictations.filter(
+      (d) => d.topic.category.name === categoryName
+    );
+    return {
+      name: categoryName,
+      count: categoryDictations.length,
+      topicIds: categoryDictations.map((d) => d.topic.id),
+    };
+  });
+
+  // Create unique topics
+  const topics = Array.from(new Set(dictations.map((d) => d.topic.id)))
+    .map((topicId) => {
+      const topic = dictations.find((d) => d.topic.id === topicId)?.topic;
+      if (!topic) return null;
+      const topicDictations = dictations.filter((d) => d.topic.id === topicId);
+      return {
+        id: topicId,
+        name: topic.name,
+        count: topicDictations.length,
+      };
+    })
+    .filter((topic): topic is NonNullable<typeof topic> => topic !== null);
+
+  // Count attempted dictations
+  const attemptedCount = dictations.filter((d) => d.attempts_count > 0).length;
+  // Count not attempted dictations
+  const notAttemptedCount = dictations.filter(
+    (d) => d.attempts_count === 0
+  ).length;
+
+  const renderFilterButton = (
+    id: string,
+    name: string,
+    count: number,
+    isSelected: boolean,
+    onClick: () => void
+  ) => (
+    <div
+      key={id}
+      className={`group relative inline-flex items-center gap-2 px-3 py-1.5 rounded-lg transition-all duration-200 cursor-pointer min-h-[32px] ${
+        isSelected
+          ? "bg-blue-100 text-blue-800 hover:bg-blue-200"
+          : "bg-gray-50 text-gray-700 hover:bg-gray-100"
+      }`}
+      onClick={onClick}
+    >
+      <span className="text-xs font-medium">{name}</span>
+      <span
+        className={`text-[10px] font-bold h-5 w-5 rounded-full text-center flex items-center justify-center ${
+          isSelected
+            ? "bg-blue-200 text-blue-700 group-hover:bg-blue-300 transition-all duration-200"
+            : "bg-gray-200 text-gray-600"
+        }`}
+      >
+        {count}
+      </span>
+      {isSelected && (
+        <div className="flex items-center justify-center w-5 h-5">
+          <Check className="w-4 h-4 text-blue-600 group-hover:hidden" />
+          <CircleX className="w-4 h-4 text-blue-600 hidden group-hover:block" />
+        </div>
+      )}
+    </div>
+  );
+
   return (
-    <div className="mb-6">
+    <div className="mb-6 space-y-3">
+      {/* Row 0: Attempted filters */}
       <div className="flex flex-wrap gap-3">
-        {Array.from(new Set(dictations.map((d) => d.topic.id)))
-          .map((topicId) => {
-            const topic = dictations.find((d) => d.topic.id === topicId)?.topic;
-            if (!topic) return null;
+        <div
+          className={`group relative inline-flex items-center gap-2 px-3 py-1.5 rounded-lg transition-all duration-200 cursor-pointer min-h-[32px] ${
+            showAttemptedOnly
+              ? "bg-green-100 text-green-800 hover:bg-green-200"
+              : "bg-gray-50 text-gray-700 hover:bg-gray-100"
+          }`}
+          onClick={() => setShowAttemptedOnly(!showAttemptedOnly)}
+        >
+          <BadgeCheck className="w-4 h-4" />
+          <span className="text-xs font-medium">Déjà testé</span>
+          <span
+            className={`text-[10px] font-bold h-5 w-5 rounded-full text-center flex items-center justify-center ${
+              showAttemptedOnly
+                ? "bg-green-200 text-green-700 group-hover:bg-green-300 transition-all duration-200"
+                : "bg-gray-200 text-gray-600"
+            }`}
+          >
+            {attemptedCount}
+          </span>
+          {showAttemptedOnly && (
+            <div className="flex items-center justify-center w-5 h-5">
+              <Check className="w-4 h-4 text-green-600 group-hover:hidden" />
+              <CircleX className="w-4 h-4 text-green-600 hidden group-hover:block" />
+            </div>
+          )}
+        </div>
 
-            const isSelected = selectedTopics.includes(topicId);
-            const dictationCount = dictations.filter(
-              (d) => d.topic.id === topicId
-            ).length;
+        <div
+          className={`group relative inline-flex items-center gap-2 px-3 py-1.5 rounded-lg transition-all duration-200 cursor-pointer min-h-[32px] ${
+            showNotAttemptedOnly
+              ? "bg-orange-100 text-orange-800 hover:bg-orange-200"
+              : "bg-gray-50 text-gray-700 hover:bg-gray-100"
+          }`}
+          onClick={() => setShowNotAttemptedOnly(!showNotAttemptedOnly)}
+        >
+          <CircleX className="w-4 h-4" />
+          <span className="text-xs font-medium">À tester</span>
+          <span
+            className={`text-[10px] font-bold h-5 w-5 rounded-full text-center flex items-center justify-center ${
+              showNotAttemptedOnly
+                ? "bg-orange-200 text-orange-700 group-hover:bg-orange-300 transition-all duration-200"
+                : "bg-gray-200 text-gray-600"
+            }`}
+          >
+            {notAttemptedCount}
+          </span>
+          {showNotAttemptedOnly && (
+            <div className="flex items-center justify-center w-5 h-5">
+              <Check className="w-4 h-4 text-orange-600 group-hover:hidden" />
+              <CircleX className="w-4 h-4 text-orange-600 hidden group-hover:block" />
+            </div>
+          )}
+        </div>
+      </div>
 
-            return (
-              <div
-                key={topicId}
-                className={`group relative inline-flex items-center gap-2 px-3 py-1.5 rounded-lg transition-all duration-200 cursor-pointer min-h-[32px] ${
-                  isSelected
-                    ? "bg-blue-100 text-blue-800 hover:bg-blue-200"
-                    : "bg-gray-50 text-gray-700 hover:bg-gray-100"
-                }`}
-                onClick={() => {
-                  if (isSelected) {
-                    setSelectedTopics(
-                      selectedTopics.filter((id) => id !== topicId)
-                    );
-                  } else {
-                    setSelectedTopics([...selectedTopics, topicId]);
-                  }
-                }}
-              >
-                <span className="text-xs font-medium">{topic.name}</span>
-                <span
-                  className={`text-xs font-light h-5 w-5 rounded-full text-center flex items-center justify-center ${
-                    isSelected
-                      ? "bg-blue-200 text-blue-700 group-hover:bg-blue-300 transition-all duration-200"
-                      : "bg-gray-200 text-gray-600"
-                  }`}
-                >
-                  {dictationCount}
-                </span>
-                {isSelected && (
-                  <div className="flex items-center justify-center w-5 h-5">
-                    <Check className="w-4 h-4 text-blue-600 group-hover:hidden" />
-                    <CircleX className="w-4 h-4 text-blue-600 hidden group-hover:block" />
-                  </div>
-                )}
-              </div>
-            );
-          })
-          .filter(Boolean)}
-        {selectedTopics.length > 0 && (
+      {/* Row 1: Categories */}
+      <div className="flex flex-wrap gap-3">
+        {categories.map((category) => {
+          const isSelected = category.topicIds.some((id) =>
+            selectedTopics.includes(id)
+          );
+          const onClick = () => {
+            if (isSelected) {
+              // Remove all topics from this category
+              setSelectedTopics(
+                selectedTopics.filter((id) => !category.topicIds.includes(id))
+              );
+            } else {
+              // Add all topics from this category
+              setSelectedTopics([
+                ...selectedTopics.filter(
+                  (id) => !category.topicIds.includes(id)
+                ),
+                ...category.topicIds,
+              ]);
+            }
+          };
+          return renderFilterButton(
+            `category-${category.name}`,
+            category.name,
+            category.count,
+            isSelected,
+            onClick
+          );
+        })}
+      </div>
+
+      {/* Row 2: Topics */}
+      <div className="flex flex-wrap gap-3">
+        {topics.map((topic) => {
+          const isSelected = selectedTopics.includes(topic.id);
+          const onClick = () => {
+            if (isSelected) {
+              setSelectedTopics(selectedTopics.filter((id) => id !== topic.id));
+            } else {
+              setSelectedTopics([...selectedTopics, topic.id]);
+            }
+          };
+          return renderFilterButton(
+            `topic-${topic.id}`,
+            topic.name,
+            topic.count,
+            isSelected,
+            onClick
+          );
+        })}
+      </div>
+
+      {/* Clear filters button */}
+      {selectedTopics.length > 0 && (
+        <div className="flex flex-wrap gap-3">
           <Button
             variant="ghost"
             size="sm"
@@ -105,8 +235,8 @@ export default function Filters({
             <X className="h-4 w-4 mr-2" />
             Effacer les filtres
           </Button>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -1,0 +1,27 @@
+{
+  "stats": {
+    "total_fautes": 4,
+    "fautes_orthographe": 2,
+    "fautes_grammaire": 1,
+    "fautes_conjugaison": 1,
+    "pourcentage_mots_bien_orthographies": 83
+  },
+  "message_general": "Bravo Enzo ! Tu as très bien recopié le début et tu as gardé le sens des phrases. Les petites erreurs viennent surtout des majuscules en début de phrase, du participe passé en -é, et du pluriel de « métiers ». Tu t’es aussi arrêté un peu tôt dans la 4e phrase (et tu n’as pas écrit la suite de la dictée), mais le démarrage est solide. On corrige ça ensemble, facile comme une glissade sur toboggan (sans chuter, promis !)",
+  "fautes": [
+    {
+      "sentence_order_number": 3,
+      "texte_eleve": "**elle** a **exercer** un nombre incalculable de **métier**.",
+      "correction": "*Elle* a *exercé* un nombre incalculable de *métiers*.",
+      "explication": "- **elle** : en début de phrase, on met une majuscule → *Elle*.\n- **exercer** : après \"a\", on met le participe passé en -é → *exercé*.\n- **métier** : après \"un nombre incalculable de\", on met le nom au pluriel → *métiers*.",
+      "regle": "- **On commence toujours une phrase par une majuscule.** Exemples : *Elle arrive.*, *Nous partons.*\n- **Avec l’auxiliaire avoir, le verbe du 1er groupe prend le participe passé en -é (et pas -er).** Exemples : *il a chanté*, *elle a mangé*, *on a exercé*.\n- **Après une expression de quantité (beaucoup de, un nombre de…), on met le nom au pluriel.** Exemples : *un nombre incalculable de métiers*, *beaucoup de livres*, *des tas de jeux*. "
+    },
+    {
+      "sentence_order_number": 4,
+      "texte_eleve": "**elle** a d'abord été monitrice de ski.",
+      "correction": "*Elle* a d’abord été monitrice de ski, *pianiste* et *cascadeuse*.",
+      "explication": "- **elle** : en début de phrase, on met une majuscule → *Elle*.\n- Tu as oublié deux métiers qui étaient dictés : *pianiste* et *cascadeuse*. Dans une dictée, on écrit tous les mots entendus, dans l’ordre.",
+      "regle": "- **On commence toujours une phrase par une majuscule.** Exemples : *Elle part.*, *Ils jouent.*\n- **En dictée, on respecte le texte entendu : on n’omet pas de mots.** Exemple : *monitrice de ski, pianiste et cascadeuse*."
+    }
+  ],
+  "conclusion_positive": "Super Enzo ! Tu as bien compris le sens des phrases et tu as déjà 83% de mots bien orthographiés. Avec deux réflexes (majuscule au début de la phrase et -é pour le participe passé) et en pensant au pluriel de « métiers », tu vas cartonner. La prochaine fois, on va jusqu’au bout du texte, comme un champion qui franchit la ligne d’arrivée. Tu progresses vite : continue comme ça, je crois en toi !"
+}

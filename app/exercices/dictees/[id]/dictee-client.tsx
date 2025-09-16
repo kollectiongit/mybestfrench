@@ -4,68 +4,70 @@ import { Button } from "@/components/ui/button";
 import { useAutosave } from "@/hooks/use-autosave";
 import { useCurrentProfile } from "@/hooks/use-current-profile";
 import { DicteeAnalysis } from "@/lib/dictation-schema";
-import { ArrowLeftIcon } from "lucide-react";
+import { ArrowLeftIcon, Pause, Repeat } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 
 import AttemptsTimeline from "./components/attempts-timeline";
-import DicteeAudio from "./components/dictee-audio";
 import DicteeEditor from "./components/dictee-editor";
 import DicteeHeader from "./components/dictee-header";
+import DicteeSentencesAudio from "./components/dictee-sentences-audio";
 import ValidationResults from "./components/validation-results";
 
 interface Level {
-  id: number;
   code: string;
-  label: string;
-  rank: number;
 }
 
 interface DictationLevel {
-  id: number;
-  level_id: number;
-  dictation_id: number;
   levels: Level;
 }
 
 interface Topic {
   id: number;
   name: string;
-  slug: string;
   rules_explanation_message: string | null;
   category: {
     id: number;
     name: string;
-    slug: string;
   };
 }
 
 interface ExerciceAttempt {
-  id: string;
-  created_at: string | null;
+  id: number;
+  created_at: Date | null;
   correction_total_errors: number | null;
   correction_errors_spelling: number | null;
   correction_errors_grammar: number | null;
   correction_errors_conjugation: number | null;
-  correction_errors_percentage: number | null;
+  correction_success_percentage: number | null;
   correction_full_json: string | null;
   user_answer: string | null;
 }
 
+interface DictationSentence {
+  audio_file: string;
+  order: number;
+  text: string;
+}
+
 interface Dictation {
-  id: number;
-  topic_id: number;
   original_text: string | null;
-  audio_file: string | null;
-  screenshot_file: string | null;
+  title: string;
   picture_file: string | null;
   count_words: number | null;
-  created_at: string;
-  updated_at: string;
   topic: Topic;
   dictations_levels: DictationLevel[];
+  dictation_sentences: DictationSentence[];
+  _count: {
+    dictation_sentences: number;
+  };
   exercicesAttempts: ExerciceAttempt[];
+  sentences_count: number;
+  attempts_count: number;
+  latest_attempt_at: Date | null;
+  exercices_attempts_min_errors: number | null;
+  exercices_attempts_max_errors: number | null;
 }
 
 export default function DicteeClient({ dictationId }: { dictationId: number }) {
@@ -238,7 +240,52 @@ export default function DicteeClient({ dictationId }: { dictationId: number }) {
   return (
     <div className="container mx-auto px-4 py-8 max-w-4xl">
       <DicteeHeader dictation={dictation} />
-      <DicteeAudio audioFile={dictation.audio_file} />
+      <DicteeSentencesAudio
+        dictationSentences={dictation.dictation_sentences}
+      />
+
+      {/* Shortcut Buttons */}
+      <div className="flex flex-wrap gap-2 mb-6 bg-green-50 rounded-lg p-3">
+        <Button variant="outline">
+          Précédente phrase
+          <kbd className="-me-1 ms-3 inline-flex h-5 max-h-full items-center rounded border border-border bg-background px-1 font-[inherit] text-[0.625rem] font-medium text-muted-foreground/70">
+            ⌘←
+          </kbd>
+        </Button>
+
+        <Button variant="outline">
+          Prochaine phrase
+          <kbd className="-me-1 ms-3 inline-flex h-5 max-h-full items-center rounded border border-border bg-background px-1 font-[inherit] text-[0.625rem] font-medium text-muted-foreground/70">
+            ⌘→
+          </kbd>
+        </Button>
+        <Button variant="outline">
+          <Repeat
+            className="-ms-1 me-2 opacity-60"
+            size={16}
+            strokeWidth={2}
+            aria-hidden="true"
+          />
+          Loop
+          <kbd className="-me-1 ms-3 inline-flex h-5 max-h-full items-center rounded border border-border bg-background px-1 font-[inherit] text-[0.625rem] font-medium text-muted-foreground/70">
+            ⌘↑
+          </kbd>
+        </Button>
+
+        <Button variant="outline">
+          <Pause
+            className="-ms-1 me-2 opacity-60"
+            size={16}
+            strokeWidth={2}
+            aria-hidden="true"
+          />
+          Pause
+          <kbd className="-me-1 ms-3 inline-flex h-5 max-h-full items-center rounded border border-border bg-background px-1 font-[inherit] text-[0.625rem] font-medium text-muted-foreground/70">
+            ⌘↓
+          </kbd>
+        </Button>
+      </div>
+
       <DicteeEditor
         pictureFile={dictation.picture_file}
         topicName={dictation.topic.name}

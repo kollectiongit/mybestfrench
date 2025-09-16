@@ -51,6 +51,10 @@ export default function DicteeEditor(props: {
                 onChange={(e) => setDictationText(e.target.value)}
                 placeholder="Écrivez votre dictée ici..."
                 disabled={disabled}
+                autoCorrect="off"
+                autoComplete="off"
+                spellCheck="false"
+                autoCapitalize="off"
                 className={`w-full h-full min-h-[200px] p-4 border border-gray-300 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
                   disabled ? "bg-gray-100 cursor-not-allowed text-gray-700" : ""
                 }`}
@@ -66,6 +70,10 @@ export default function DicteeEditor(props: {
             onChange={(e) => setDictationText(e.target.value)}
             placeholder="Écrivez votre dictée ici..."
             disabled={disabled}
+            autoCorrect="off"
+            autoComplete="off"
+            spellCheck="false"
+            autoCapitalize="off"
             className={`w-full min-h-[200px] p-4 border border-gray-300 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
               disabled ? "bg-gray-100 cursor-not-allowed text-gray-700" : ""
             }`}

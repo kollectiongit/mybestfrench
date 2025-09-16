@@ -136,15 +136,15 @@ Ton rôle est d'aider ton élève à progresser en orthographe, grammaire et con
               stats: {
                 type: "object",
                 properties: {
-                  total_fautes: { type: "integer", description: "Ordre de la phrase dans la dictée (commence à 1)" },
+                  total_fautes: { type: "integer", description: "Nombre total de fautes. Si des mots ont été oubliés, ils comptent comme des fautes d'orthographe. Exemple : Si sur une dictée de 10 mots, on a 6 mots bien orthographiés, 3 erreurs, 1 mot oublié, le nombre d'erreurs est de 4." },
                   fautes_orthographe: { type: "integer" , description: "Nombre de fautes d'orthographe"},
                   fautes_grammaire: { type: "integer" , description: "Nombre de fautes de grammaire"},
                   fautes_conjugaison: { type: "integer" , description: "Nombre de fautes de conjugaison"},
-                  pourcentage_mots_bien_orthographies: {
+                  pourcentage_reussite: {
                     type: "integer",
                     minimum: 0,
                     maximum: 100,
-                    description: "Pourcentage de mots bien écrits (0-100)"
+                    description: "Pourcentage de mots bien écrits (0-100) : (1 - Nombre total de fautes / Nombre de mots de la dictée donnée à l'élève) * 100"
                   }
                 },
                 required: [
@@ -152,11 +152,11 @@ Ton rôle est d'aider ton élève à progresser en orthographe, grammaire et con
                   "fautes_orthographe",
                   "fautes_grammaire",
                   "fautes_conjugaison",
-                  "pourcentage_mots_bien_orthographies"
+                  "pourcentage_reussite"
                 ],
                 additionalProperties: false
               },
-              message_general: { type: "string",description: "Message général d'évaluation de la dictée qui donne l'appréciation globale de la dictée" },
+              message_general: { type: "string",description: "Message général d'évaluation de la dictée qui donne l'appréciation globale de la dictée. Si le score est bon, féliciter l'élève. Si le score est mauvais, dire que c'est mauvais, mais garder un ton positif et motivant." },
               fautes: {
                 type: "array",
                 items: {
@@ -204,7 +204,7 @@ Ton rôle est d'aider ton élève à progresser en orthographe, grammaire et con
           fautes_orthographe: 0,
           fautes_grammaire: 0,
           fautes_conjugaison: 0,
-          pourcentage_mots_bien_orthographies: 100
+          pourcentage_reussite: 100
         },
         message_general: parsedResult.message_general || "Analyse terminée",
         fautes: (parsedResult.fautes || []).map((faute: Record<string, unknown>, index: number) => ({
@@ -228,7 +228,7 @@ Ton rôle est d'aider ton élève à progresser en orthographe, grammaire et con
             fautes_orthographe: 0,
             fautes_grammaire: 0,
             fautes_conjugaison: 0,
-            pourcentage_mots_bien_orthographies: 100
+            pourcentage_reussite: 100
           },
           message_general: "Analyse terminée",
           fautes: [],
@@ -271,7 +271,7 @@ Ton rôle est d'aider ton élève à progresser en orthographe, grammaire et con
           correction_errors_spelling: validatedResult.stats.fautes_orthographe,
           correction_errors_grammar: validatedResult.stats.fautes_grammaire,
           correction_errors_conjugation: validatedResult.stats.fautes_conjugaison,
-          correction_errors_percentage: validatedResult.stats.pourcentage_mots_bien_orthographies,
+          correction_success_percentage: validatedResult.stats.pourcentage_reussite,
           correction_greeting_message: validatedResult.message_general,
           correction_errors_by_sentence_json: validatedResult.fautes,
           correction_conclusion_message: validatedResult.conclusion_positive,

@@ -1,0 +1,20 @@
+{
+  "stats": {
+    "total_fautes": 1,
+    "fautes_orthographe": 1,
+    "fautes_grammaire": 0,
+    "fautes_conjugaison": 0,
+    "pourcentage_reussite": 96
+  },
+  "message_general": "Bravo Enzo ! Ta copie est très propre et fidèle à la dictée. Tu n’as fait qu’une toute petite erreur d’accent, c’est vraiment bien. On affine juste ce détail et ce sera du niveau champion de slalom orthographique !",
+  "fautes": [
+    {
+      "sentence_order_number": 3,
+      "texte_eleve": "Elle n'est pas **sure** de ses pistes, elle travaille comme une forcenée.",
+      "correction": "Elle n’est pas *sûre* de ses pistes, elle travaille comme une forcenée.",
+      "explication": "- Le mot **sure** doit s’écrire *sûre* (avec un accent circonflexe sur le u) au féminin. Sans le petit « chapeau », ce n’est plus le bon mot et on peut le confondre avec « sur » (la préposition).\n- Astuce: imagine que le u met son chapeau pour ne pas avoir froid à la montagne, comme une vraie skieuse !",
+      "regle": "**On met un accent circonflexe sur sûr/sûre (certain/e)**\nOn écrit sûr (masculin) et sûre (féminin) avec un accent circonflexe sur le u. Sans accent, « sur » est une préposition qui signifie au-dessus/de contact.\nExemples : *Je suis sûr de ma réponse.* *Elle est sûre d’elle.* *Le livre est sur la table.*"
+    }
+  ],
+  "conclusion_positive": "Super travail, Enzo ! 1 seule petite erreur d’accent sur toute la dictée, c’est la classe. Continue comme ça : avec ton sérieux et ta curiosité, tu vas descendre la piste de l’orthographe à toute vitesse… sans tomber ! 🏂💪"
+}

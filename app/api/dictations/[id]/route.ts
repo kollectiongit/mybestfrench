@@ -40,32 +40,46 @@ export async function GET(
       where: {
         id: dictationId,
       },
-      include: {
+      select: {
+        original_text: true,
+        title: true,
+        picture_file: true,
+        count_words: true,
         topic: {
           select: {
             id: true,
             name: true,
-            slug: true,
             rules_explanation_message: true,
             category: {
               select: {
                 id: true,
                 name: true,
-                slug: true,
               },
             },
           },
         },
         dictations_levels: {
-          include: {
+          select: {
             levels: {
               select: {
-                id: true,
                 code: true,
-                label: true,
-                rank: true,
               },
             },
+          },
+        },
+        dictation_sentences: {
+          select: {
+            audio_file: true,
+            order:true,
+            text:true,
+          },
+          orderBy: {
+            order: "asc",
+          },
+        },
+        _count: {
+          select: {
+            dictation_sentences: true,
           },
         },
       },
@@ -86,11 +100,17 @@ export async function GET(
       correction_errors_spelling: number | null;
       correction_errors_grammar: number | null;
       correction_errors_conjugation: number | null;
-      correction_errors_percentage: number | null;
+      correction_success_percentage: number | null;
       correction_full_json: string | null;
       user_answer: string | null;
     }> = [];
+    let attemptsCount = 0;
+    let latestAttemptAt: Date | null = null;
+    let minErrors: number | null = null;
+    let maxErrors: number | null = null;
+
     if (currentProfileId) {
+      // Get all attempts
       exercicesAttempts = await prisma.exercices_attempts.findMany({
         where: {
           dictation_id: dictationId,
@@ -106,16 +126,41 @@ export async function GET(
           correction_errors_spelling: true,
           correction_errors_grammar: true,
           correction_errors_conjugation: true,
-          correction_errors_percentage: true,
+          correction_success_percentage: true,
           correction_full_json: true,
           user_answer: true,
         },
       });
+
+      // Get count, min, max errors and latest attempt
+      const attemptsStats = await prisma.exercices_attempts.aggregate({
+        where: {
+          dictation_id: dictationId,
+          profile_id: currentProfileId,
+        },
+        _count: true,
+        _min: {
+          correction_total_errors: true,
+        },
+        _max: {
+          correction_total_errors: true,
+        },
+      });
+
+      attemptsCount = attemptsStats._count;
+      minErrors = attemptsStats._min.correction_total_errors;
+      maxErrors = attemptsStats._max.correction_total_errors;
+      latestAttemptAt = exercicesAttempts.length > 0 ? exercicesAttempts[0].created_at : null;
     }
 
     return NextResponse.json({
       ...dictation,
       exercicesAttempts,
+      sentences_count: dictation._count.dictation_sentences,
+      attempts_count: attemptsCount,
+      latest_attempt_at: latestAttemptAt,
+      exercices_attempts_min_errors: minErrors,
+      exercices_attempts_max_errors: maxErrors,
     });
   } catch (error) {
     console.error("Error fetching dictation:", error);

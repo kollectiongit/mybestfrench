@@ -1,0 +1,55 @@
+{
+  "stats": {
+    "total_fautes": 45,
+    "fautes_orthographe": 43,
+    "fautes_grammaire": 1,
+    "fautes_conjugaison": 1,
+    "pourcentage_fautes": 10
+  },
+  "message_general": "Salut Enzo ! Tu as recopié la 3e phrase de la dictée, bravo pour l'effort. Par contre, tu as oublié les autres phrases, ce qui fait beaucoup d’erreurs d’oubli. La bonne nouvelle, c’est que dans ta phrase, plusieurs mots sont bien écrits (\"un nombre incalculable de\" est parfait). On corrige tout ça ensemble, tranquille comme un chat qui s’étire au soleil !",
+  "fautes": [
+    {
+      "sentence_order_number": 1,
+      "texte_eleve": "(phrase non recopiée)",
+      "correction": "*Une* *vie* *mouvementée*.",
+      "explication": "Tu as oublié de copier cette phrase. Chaque mot manquant compte comme une faute. Ici, il y en a 3.",
+      "regle": "**Ne pas oublier de mots dans une dictée.** Relis ta copie en comparant phrase par phrase avec le modèle pour vérifier que chaque mot y est. Exemple : *Une vie mouvementée.*"
+    },
+    {
+      "sentence_order_number": 2,
+      "texte_eleve": "(phrase non recopiée)",
+      "correction": "*L’artiste* *Lucile* *est* *un* *vrai* *roman*.",
+      "explication": "Cette phrase entière manque. 6 mots sont donc comptés comme des erreurs.",
+      "regle": "**Ne pas oublier de mots dans une dictée.** Relis la dictée en posant ton doigt sur chaque mot pour être sûr de tous les recopier. Exemple : *L’artiste Lucile est un vrai roman.*"
+    },
+    {
+      "sentence_order_number": 3,
+      "texte_eleve": "**elle** a **exercer** un nombre incalculable de **métier**.",
+      "correction": "*Elle* a *exercé* un nombre incalculable de *métiers*.",
+      "explication": "- **elle** -> *Elle* : On commence toujours une phrase par une majuscule.\n- **exercer** -> *exercé* : Avec \"a\", on est au passé composé, on doit utiliser le participe passé, pas l’infinitif.\n- **métier** -> *métiers* : Après \"un nombre incalculable de\", on parle de plusieurs choses, donc nom au pluriel.",
+      "regle": "- **Majuscule en début de phrase.** Une phrase commence par une majuscule. Exemples : *Elle joue.* *Lucile chante.*\n- **Passé composé = auxiliaire (avoir/être) + participe passé.** Pour les verbes en -er, le participe passé se termine par -é. Exemples : *elle a joué*, *il a marché*, *nous avons chanté*.\n- **Après une quantité (un nombre de, beaucoup de, plein de), le nom est au pluriel.** Exemples : *un nombre de jeux*, *beaucoup de livres*, *un nombre incalculable de métiers*."
+    },
+    {
+      "sentence_order_number": 4,
+      "texte_eleve": "(phrase non recopiée)",
+      "correction": "*Elle* *a* *d’abord* *été* *monitrice* *de* *ski*, *pianiste* *et* *cascadeuse*.",
+      "explication": "Cette phrase n’a pas été copiée. 10 mots sont donc manquants (10 erreurs).",
+      "regle": "**Ne pas oublier de mots dans une dictée.** Recopie calmement et vérifie à la fin que tous les mots de la phrase sont présents. Exemple : *Elle a d’abord été monitrice de ski, pianiste et cascadeuse.*"
+    },
+    {
+      "sentence_order_number": 5,
+      "texte_eleve": "(phrase non recopiée)",
+      "correction": "*Ensuite,* *elle* *a* *été* *trapéziste,* *équilibriste,* *écuyère* *et* *dompteuse*.",
+      "explication": "Tu n’as pas recopié cette phrase non plus : 9 mots manquants = 9 erreurs.",
+      "regle": "**Ne pas oublier de mots dans une dictée.** Avance mot par mot en suivant avec ton doigt pour ne rien sauter. Exemple : *Ensuite, elle a été trapéziste, équilibriste, écuyère et dompteuse.*"
+    },
+    {
+      "sentence_order_number": 6,
+      "texte_eleve": "(phrase non recopiée)",
+      "correction": "*Lucile* *a* *présenté* *plusieurs* *numéros* : *écuyère,* *jongleuse,* *diseuse* *de* *bonne* *aventure* *et* *même* *musicienne*.",
+      "explication": "La dernière phrase manque entièrement : 14 mots oubliés = 14 erreurs.",
+      "regle": "**Ne pas oublier de mots dans une dictée.** À la fin, recompte les mots : le nombre copié doit être le même que dans le texte original. Exemple : *Lucile a présenté plusieurs numéros : écuyère, jongleuse, diseuse de bonne aventure et même musicienne.*"
+    }
+  ],
+  "conclusion_positive": "Bravo Enzo, tu as bien recopié une phrase importante et plusieurs mots sont justes. La prochaine fois, on vise à recopier toutes les phrases, tranquillement et sans se presser. Tu progresses : un petit pas de plus à chaque dictée et tu seras le roi des mots… comme un jongleur qui ne laisse tomber aucune balle ! Continue, tu es sur la bonne voie."
+}

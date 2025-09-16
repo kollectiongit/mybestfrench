@@ -17,7 +17,7 @@ export async function GET(
     const supabase = await createClient(await cookies());
     const { data, error } = await supabase.storage
       .from("audio")
-      .download(`dictation/${filename}`);
+      .download(`dictation-sentence/${filename}`);
 
     if (error) {
       console.error("Error downloading file:", error);

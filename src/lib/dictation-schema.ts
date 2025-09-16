@@ -7,7 +7,7 @@ export const DicteeAnalysisSchema = z.object({
     fautes_grammaire: z.number().int(),
     fautes_conjugaison: z.number().int(),
     // Use a number 0-100 (easier than "83%")
-    pourcentage_mots_bien_orthographies: z.number().min(0).max(100),
+    pourcentage_reussite: z.number().min(0).max(100),
   }),
   message_general: z.string(),
   fautes: z.array(

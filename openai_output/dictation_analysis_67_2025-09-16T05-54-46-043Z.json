@@ -1,0 +1,55 @@
+{
+  "stats": {
+    "total_fautes": 6,
+    "fautes_orthographe": 2,
+    "fautes_grammaire": 3,
+    "fautes_conjugaison": 1,
+    "pourcentage_reussite": 88
+  },
+  "message_general": "# Bravo Enzo !\nTu t'en es super bien sorti : 6 petites erreurs sur 50 mots, ça fait 88% de réussite. Beau score ! On corrige ensemble les petits pièges, et tu vas voir, ça va filer droit… comme un skieur sur une piste bleue !",
+  "fautes": [
+    {
+      "sentence_order_number": 1,
+      "texte_eleve": "Une vie **mouvementé**.",
+      "correction": "Une vie *mouvementée*.",
+      "explication": "- Le nom « vie » est féminin, donc l'adjectif **mouvementé** doit aussi être au féminin : on écrit *mouvementée* (on ajoute un « e » à la fin).",
+      "regle": "**L’adjectif s’accorde en genre et en nombre avec le nom qu’il qualifie.** Un nom féminin prend souvent un « e » à l’adjectif. Exemples : *une maison bleue*, *une histoire rigolote*, *un film rigolo*."
+    },
+    {
+      "sentence_order_number": 2,
+      "texte_eleve": "L’artiste Lucile **et** un vrai roman.",
+      "correction": "L’artiste Lucile *est* un vrai roman.",
+      "explication": "- Tu as écrit **et** (la conjonction qui relie des mots) au lieu de *est* (le verbe « être » au présent, 3e personne).",
+      "regle": "**Homophones et/est : on ne les confond pas.** « est » vient du verbe être, on peut le remplacer par « était » pour vérifier. « et » signifie « plus ». Exemples : *Lucile est artiste.* / *Lucile et Emma lisent.* Si tu peux dire *Lucile était artiste*, c’est *est* qu’il faut."
+    },
+    {
+      "sentence_order_number": 3,
+      "texte_eleve": "Elle a exercé un nombre incalculable de **métier**.",
+      "correction": "Elle a exercé un nombre incalculable de *métiers*.",
+      "explication": "- Après « un nombre incalculable de », le nom est au pluriel. Il faut donc écrire *métiers* et pas **métier**.",
+      "regle": "**Après une expression de quantité, le nom se met au pluriel.** Exemples : *beaucoup de fleurs*, *un tas de livres*, *un nombre de personnes*, *une multitude d’idées*."
+    },
+    {
+      "sentence_order_number": 4,
+      "texte_eleve": "Elle a d’abord été monitrice de **sqi**, pianiste et cascadeuse.",
+      "correction": "Elle a d’abord été monitrice de *ski*, pianiste et cascadeuse.",
+      "explication": "- **sqi** est une faute de copie : le mot s’écrit *ski* (s-k-i). Pense au mot *skieur* pour t’aider.",
+      "regle": "**Certains mots s’apprennent par cœur.** On mémorise l’orthographe exacte. Exemples : *ski*, *skieur*, *skiable*."
+    },
+    {
+      "sentence_order_number": 5,
+      "texte_eleve": "Ensuite, elle a été trapéziste, équilibriste, **écuilère** et dompteuse.",
+      "correction": "Ensuite, elle a été trapéziste, équilibriste, *écuyère* et dompteuse.",
+      "explication": "- Le mot correct est *écuyère* (le féminin de « écuyer »). Tu as écrit **écuilère**, où les lettres sont mélangées et la terminaison est fausse.",
+      "regle": "**Féminin des noms en -er : souvent -ère.** On garde le radical et on change la terminaison. Exemples : *écuyer → écuyère*, *berger → bergère*, *boulanger → boulangère*."
+    },
+    {
+      "sentence_order_number": 6,
+      "texte_eleve": "Lucile a **présenter** plusieurs numéros : écuyère, jongleuse, diseuse de bonne aventure et même musicienne.",
+      "correction": "Lucile a *présenté* plusieurs numéros : écuyère, jongleuse, diseuse de bonne aventure et même musicienne.",
+      "explication": "- Après l’auxiliaire « a », on met le participe passé : il faut *présenté* et non **présenter** (l’infinitif).",
+      "regle": "**Participe passé en -é ou infinitif en -er : le test magique.** Remplace le verbe par « vendre ». Si tu peux dire *Lucile a vendu*, alors il faut un participe passé en -é : *a présenté*. Si tu peux dire *Lucile va vendre*, c’est l’infinitif en -er."
+    }
+  ],
+  "conclusion_positive": "Super boulot, Enzo ! Tu as très bien compris le sens du texte, et tes erreurs sont surtout de petits détails (homophones, accords, et deux mots piégeux). En t’entraînant encore un peu, tu vas devenir l’équilibriste des mots… sans filet ! On continue sur cette lancée ? Tu peux être fier de toi."
+}

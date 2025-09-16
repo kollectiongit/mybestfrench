@@ -102,7 +102,9 @@ export function AudioPlayer({ audioFile, className = "" }: AudioPlayerProps) {
       {/* Audio element */}
       <audio
         ref={audioRef}
-        src={`/api/audio/${audioFile}`}
+        src={
+          audioFile.startsWith("http") ? audioFile : `/api/audio/${audioFile}`
+        }
         preload="metadata"
       />
 
@@ -113,7 +115,7 @@ export function AudioPlayer({ audioFile, className = "" }: AudioPlayerProps) {
           variant="outline"
           onClick={handlePlayPause}
           disabled={isLoading || hasError}
-          className="w-full h-9 relative overflow-hidden"
+          className="w-8 h-8 p-0 relative overflow-hidden"
           style={{
             background:
               duration > 0
@@ -124,19 +126,12 @@ export function AudioPlayer({ audioFile, className = "" }: AudioPlayerProps) {
           {isLoading ? (
             <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-900" />
           ) : hasError ? (
-            "Erreur"
+            "!"
           ) : isPlaying ? (
-            <PauseIcon className="h-4 w-4 mr-2" />
+            <PauseIcon className="h-4 w-4" />
           ) : (
-            <PlayIcon className="h-4 w-4 mr-2" />
+            <PlayIcon className="h-4 w-4" />
           )}
-          {isLoading
-            ? "Chargement..."
-            : hasError
-              ? "Fichier non trouvé"
-              : isPlaying
-                ? "Pause"
-                : "Écouter"}
         </Button>
       </div>
     </div>

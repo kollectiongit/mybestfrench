@@ -1,0 +1,34 @@
+{
+  "stats": {
+    "total_fautes": 5,
+    "fautes_orthographe": 3,
+    "fautes_grammaire": 2,
+    "fautes_conjugaison": 0,
+    "pourcentage_mots_bien_orthographies": 90
+  },
+  "message_general": "Bravo Enzo ! Ta dictée est très solide : 90% des mots sont bien écrits. Tu as surtout buté sur deux points: le homophone a/à et quelques féminins de métiers (monitrice, cascadeuse, écuyère). Rien d’inquiétant, c’est comme régler la selle d’un vélo: deux petits ajustements et tu files droit !",
+  "fautes": [
+    {
+      "sentence_order_number": 3,
+      "texte_eleve": "Elle **à** exercé un nombre incalculable de métiers.",
+      "correction": "Elle *a* exercé un nombre incalculable de métiers.",
+      "explication": "- **à** est une préposition (comme dans aller **à** l’école). Ici, on a besoin du verbe avoir au présent: *a*.\n- Astuce: remplace par « avait ». Si « Elle avait exercé » marche, alors on écrit *a* sans accent.",
+      "regle": "**Homophones a/à**: a est le verbe avoir au présent; à est une préposition qui indique un lieu, un moment, un but. Exemples: *Elle a fini ses devoirs.* / *Elle va à la bibliothèque.*"
+    },
+    {
+      "sentence_order_number": 4,
+      "texte_eleve": "Elle **à** d’abord été **monitrisse** de ski, pianiste et **cascadeuze**.",
+      "correction": "Elle *a* d’abord été *monitrice* de ski, pianiste et *cascadeuse*.",
+      "explication": "- **à**: même erreur que plus haut; ici, on doit écrire *a* (verbe avoir).\n- **monitrisse**: le féminin de « moniteur » est *monitrice*, pas « monitrisse ».\n- **cascadeuze**: le féminin de « cascadeur » est *cascadeuse* avec -euse, pas « -euze ».",
+      "regle": "- **Homophones a/à**: a est le verbe avoir; à est une préposition. Exemples: *Elle a deux frères.* / *Elle va à l’entraînement.*\n- **Féminin des noms en -teur**: beaucoup forment leur féminin en -trice. Exemples: *acteur → actrice*, *moniteur → monitrice*.\n- **Féminin des noms en -eur**: ils deviennent souvent -euse. Exemples: *cascadeur → cascadeuse*, *joueur → joueuse*."
+    },
+    {
+      "sentence_order_number": 5,
+      "texte_eleve": "Ensuite, elle a été trapéziste, équilibriste, **écuillère** et dompteuse.",
+      "correction": "Ensuite, elle a été trapéziste, équilibriste, *écuyère* et dompteuse.",
+      "explication": "- **écuillère**: c’est un mot mal formé par ressemblance avec « cuillère ». Le bon mot est *écuyère* (la femme qui monte et présente des chevaux).",
+      "regle": "**Vocabulaire à mémoriser**: certains mots n’obéissent pas à une transformation logique, il faut retenir leur orthographe en pensant à la famille du mot. Exemples: *écuyer → écuyère*, *boulanger → boulangère*."
+    }
+  ],
+  "conclusion_positive": "Super boulot Enzo ! Tu lis bien les phrases et tu connais déjà beaucoup de mots. En révisant rapidement le duo a/à et les féminins comme monitrice/cascadeuse/écuyère, tu vas faire un carton. On continue sur cette lancée: avec toi, l’orthographe, c’est du sport… mais tu as déjà les baskets aux pieds !"
+}

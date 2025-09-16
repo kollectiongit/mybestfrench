@@ -1,7 +1,5 @@
 "use client";
 
-import { ImageUpload } from "@/components/image-upload";
-import ProfileLevelsSelector from "@/components/profile-levels-selector";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -13,6 +11,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { CurrentProfile } from "@/lib/current-profile";
 import { TrashIcon } from "lucide-react";
+import { ImageUpload } from "./image-upload";
+import ProfileLevelsSelector from "./profile-levels-selector";
 
 export interface EditProfileFormData {
   first_name: string;

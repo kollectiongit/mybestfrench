@@ -1,0 +1,48 @@
+{
+  "stats": {
+    "total_fautes": 47,
+    "fautes_orthographe": 47,
+    "fautes_grammaire": 0,
+    "fautes_conjugaison": 0,
+    "pourcentage_reussite": 6
+  },
+  "message_general": "Enzo, tu as bien recopié le titre, bravo ! Par contre, tu as oublié tout le reste de la dictée et tu as ajouté une petite phrase perso (« Coucou comment ça va ? »). C’est sympa, mais ce n’était pas demandé pour la dictée. Résultat : il manque beaucoup de mots, donc le score n’est pas bon cette fois-ci. Pas grave : on va transformer ça en entraînement de champion de la recopie. Promis, la prochaine sera plus musclée que Hulk mais tu vas gérer !",
+  "fautes": [
+    {
+      "sentence_order_number": 2,
+      "texte_eleve": "— (aucun mot écrit)",
+      "correction": "*L’artiste Lucile est un vrai roman.*",
+      "explication": "- Tu n’as pas recopié cette phrase.\n- Chaque mot manquant compte comme une faute d’orthographe (6 fautes ici).",
+      "regle": "**Règle : en dictée-copie, tu dois recopier exactement toutes les phrases du texte, mot pour mot et dans le bon ordre.** On ne supprime pas de mots et on n’en ajoute pas. Exemples : *Texte donné : « Le chat dort. » → À écrire : « Le chat dort. »* ; *Pas correct : « Le chat dort bien. » (mot ajouté) ou « Le chat » (mot manquant).*"
+    },
+    {
+      "sentence_order_number": 3,
+      "texte_eleve": "— (aucun mot écrit)",
+      "correction": "*Elle a exercé un nombre incalculable de métiers.*",
+      "explication": "- Tu n’as pas recopié cette phrase.\n- 8 mots manquants = 8 fautes d’orthographe.",
+      "regle": "**Règle : en dictée-copie, tu dois recopier exactement toutes les phrases du texte, mot pour mot et dans le bon ordre.** On ne supprime pas de mots et on n’en ajoute pas. Exemples : *Texte donné : « Le chat dort. » → À écrire : « Le chat dort. »* ; *Pas correct : « Le chat dort bien. » (mot ajouté) ou « Le chat » (mot manquant).*"
+    },
+    {
+      "sentence_order_number": 4,
+      "texte_eleve": "— (aucun mot écrit)",
+      "correction": "*Elle a d’abord été monitrice de ski, pianiste et cascadeuse.*",
+      "explication": "- Tu n’as pas recopié cette phrase.\n- 10 mots manquants = 10 fautes d’orthographe.",
+      "regle": "**Règle : en dictée-copie, tu dois recopier exactement toutes les phrases du texte, mot pour mot et dans le bon ordre.** On ne supprime pas de mots et on n’en ajoute pas. Exemples : *Texte donné : « Le chat dort. » → À écrire : « Le chat dort. »* ; *Pas correct : « Le chat dort bien. » (mot ajouté) ou « Le chat » (mot manquant).*"
+    },
+    {
+      "sentence_order_number": 5,
+      "texte_eleve": "— (aucun mot écrit)",
+      "correction": "*Ensuite, elle a été trapéziste, équilibriste, écuyère et dompteuse.*",
+      "explication": "- Tu n’as pas recopié cette phrase.\n- 9 mots manquants = 9 fautes d’orthographe.",
+      "regle": "**Règle : en dictée-copie, tu dois recopier exactement toutes les phrases du texte, mot pour mot et dans le bon ordre.** On ne supprime pas de mots et on n’en ajoute pas. Exemples : *Texte donné : « Le chat dort. » → À écrire : « Le chat dort. »* ; *Pas correct : « Le chat dort bien. » (mot ajouté) ou « Le chat » (mot manquant).*"
+    },
+    {
+      "sentence_order_number": 6,
+      "texte_eleve": "— (aucun mot écrit)",
+      "correction": "*Lucile a présenté plusieurs numéros : écuyère, jongleuse, diseuse de bonne aventure et même musicienne.*",
+      "explication": "- Tu n’as pas recopié cette phrase.\n- 14 mots manquants = 14 fautes d’orthographe.",
+      "regle": "**Règle : en dictée-copie, tu dois recopier exactement toutes les phrases du texte, mot pour mot et dans le bon ordre.** On ne supprime pas de mots et on n’en ajoute pas. Exemples : *Texte donné : « Le chat dort. » → À écrire : « Le chat dort. »* ; *Pas correct : « Le chat dort bien. » (mot ajouté) ou « Le chat » (mot manquant).*"
+    }
+  ],
+  "conclusion_positive": "Enzo, tu es motivé et curieux, et ça se voit ! Le titre est parfait, donc tu sais démarrer fort. La prochaine fois, mission « recopie complète » : on écrit toutes les phrases avant d’ajouter quoi que ce soit. Astuce : lis une phrase, compte les mots avec ton doigt, puis recopie-la tranquillement. Tu vas progresser très vite, j’en suis sûr. Allez, on remet ça et on transforme la dictée en victoire, comme un super-héros de l’orthographe !"
+}

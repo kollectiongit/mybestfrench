@@ -1,0 +1,20 @@
+{
+  "stats": {
+    "total_fautes": 1,
+    "fautes_orthographe": 1,
+    "fautes_grammaire": 0,
+    "fautes_conjugaison": 0,
+    "pourcentage_mots_bien_orthographies": 83
+  },
+  "message_general": "Bravo Noa ! Presque parfait : tu as juste oublié la majuscule du début. Tout le reste est nickel, comme un gâteau bien doré qui sort du four (miam) !",
+  "fautes": [
+    {
+      "sentence_order_number": 1,
+      "texte_eleve": "**mon** amie Clara est ma confidente.",
+      "correction": "*Mon* amie Clara est ma confidente.",
+      "explication": "Au début de la phrase, tu as écrit **mon** avec une petite lettre. On commence une phrase par une majuscule : *Mon*. Tout le reste est parfait, comme Ponyo et Spoon quand ils ronronnent !",
+      "regle": "- **On commence toujours une phrase par une majuscule.** Exemples : *Mon amie Clara est ma confidente.* ; *Aujourd'hui, il fait beau.* ; *Le chat saute.*\n- **Les prénoms prennent une majuscule.** Exemples : *Clara*, *Noa*, *Enzo*. "
+    }
+  ],
+  "conclusion_positive": "Super boulot, Noa ! 5 mots sur 6 bien écrits, c’est 83 %, presque le sans-faute. La prochaine fois, pense à la majuscule de départ et tu feras 100 %. Tu gères comme un gros beau gosse, et je parie que Ponyo, Spoon et Syd te feraient un câlin de champion. On continue ? High five !"
+}

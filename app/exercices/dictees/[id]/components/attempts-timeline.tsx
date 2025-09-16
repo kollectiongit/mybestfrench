@@ -15,13 +15,13 @@ import {
 import ValidationResults from "./validation-results";
 
 interface ExerciceAttempt {
-  id: string;
-  created_at: string | null;
+  id: number;
+  created_at: Date | null;
   correction_total_errors: number | null;
   correction_errors_spelling: number | null;
   correction_errors_grammar: number | null;
   correction_errors_conjugation: number | null;
-  correction_errors_percentage: number | null;
+  correction_success_percentage: number | null;
   correction_full_json: string | null;
   user_answer: string | null;
 }
@@ -29,7 +29,7 @@ interface Dictation {
   exercicesAttempts: ExerciceAttempt[];
 }
 
-function formatDateTime(dateString: string | null) {
+function formatDateTime(dateString: Date | null) {
   if (!dateString) return "Date inconnue";
   const date = new Date(dateString);
   return date.toLocaleDateString("fr-FR", {
@@ -111,9 +111,9 @@ export default function AttemptsTimeline({
                     </TooltipContent>
                   </Tooltip>
                   <Badge
-                    className={`${getScoreBadgeStyle(attempt.correction_errors_percentage)} w-16 text-center`}
+                    className={`${getScoreBadgeStyle(attempt.correction_success_percentage)} w-16 text-center`}
                   >
-                    {formatScore(attempt.correction_errors_percentage)}
+                    {formatScore(attempt.correction_success_percentage)}
                   </Badge>
                 </div>
               </div>
@@ -139,7 +139,7 @@ export default function AttemptsTimeline({
                           </p>
                           <p className="mb-2">
                             <strong>Score:</strong>{" "}
-                            {formatScore(attempt.correction_errors_percentage)}
+                            {formatScore(attempt.correction_success_percentage)}
                           </p>
                           <p className="mb-2">
                             <strong>Erreurs totales:</strong>{" "}
@@ -171,7 +171,7 @@ export default function AttemptsTimeline({
                     </p>
                     <p className="mb-2">
                       <strong>Score:</strong>{" "}
-                      {formatScore(attempt.correction_errors_percentage)}
+                      {formatScore(attempt.correction_success_percentage)}
                     </p>
                     <p className="mb-2">
                       <strong>Erreurs totales:</strong>{" "}

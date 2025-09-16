@@ -7,43 +7,25 @@ import Filters from "./components/Filters";
 import Header from "./components/Header";
 import SearchBar from "./components/SearchBar";
 
-interface Level {
-  id: number;
-  code: string;
-  label: string;
-  rank: number;
-}
-
-interface DictationLevel {
-  id: number;
-  level_id: number;
-  dictation_id: number;
-  levels: Level;
-}
-
 interface Topic {
   id: number;
   name: string;
-  slug: string;
   category: {
-    id: number;
     name: string;
-    slug: string;
   };
 }
 
 interface Dictation {
-  id: string;
-  topic_id: number;
-  original_text: string | null;
-  audio_file: string | null;
-  screenshot_file: string | null;
-  picture_file: string | null;
+  id: number;
+  title: string;
   count_words: number | null;
-  created_at: string;
-  updated_at: string;
   topic: Topic;
-  dictations_levels: DictationLevel[];
+  levels: string[];
+  audio_files: string[];
+  sentences_count: number;
+  attempts_count: number;
+  latest_attempt_at: string | null;
+  errors_range: string | null;
 }
 
 // (Header, SearchBar, Filters, DictationCard) are imported components
@@ -54,6 +36,8 @@ export default function DicteesPageClient() {
   const [filteredDictations, setFilteredDictations] = useState<Dictation[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedTopics, setSelectedTopics] = useState<number[]>([]);
+  const [showAttemptedOnly, setShowAttemptedOnly] = useState(false);
+  const [showNotAttemptedOnly, setShowNotAttemptedOnly] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -81,20 +65,30 @@ export default function DicteesPageClient() {
           dictation.topic.category.name
             .toLowerCase()
             .includes(searchTerm.toLowerCase()) ||
-          dictation.dictations_levels.some(
-            (dl) =>
-              dl.levels.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
-              dl.levels.label.toLowerCase().includes(searchTerm.toLowerCase())
+          dictation.levels.some((level) =>
+            level.toLowerCase().includes(searchTerm.toLowerCase())
           )
       );
     }
     if (selectedTopics.length > 0) {
       filtered = filtered.filter((dictation) =>
-        selectedTopics.includes(dictation.topic_id)
+        selectedTopics.includes(dictation.topic.id)
       );
     }
+    if (showAttemptedOnly) {
+      filtered = filtered.filter((dictation) => dictation.attempts_count > 0);
+    }
+    if (showNotAttemptedOnly) {
+      filtered = filtered.filter((dictation) => dictation.attempts_count === 0);
+    }
     setFilteredDictations(filtered);
-  }, [dictations, searchTerm, selectedTopics]);
+  }, [
+    dictations,
+    searchTerm,
+    selectedTopics,
+    showAttemptedOnly,
+    showNotAttemptedOnly,
+  ]);
 
   useEffect(() => {
     filterDictations();
@@ -119,12 +113,16 @@ export default function DicteesPageClient() {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <Header />
+      <Header count={filteredDictations.length} />
       <SearchBar value={searchTerm} onChange={setSearchTerm} />
       <Filters
         dictations={dictations}
         selectedTopics={selectedTopics}
         setSelectedTopics={setSelectedTopics}
+        showAttemptedOnly={showAttemptedOnly}
+        setShowAttemptedOnly={setShowAttemptedOnly}
+        showNotAttemptedOnly={showNotAttemptedOnly}
+        setShowNotAttemptedOnly={setShowNotAttemptedOnly}
       />
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">

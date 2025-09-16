@@ -1,0 +1,27 @@
+{
+  "stats": {
+    "total_fautes": 3,
+    "fautes_orthographe": 1,
+    "fautes_grammaire": 1,
+    "fautes_conjugaison": 1,
+    "pourcentage_mots_bien_orthographies": 94
+  },
+  "message_general": "Bravo Enzo ! Très belle dictée : 94% de mots bien écrits. Seulement trois petites glissades, comme une trapéziste qui rate une craie… mais qui retombe sur ses pieds ! On corrige ça ensemble et tu vas devenir le roi des dictées.",
+  "fautes": [
+    {
+      "sentence_order_number": 1,
+      "texte_eleve": "Une vie **mouvementé**.",
+      "correction": "Une vie *mouvementée*.",
+      "explication": "- **mouvementé** doit s'accorder avec le nom féminin **vie**. On ajoute un -e final pour le féminin, ce qui donne *mouvementée*.",
+      "regle": "**Accord de l’adjectif avec le nom**: l’adjectif s’accorde en genre et en nombre avec le nom qu’il décrit. Féminin singulier: on ajoute souvent -e. Pluriel: on ajoute souvent -s. Exemples: *une journée ensoleillée*, *un film mouvementé*, *des vies mouvementées*."
+    },
+    {
+      "sentence_order_number": 2,
+      "texte_eleve": "L’artiste **Lucil** **et** un vrai roman.",
+      "correction": "L’artiste *Lucile* *est* un vrai roman.",
+      "explication": "- Le prénom **Lucil** est mal orthographié : il faut *Lucile* avec un -e final.\n- **et** veut dire « et/and ». Ici, on a besoin du verbe « être » au présent: *est* (il/elle est).",
+      "regle": "- **Conjugaison de être au présent (3e personne)**: on écrit « il/elle est ». Pour vérifier, remplace par « il/elle »: si la phrase marche avec « il/elle est », c’est *est* qu’il faut. Exemple: *Elle est contente.*\n- **Orthographe des noms propres**: on respecte la graphie exacte des prénoms et des noms. Exemple: *Lucile*, *Paul*, *Camille*."
+    }
+  ],
+  "conclusion_positive": "Super boulot, Enzo ! Tu as tout compris au texte et tes accents/ponctuations sont soignés. Avec un petit coup d’œil sur l’accord des adjectifs (féminin) et l’astuce « il/elle est » pour choisir entre et/est, tu vas faire des dictées de champion. Continue comme ça, curieux et appliqué… high five !"
+}

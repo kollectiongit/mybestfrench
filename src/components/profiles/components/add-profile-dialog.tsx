@@ -1,7 +1,5 @@
 "use client";
 
-import { ImageUpload } from "@/components/image-upload";
-import ProfileLevelsSelector from "@/components/profile-levels-selector";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -11,6 +9,8 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { ImageUpload } from "../../../../app/profiles/components/image-upload";
+import ProfileLevelsSelector from "../../../../app/profiles/components/profile-levels-selector";
 
 export interface AddProfileFormData {
   first_name: string;

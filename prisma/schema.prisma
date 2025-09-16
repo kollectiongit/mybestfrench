@@ -98,7 +98,7 @@ model exercices_attempts {
   correction_errors_spelling                Int?
   correction_errors_grammar                 Int?
   correction_errors_conjugation             Int?
-  correction_errors_percentage              Int?
+  correction_success_percentage              Int?
   correction_greeting_message               String?
   correction_errors_by_sentence_json        Json?
   correction_conclusion_message             String?

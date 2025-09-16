@@ -1,0 +1,27 @@
+{
+  "stats": {
+    "total_fautes": 3,
+    "fautes_orthographe": 1,
+    "fautes_grammaire": 2,
+    "fautes_conjugaison": 0,
+    "pourcentage_mots_bien_orthographies": 94
+  },
+  "message_general": "Bravo Enzo ! Ta dictée est très solide : seulement 3 petites erreurs sur 50 mots, soit 94 % de mots bien écrits. C’est comme trébucher sur trois cailloux pendant une grande balade… mais tu arrives quand même tout droit à destination ! On corrige ensemble et tu vas voir, c’est du gâteau.",
+  "fautes": [
+    {
+      "sentence_order_number": 1,
+      "texte_eleve": "Une vie **mouvementé**.",
+      "correction": "Une vie *mouvementée*.",
+      "explication": "- **mouvementé** décrit le nom « vie », qui est féminin. On ajoute donc un e : *mouvementée*.\n- On n’entend pas toujours ce e, mais il s’écrit pour montrer le féminin.",
+      "regle": "**Accord de l’adjectif avec le nom** L’adjectif s’accorde en genre et en nombre avec le nom qu’il décrit. Au féminin singulier, on ajoute souvent -e ; au pluriel, -s. Exemples : *une vie mouvementée*, *un voyage mouvementé*, *des vies mouvementées*."
+    },
+    {
+      "sentence_order_number": 2,
+      "texte_eleve": "L’artiste **Lucil** **et** un vrai roman.",
+      "correction": "L’artiste *Lucile* *est* un vrai roman.",
+      "explication": "- **Lucil** : il manque le e final. Le prénom correct est *Lucile*.\n- **et** : ici, on parle du verbe « être ». On doit écrire *est*. Astuce : remplace par « était » → « Lucile était un vrai roman », ça marche.",
+      "regle": "- **Orthographe des noms propres** Les prénoms s’écrivent avec leur orthographe exacte. Exemples : *Lucile*, *Camille*, *Maëlys*.\n- **Homophones et/est** « et » relie des mots ; « est » est le verbe être (il/elle). Astuce : si on peut remplacer par *était*, c’est *est*. Exemples : *pain et confiture*, *Lucile est artiste*."
+    }
+  ],
+  "conclusion_positive": "Super boulot, Enzo ! Tu es attentif et ça se voit. Pour devenir un vrai champion, pense à vérifier l’accord des adjectifs avec le nom (masculin/féminin) et fais le petit test magique pour « et/est » (remplacer par « était »). On continue comme ça : régulier, concentré… et avec le sourire ! La prochaine fois, tu vas faire un sans-faute, j’en mettrais presque mon stylo à paillettes à parier !"
+}
