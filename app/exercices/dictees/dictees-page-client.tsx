@@ -2,10 +2,12 @@
 
 import { useCurrentProfile } from "@/hooks/use-current-profile";
 import { useCallback, useEffect, useState } from "react";
+import CategoryFilters from "./components/CategoryFilters";
 import DictationCard from "./components/DictationCard";
-import Filters from "./components/Filters";
 import Header from "./components/Header";
 import SearchBar from "./components/SearchBar";
+import StatusFilters from "./components/StatusFilters";
+import TopicDialog from "./components/TopicDialog";
 
 interface Topic {
   id: number;
@@ -26,6 +28,7 @@ interface Dictation {
   attempts_count: number;
   latest_attempt_at: string | null;
   errors_range: string | null;
+  highest_success_percentage: number | null;
 }
 
 // (Header, SearchBar, Filters, DictationCard) are imported components
@@ -114,16 +117,32 @@ export default function DicteesPageClient() {
   return (
     <div className="container mx-auto px-4 py-8">
       <Header count={filteredDictations.length} />
-      <SearchBar value={searchTerm} onChange={setSearchTerm} />
-      <Filters
-        dictations={dictations}
-        selectedTopics={selectedTopics}
-        setSelectedTopics={setSelectedTopics}
-        showAttemptedOnly={showAttemptedOnly}
-        setShowAttemptedOnly={setShowAttemptedOnly}
-        showNotAttemptedOnly={showNotAttemptedOnly}
-        setShowNotAttemptedOnly={setShowNotAttemptedOnly}
-      />
+
+      {/* Alignement horizontal des filtres */}
+      <div className="mb-6 flex flex-wrap items-center gap-4">
+        <SearchBar value={searchTerm} onChange={setSearchTerm} />
+        <StatusFilters
+          dictations={dictations}
+          showAttemptedOnly={showAttemptedOnly}
+          setShowAttemptedOnly={setShowAttemptedOnly}
+          showNotAttemptedOnly={showNotAttemptedOnly}
+          setShowNotAttemptedOnly={setShowNotAttemptedOnly}
+        />
+        <CategoryFilters
+          dictations={dictations}
+          selectedTopics={selectedTopics}
+          setSelectedTopics={setSelectedTopics}
+        />
+      </div>
+
+      {/* Dialog pour les sujets */}
+      <div className="mb-6">
+        <TopicDialog
+          dictations={dictations}
+          selectedTopics={selectedTopics}
+          setSelectedTopics={setSelectedTopics}
+        />
+      </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
         {filteredDictations.map((dictation) => (

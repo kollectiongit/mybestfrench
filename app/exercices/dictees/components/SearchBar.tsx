@@ -10,13 +10,13 @@ export default function SearchBar({
   onChange: (v: string) => void;
 }) {
   return (
-    <div className="mb-6">
+    <div className="flex-shrink-0">
       <Input
         type="text"
         placeholder="Rechercher une dictée par thème, catégorie ou niveau..."
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="max-w-md"
+        className="w-80"
       />
     </div>
   );

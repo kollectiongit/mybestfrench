@@ -47,7 +47,7 @@ export default function Home() {
             <Link href={profile ? "/exercices/dictees" : "/login"}>
               <Button
                 size="lg"
-                className="w-full group cursor-pointer transition-all duration-300 ease-in-out hover:scale-105 hover:text-white hover:bg-gradient-to-r hover:from-purple-500 hover:via-pink-500 hover:to-orange-400"
+                className="w-full group cursor-pointer transition-all duration-300 ease-in-out hover:scale-105 "
               >
                 <span className="flex items-center justify-center gap-2">
                   {profile ? "Commencer" : "Me connecter"}

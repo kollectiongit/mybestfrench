@@ -153,7 +153,12 @@ export default function Component() {
             </div>
           ) : (
             <div className="flex items-center gap-2">
-              <Button asChild variant="ghost" size="sm" className="text-sm">
+              <Button
+                asChild
+                variant="ghost"
+                size="sm"
+                className="text-sm hover:border-primary border transition-all duration-300 ease-in-out"
+              >
                 <Link href="/signup">Créer un compte</Link>
               </Button>
               <Button asChild size="sm" className="text-sm">

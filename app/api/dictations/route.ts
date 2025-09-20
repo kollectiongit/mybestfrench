@@ -100,6 +100,7 @@ export async function GET(request: NextRequest) {
           select: {
             created_at: true,
             correction_total_errors: true,
+            correction_success_percentage: true,
           },
         },
       },
@@ -149,6 +150,15 @@ export async function GET(request: NextRequest) {
         }
       }
 
+      // Calculate highest success percentage
+      const successPercentages = dictation.exercices_attempts
+        .map(attempt => attempt.correction_success_percentage)
+        .filter(percentage => percentage !== null && percentage !== undefined);
+      
+      const highestSuccessPercentage = successPercentages.length > 0 
+        ? Math.max(...successPercentages) 
+        : null;
+
       return {
         id: dictation.id,
         title: dictation.title,
@@ -167,6 +177,7 @@ export async function GET(request: NextRequest) {
         attempts_count: attemptsCount,
         latest_attempt_at: latestAttempt ? new Date(latestAttempt).toISOString() : null,
         errors_range: errorsRange,
+        highest_success_percentage: highestSuccessPercentage,
       };
     });
 

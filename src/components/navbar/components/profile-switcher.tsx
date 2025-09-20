@@ -72,7 +72,7 @@ export default function ProfileSwitcher() {
                 className="rounded-full object-cover"
               />
             ) : (
-              <AvatarFallback className="bg-gray-200">
+              <AvatarFallback className="bg-gray-900">
                 <User size={14} />
               </AvatarFallback>
             )}

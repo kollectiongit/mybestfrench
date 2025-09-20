@@ -24,6 +24,7 @@ export interface Dictation {
   attempts_count: number;
   latest_attempt_at: string | null;
   errors_range: string | null;
+  highest_success_percentage: number | null;
 }
 
 export default function DictationCard({ dictation }: { dictation: Dictation }) {
@@ -37,81 +38,82 @@ export default function DictationCard({ dictation }: { dictation: Dictation }) {
   };
 
   return (
-    <Link href={`/exercices/dictees/${dictation.id}`}>
-      <Card
-        className={`overflow-hidden hover:shadow-lg transition-shadow cursor-pointer hover:cursor-pointer pt-0 pb-2 gap-0 flex flex-col h-full ${
-          dictation.attempts_count > 0 ? "border-green-200 bg-green-50/30" : ""
-        }`}
-      >
-        <CardContent className="p-4 flex flex-col justify-between flex-1">
-          <div className="flex items-center gap-3 mb-4">
-            {dictation.audio_files.length > 0 && (
-              <AudioPlayer
-                audioFile={`https://nrpnakbupjpkdfdvmryr.supabase.co/storage/v1/object/public/audio/dictation-sentence/${dictation.audio_files[0]}`}
-                className=""
-              />
-            )}
+    <Card
+      className={`overflow-hidden hover:shadow-lg transition-shadow pt-0 pb-2 gap-0 flex flex-col h-full ${
+        dictation.attempts_count > 0 ? "border-green-200 bg-green-50/30" : ""
+      }`}
+    >
+      <CardContent className="p-4 flex flex-col justify-between flex-1">
+        <div className="flex items-center gap-3 mb-4">
+          {dictation.audio_files.length > 0 && (
+            <AudioPlayer
+              audioFile={`https://nrpnakbupjpkdfdvmryr.supabase.co/storage/v1/object/public/audio/dictation-sentence/${dictation.audio_files[0]}`}
+              className=""
+            />
+          )}
 
-            <CardTitle className="text-md line-clamp-1">
+          <Link href={`/exercices/dictees/${dictation.id}`}>
+            <CardTitle className="text-md line-clamp-1 hover:underline cursor-pointer">
               {dictation.title}
             </CardTitle>
+          </Link>
+        </div>
+
+        <div className="space-y-2 flex-1 flex flex-col justify-between">
+          {/* 1st row: Category and Topic */}
+          <div className="flex flex-wrap gap-1">
+            {dictation.topic.category.name && (
+              <Badge className="text-xs">{dictation.topic.category.name}</Badge>
+            )}
+            {dictation.topic.name && (
+              <Badge className="text-xs bg-gray-500">
+                {dictation.topic.name}
+              </Badge>
+            )}
+            {dictation.levels.map((level, index) => (
+              <Badge key={index} className="text-xs bg-gray-500">
+                {level}
+              </Badge>
+            ))}
           </div>
 
-          <div className="space-y-2 flex-1 flex flex-col justify-between">
-            {/* 1st row: Category and Topic */}
-            <div className="flex flex-wrap gap-1">
-              {dictation.topic.category.name && (
-                <Badge className="text-xs">
-                  {dictation.topic.category.name}
-                </Badge>
-              )}
-              {dictation.topic.name && (
-                <Badge className="text-xs bg-gray-500">
-                  {dictation.topic.name}
-                </Badge>
-              )}
-              {dictation.levels.map((level, index) => (
-                <Badge key={index} className="text-xs bg-gray-500">
-                  {level}
-                </Badge>
-              ))}
-            </div>
-
-            {/* 2nd row: Sentences, Words, and Level */}
-            <div className="flex flex-wrap gap-1 mb-4">
-              <Badge variant="outline" className="text-xs ">
-                {dictation.sentences_count}{" "}
-                {dictation.sentences_count === 1 ? "phrase" : "phrases"}
+          {/* 2nd row: Sentences, Words, and Level */}
+          <div className="flex flex-wrap gap-1 mb-4">
+            <Badge variant="outline" className="text-xs ">
+              {dictation.sentences_count}{" "}
+              {dictation.sentences_count === 1 ? "phrase" : "phrases"}
+            </Badge>
+            {dictation.count_words && (
+              <Badge variant="outline" className="text-xs">
+                {dictation.count_words} mots
               </Badge>
-              {dictation.count_words && (
-                <Badge variant="outline" className="text-xs">
-                  {dictation.count_words} mots
-                </Badge>
-              )}
-            </div>
-
-            {/* 3rd row: Attempts, Errors, and Date */}
-            {dictation.attempts_count > 0 && (
-              <div className="flex flex-wrap gap-1 text-xs text-green-500">
-                <span>
-                  {dictation.attempts_count}{" "}
-                  {dictation.attempts_count === 1 ? "essai" : "essais"}
-                </span>
-                {dictation.errors_range && (
-                  <span>
-                    {" "}
-                    • {dictation.errors_range}{" "}
-                    {dictation.errors_range === "1" ? "erreur" : "erreurs"}
-                  </span>
-                )}
-                {dictation.latest_attempt_at && (
-                  <span> • {formatDate(dictation.latest_attempt_at)}</span>
-                )}
-              </div>
             )}
           </div>
-        </CardContent>
-      </Card>
-    </Link>
+
+          {/* 3rd row: Attempts, Errors, Success Percentage, and Date */}
+          {dictation.attempts_count > 0 && (
+            <div className="flex flex-wrap gap-1 text-xs text-green-500">
+              <span>
+                {dictation.attempts_count}{" "}
+                {dictation.attempts_count === 1 ? "essai" : "essais"}
+              </span>
+              {dictation.errors_range && (
+                <span>
+                  {" "}
+                  • {dictation.errors_range}{" "}
+                  {dictation.errors_range === "1" ? "erreur" : "erreurs"}
+                </span>
+              )}
+              {dictation.highest_success_percentage !== null && (
+                <span> • {dictation.highest_success_percentage}% réussite</span>
+              )}
+              {dictation.latest_attempt_at && (
+                <span> • {formatDate(dictation.latest_attempt_at)}</span>
+              )}
+            </div>
+          )}
+        </div>
+      </CardContent>
+    </Card>
   );
 }

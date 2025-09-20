@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { BadgeCheck, Check, CircleX, X } from "lucide-react";
+import { Check, CircleX, ThumbsDown, ThumbsUp, X } from "lucide-react";
 
 interface Topic {
   id: number;
@@ -94,7 +94,7 @@ export default function Filters({
     >
       <span className="text-xs font-medium">{name}</span>
       <span
-        className={`text-[10px] font-bold h-5 w-5 rounded-full text-center flex items-center justify-center ${
+        className={`text-[10px] font-bold h-6 w-6 rounded-full text-center flex items-center justify-center ${
           isSelected
             ? "bg-blue-200 text-blue-700 group-hover:bg-blue-300 transition-all duration-200"
             : "bg-gray-200 text-gray-600"
@@ -123,10 +123,10 @@ export default function Filters({
           }`}
           onClick={() => setShowAttemptedOnly(!showAttemptedOnly)}
         >
-          <BadgeCheck className="w-4 h-4" />
-          <span className="text-xs font-medium">Déjà testé</span>
+          <ThumbsUp className="w-4 h-4" />
+          <span className="text-xs font-medium">Dictée déjà faite</span>
           <span
-            className={`text-[10px] font-bold h-5 w-5 rounded-full text-center flex items-center justify-center ${
+            className={`text-[10px] font-bold h-6 w-6 rounded-full text-center flex items-center justify-center ${
               showAttemptedOnly
                 ? "bg-green-200 text-green-700 group-hover:bg-green-300 transition-all duration-200"
                 : "bg-gray-200 text-gray-600"
@@ -150,10 +150,10 @@ export default function Filters({
           }`}
           onClick={() => setShowNotAttemptedOnly(!showNotAttemptedOnly)}
         >
-          <CircleX className="w-4 h-4" />
-          <span className="text-xs font-medium">À tester</span>
+          <ThumbsDown className="w-4 h-4" />
+          <span className="text-xs font-medium">Dictée jamais faite</span>
           <span
-            className={`text-[10px] font-bold h-5 w-5 rounded-full text-center flex items-center justify-center ${
+            className={`text-[10px] font-bold h-6 w-6 rounded-full text-center flex items-center justify-center ${
               showNotAttemptedOnly
                 ? "bg-orange-200 text-orange-700 group-hover:bg-orange-300 transition-all duration-200"
                 : "bg-gray-200 text-gray-600"
