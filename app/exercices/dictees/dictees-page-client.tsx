@@ -1,6 +1,7 @@
 "use client";
 
 import { useCurrentProfile } from "@/hooks/use-current-profile";
+import { CurrentProfile } from "@/lib/current-profile";
 import { useCallback, useEffect, useState } from "react";
 import CategoryFilters from "./components/CategoryFilters";
 import DictationCard from "./components/DictationCard";
@@ -31,30 +32,48 @@ interface Dictation {
   highest_success_percentage: number | null;
 }
 
-// (Header, SearchBar, Filters, DictationCard) are imported components
+// Props pour les données pré-chargées
+interface DicteesPageClientProps {
+  initialDictations?: Dictation[];
+  initialProfile?: CurrentProfile | null;
+}
 
-export default function DicteesPageClient() {
+export default function DicteesPageClient({
+  initialDictations = [],
+  initialProfile = null,
+}: DicteesPageClientProps) {
   const { profile, isLoading: profileLoading } = useCurrentProfile();
-  const [dictations, setDictations] = useState<Dictation[]>([]);
-  const [filteredDictations, setFilteredDictations] = useState<Dictation[]>([]);
+  const [dictations, setDictations] = useState<Dictation[]>(initialDictations);
+  const [filteredDictations, setFilteredDictations] =
+    useState<Dictation[]>(initialDictations);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedTopics, setSelectedTopics] = useState<number[]>([]);
   const [showAttemptedOnly, setShowAttemptedOnly] = useState(false);
   const [showNotAttemptedOnly, setShowNotAttemptedOnly] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false); // Plus de loading initial
 
+  // Mettre à jour les dictées quand les données initiales changent
   useEffect(() => {
-    const fetchDictations = async () => {
-      try {
-        const response = await fetch("/api/dictations");
-        if (response.ok) {
-          const data = await response.json();
-          setDictations(data);
-        }
-      } catch {}
+    setDictations(initialDictations);
+    setFilteredDictations(initialDictations);
+  }, [initialDictations]);
+
+  // Fonction pour recharger les dictées (si nécessaire)
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const refreshDictations = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      const response = await fetch("/api/dictations");
+      if (response.ok) {
+        const data = await response.json();
+        setDictations(data);
+        setFilteredDictations(data);
+      }
+    } catch (error) {
+      console.error("Error refreshing dictations:", error);
+    } finally {
       setIsLoading(false);
-    };
-    fetchDictations();
+    }
   }, []);
 
   const filterDictations = useCallback(() => {
@@ -97,7 +116,10 @@ export default function DicteesPageClient() {
     filterDictations();
   }, [filterDictations]);
 
-  if (profileLoading || isLoading) {
+  // Utiliser le profil initial si disponible, sinon le profil du context
+  const currentProfile = initialProfile || profile;
+
+  if (profileLoading) {
     return (
       <div className="container mx-auto px-4 py-8">
         <div className="flex items-center justify-center min-h-[400px]">
@@ -110,7 +132,7 @@ export default function DicteesPageClient() {
     );
   }
 
-  if (!profile) {
+  if (!currentProfile) {
     return null;
   }
 

@@ -1,4 +1,5 @@
 import { auth } from "@/lib/auth";
+import { getProfilesFromCacheCookie, setProfilesCacheCookie } from "@/lib/profile-cookies";
 import { NextRequest, NextResponse } from "next/server";
 import { PrismaClient } from "../../generated/prisma";
 
@@ -15,6 +16,16 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    // Try to get cached profiles first
+    const cachedProfiles = await getProfilesFromCacheCookie(request);
+    if (cachedProfiles) {
+      return NextResponse.json({
+        profiles: cachedProfiles,
+        fromCache: true,
+      });
+    }
+
+    // If no cache, fetch from database
     const profiles = await prisma.profiles.findMany({
       where: {
         user_id: session.user.id,
@@ -38,7 +49,24 @@ export async function GET(request: NextRequest) {
       },
     });
 
-    return NextResponse.json(profiles);
+    // Format profiles for response
+    const formattedProfiles = profiles.map(profile => ({
+      id: profile.id,
+      first_name: profile.first_name,
+      last_name: profile.last_name,
+      avatar_url: profile.avatar_url,
+      age: profile.age,
+      description: profile.description,
+      created_at: profile.created_at?.toISOString() || null,
+      updated_at: profile.updated_at?.toISOString() || null,
+      profile_levels: profile.profile_levels || [],
+    }));
+
+    // Cache the response
+    const response = NextResponse.json(formattedProfiles);
+    await setProfilesCacheCookie(response, formattedProfiles);
+
+    return response;
   } catch (error) {
     console.error("Error fetching profiles:", error);
     return NextResponse.json(

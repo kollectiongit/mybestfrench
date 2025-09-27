@@ -1,6 +1,6 @@
 import Navbar from "@/components/navbar/navbar";
+import { ServerProfileProvider } from "@/components/server-profile-provider";
 import { Toaster } from "@/components/ui/sonner";
-import { ProfileProvider } from "@/contexts/profile-context";
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
@@ -51,15 +51,11 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <ProfileProvider
-          initialProfile={null}
-          initialProfiles={[]}
-          serverSideAuthChecked={false}
-        >
+        <ServerProfileProvider>
           <Navbar />
           {children}
           <Toaster />
-        </ProfileProvider>
+        </ServerProfileProvider>
       </body>
     </html>
   );

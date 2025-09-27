@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
+import { CurrentProfile } from "./current-profile";
 
 const CURRENT_PROFILE_COOKIE_NAME = "current_profile";
+const PROFILES_CACHE_COOKIE_NAME = "profiles_cache";
 const COOKIE_MAX_AGE = 180 * 24 * 60 * 60; // 180 days in seconds
 
 /**
@@ -97,6 +99,80 @@ export async function getCurrentProfileFromCookie(request: NextRequest): Promise
  */
 export function clearCurrentProfileCookie(response: NextResponse): void {
   response.cookies.delete(CURRENT_PROFILE_COOKIE_NAME);
+}
+
+/**
+ * Sets profile data in cookies for server-side caching
+ */
+export async function setProfilesCacheCookie(
+  response: NextResponse, 
+  profiles: CurrentProfile[]
+): Promise<void> {
+  const secret = process.env.BETTER_AUTH_SECRET;
+  if (!secret) {
+    throw new Error("BETTER_AUTH_SECRET is required for signing cookies");
+  }
+  
+  // Only store essential data to keep cookie size reasonable
+  const cacheData = {
+    profiles: profiles.map(p => ({
+      id: p.id,
+      first_name: p.first_name,
+      last_name: p.last_name,
+      avatar_url: p.avatar_url,
+      age: p.age,
+      profile_levels: p.profile_levels
+    })),
+    timestamp: Date.now()
+  };
+  
+  const signedData = await signValue(JSON.stringify(cacheData), secret);
+  
+  response.cookies.set(PROFILES_CACHE_COOKIE_NAME, signedData, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax',
+    maxAge: 5 * 60, // 5 minutes for cache
+    path: '/',
+  });
+}
+
+/**
+ * Gets profiles from cache cookie
+ */
+export async function getProfilesFromCacheCookie(
+  request: NextRequest
+): Promise<CurrentProfile[] | null> {
+  const secret = process.env.BETTER_AUTH_SECRET;
+  if (!secret) {
+    return null;
+  }
+  
+  const signedData = request.cookies.get(PROFILES_CACHE_COOKIE_NAME)?.value;
+  if (!signedData) return null;
+  
+  try {
+    const verifiedData = await verifySignedValue(signedData, secret);
+    if (!verifiedData) return null;
+    
+    const cacheData = JSON.parse(verifiedData);
+    
+    // Check if cache is still valid (5 minutes)
+    if (Date.now() - cacheData.timestamp > 5 * 60 * 1000) {
+      return null;
+    }
+    
+    return cacheData.profiles as CurrentProfile[];
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Clears profiles cache cookie
+ */
+export function clearProfilesCacheCookie(response: NextResponse): void {
+  response.cookies.delete(PROFILES_CACHE_COOKIE_NAME);
 }
 
 /**

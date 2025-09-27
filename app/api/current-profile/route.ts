@@ -1,5 +1,5 @@
 import { auth } from "@/lib/auth";
-import { clearCurrentProfileCookie, getCurrentProfileFromCookie, setCurrentProfileCookie } from "@/lib/profile-cookies";
+import { clearCurrentProfileCookie, getCurrentProfileFromCookie, getProfilesFromCacheCookie, setCurrentProfileCookie, setProfilesCacheCookie } from "@/lib/profile-cookies";
 import { NextRequest, NextResponse } from "next/server";
 import { PrismaClient } from "../../generated/prisma";
 
@@ -76,6 +76,35 @@ export async function POST(request: NextRequest) {
 
     await setCurrentProfileCookie(response, profileId);
 
+    // Update cache cookie with fresh data
+    const allProfiles = await prisma.profiles.findMany({
+      where: { user_id: session.user.id },
+      include: {
+        profile_levels: {
+          include: {
+            levels: {
+              select: { id: true, code: true, label: true, rank: true },
+            },
+          },
+        },
+      },
+      orderBy: { created_at: 'desc' },
+    });
+
+    const formattedProfiles = allProfiles.map(p => ({
+      id: p.id,
+      first_name: p.first_name,
+      last_name: p.last_name,
+      avatar_url: p.avatar_url,
+      age: p.age,
+      description: p.description,
+      created_at: p.created_at?.toISOString() || null,
+      updated_at: p.updated_at?.toISOString() || null,
+      profile_levels: p.profile_levels || [],
+    }));
+
+    await setProfilesCacheCookie(response, formattedProfiles);
+
     return response;
   } catch (error) {
     console.error("Error setting current profile:", error);
@@ -101,8 +130,21 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Try to get profile ID from cookie
+    // Try to get cached profiles first
+    const cachedProfiles = await getProfilesFromCacheCookie(request);
     const currentProfileId = await getCurrentProfileFromCookie(request);
+    
+    // If we have cached data and a current profile ID, try to return cached data
+    if (cachedProfiles && currentProfileId) {
+      const cachedProfile = cachedProfiles.find(p => p.id === currentProfileId);
+      if (cachedProfile) {
+        return NextResponse.json({
+          currentProfile: cachedProfile,
+          fromCache: true,
+        });
+      }
+    }
+
     let profile = null;
 
     if (currentProfileId) {

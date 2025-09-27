@@ -1,0 +1,20 @@
+{
+  "stats": {
+    "total_fautes": 3,
+    "fautes_orthographe": 2,
+    "fautes_grammaire": 1,
+    "fautes_conjugaison": 0,
+    "pourcentage_reussite": 82
+  },
+  "message_general": "Salut Enzo ! Belle dictée : 3 petites erreurs (accents et apostrophe) sur 17 mots, soit environ 82 % de réussite. Tu es sur la bonne voie : on corrige deux détails d’orthographe et un point de grammaire, et ce sera but en pleine lucarne !",
+  "fautes": [
+    {
+      "sentence_order_number": 1,
+      "texte_eleve": "Le livreur vient **d’aquérir** une camionnette d’occasion ; il espère **quelle** consommera moins de carburant que la **précèdente**.",
+      "correction": "Le livreur vient *d’acquérir* une camionnette d’occasion ; il espère *qu’elle* consommera moins de carburant que la *précédente*.",
+      "explication": "- **d’aquérir** -> *d’acquérir* : Il manque la lettre c. Le mot s’écrit avec « acqu- ». On entend le son [k], mais on l’écrit « qu » devant e/i dans ce mot.\n- **quelle** -> *qu’elle* : Ici ce n’est pas le mot de question « quelle ». C’est « que + elle » qui se contracte avec une apostrophe.\n- **précèdente** -> *précédente* : L’accent doit être aigu sur le premier e, pas grave. On entend le son « é » comme dans « pré ».",
+      "regle": "- **Le son [k] devant e/i s’écrit le plus souvent qu ; dans ce mot on a acqu-**\nPour le verbe acquérir et sa famille, on écrit acqu-. Exemples : *acquérir*, *acquisition*, *acquittement*.\n- **Apostrophe : que + elle = qu’elle**\nQuand « que » est suivi de « elle », on remplace le e par une apostrophe : qu’elle. « Quelle » (avec deux l) sert pour poser une question ou pour déterminer un nom. Exemples : *Je pense qu’elle viendra.* / *Quelle équipe gagnera ?*\n- **Accent é / è : on écrit é pour le son “é”, è pour le son “è”**\nLe mot précédent/précédente vient du verbe « précéder » : on garde l’accent aigu. Exemples : *précéder*, *précédent*, *très* (avec è)."
+    }
+  ],
+  "conclusion_positive": "Super Enzo, tu as presque tout bon ! Avec un peu d’entraînement sur les apostrophes et les accents, tu vas devenir le Mbappé de l’orthographe. On rejoue une dictée courte la prochaine fois ? Je suis sûr que tu vas marquer encore plus de points !"
+}

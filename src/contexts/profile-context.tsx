@@ -2,6 +2,14 @@
 
 import { CurrentProfile } from "@/lib/current-profile";
 import {
+  clearProfileCache,
+  getCachedCurrentProfile,
+  getCachedProfiles,
+  setCachedCurrentProfile,
+  setCachedProfiles,
+  updateCachedCurrentProfile,
+} from "@/lib/profile-cache";
+import {
   createContext,
   ReactNode,
   useContext,
@@ -38,10 +46,14 @@ export function ProfileProvider({
   initialProfiles = [],
   serverSideAuthChecked = false,
 }: ProfileProviderProps) {
+  // Initialize with cached data first, then fallback to initial data
   const [currentProfile, setCurrentProfileState] =
-    useState<CurrentProfile | null>(initialProfile);
-  const [allProfiles, setAllProfiles] =
-    useState<CurrentProfile[]>(initialProfiles);
+    useState<CurrentProfile | null>(
+      () => getCachedCurrentProfile() || initialProfile
+    );
+  const [allProfiles, setAllProfiles] = useState<CurrentProfile[]>(() =>
+    getCachedProfiles().length > 0 ? getCachedProfiles() : initialProfiles
+  );
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [hasAttemptedFetch, setHasAttemptedFetch] = useState(false);
@@ -57,17 +69,19 @@ export function ProfileProvider({
       if (
         serverSideAuthChecked &&
         !initialProfile &&
-        initialProfiles.length === 0
+        initialProfiles.length === 0 &&
+        !getCachedCurrentProfile() &&
+        getCachedProfiles().length === 0
       ) {
         // User is not authenticated, no need to fetch
         return;
       }
 
-      // Only fetch if we don't have initial data
-      if (!initialProfile) {
+      // Only fetch if we don't have cached data or initial data
+      if (!getCachedCurrentProfile() && !initialProfile) {
         fetchCurrentProfile();
       }
-      if (initialProfiles.length === 0) {
+      if (getCachedProfiles().length === 0 && initialProfiles.length === 0) {
         fetchAllProfiles();
       }
     }
@@ -88,9 +102,12 @@ export function ProfileProvider({
       if (response.ok) {
         const data = await response.json();
         setCurrentProfileState(data.currentProfile);
+        // Cache the profile data
+        setCachedCurrentProfile(data.currentProfile);
       } else if (response.status === 401) {
         // User not authenticated - this is expected, don't set error
         setCurrentProfileState(null);
+        clearProfileCache();
       } else {
         setError("Failed to fetch current profile");
       }
@@ -107,11 +124,16 @@ export function ProfileProvider({
       const response = await fetch("/api/profiles");
 
       if (response.ok) {
-        const profiles = await response.json();
+        const data = await response.json();
+        // Handle both old format (array) and new format (object with profiles property)
+        const profiles = Array.isArray(data) ? data : data.profiles;
         setAllProfiles(profiles);
+        // Cache the profiles data
+        setCachedProfiles(profiles);
       } else if (response.status === 401) {
         // User not authenticated - this is expected, don't log error
         setAllProfiles([]);
+        clearProfileCache();
       } else {
         console.error("Failed to fetch profiles");
       }
@@ -141,6 +163,11 @@ export function ProfileProvider({
       if (response.ok) {
         const data = await response.json();
         setCurrentProfileState(data.currentProfile);
+
+        // Update cache with new current profile
+        setCachedCurrentProfile(data.currentProfile);
+        // Also update the cache for the current profile selection
+        updateCachedCurrentProfile(profileId);
 
         // Show toast notification with profile name
         if (data.currentProfile?.first_name) {
@@ -178,6 +205,8 @@ export function ProfileProvider({
 
       if (response.ok) {
         setCurrentProfileState(null);
+        // Clear cache when clearing profile
+        clearProfileCache();
       } else {
         setError("Failed to clear current profile");
       }
