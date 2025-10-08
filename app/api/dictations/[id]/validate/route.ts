@@ -257,8 +257,9 @@ Ton rôle est d'aider ton élève à progresser en orthographe, grammaire et con
     }
 
     // Save the analysis results to the database
+    let exerciceAttempt;
     try {
-      const exerciceAttempt = await prisma.exercices_attempts.create({
+      exerciceAttempt = await prisma.exercices_attempts.create({
         data: {
           user_id: session.user.id,
           profile_id: currentProfileId,
@@ -289,6 +290,7 @@ Ton rôle est d'aider ton élève à progresser en orthographe, grammaire et con
       success: true,
       analysis: validatedResult,
       filepath: filepath,
+      attempt: exerciceAttempt,
     });
 
   } catch (error) {

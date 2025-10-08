@@ -3,7 +3,6 @@
 import { Button } from "@/components/ui/button";
 import { useAutosave } from "@/hooks/use-autosave";
 import { useCurrentProfile } from "@/hooks/use-current-profile";
-import { DicteeAnalysis } from "@/lib/dictation-schema";
 import { ArrowLeftIcon, Pause, Repeat } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -13,7 +12,6 @@ import AttemptsTimeline from "./components/attempts-timeline";
 import DicteeEditor from "./components/dictee-editor";
 import DicteeHeader from "./components/dictee-header";
 import DicteeSentencesAudio from "./components/dictee-sentences-audio";
-import ValidationResults from "./components/validation-results";
 
 interface Level {
   code: string;
@@ -78,9 +76,10 @@ export default function DicteeClient({ dictationId }: { dictationId: number }) {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isValidating, setIsValidating] = useState(false);
-  const [validationResult, setValidationResult] =
-    useState<DicteeAnalysis | null>(null);
   const [validationMessageIndex, setValidationMessageIndex] = useState(0);
+  const [expandedAttemptId, setExpandedAttemptId] = useState<number | null>(
+    null
+  );
 
   const { value: dictationText, setValue: setDictationText } = useAutosave("", {
     key: dictationId ? `dictation-${dictationId}` : "",
@@ -185,7 +184,33 @@ export default function DicteeClient({ dictationId }: { dictationId: number }) {
       });
       if (response.ok) {
         const result = await response.json();
-        setValidationResult(result.analysis);
+
+        // Add the new attempt to the dictation's attempts
+        if (result.attempt && dictation) {
+          const newAttempt: ExerciceAttempt = {
+            id: result.attempt.id,
+            created_at: result.attempt.created_at,
+            correction_total_errors: result.attempt.correction_total_errors,
+            correction_errors_spelling:
+              result.attempt.correction_errors_spelling,
+            correction_errors_grammar: result.attempt.correction_errors_grammar,
+            correction_errors_conjugation:
+              result.attempt.correction_errors_conjugation,
+            correction_success_percentage:
+              result.attempt.correction_success_percentage,
+            correction_full_json: result.attempt.correction_full_json,
+            user_answer: result.attempt.user_answer,
+          };
+
+          setDictation({
+            ...dictation,
+            exercicesAttempts: [newAttempt, ...dictation.exercicesAttempts],
+          });
+
+          // Set the new attempt as expanded
+          setExpandedAttemptId(newAttempt.id);
+        }
+
         setDictationText("");
       } else {
         console.error(
@@ -291,18 +316,17 @@ export default function DicteeClient({ dictationId }: { dictationId: number }) {
         topicName={dictation.topic.name}
         dictationText={dictationText}
         setDictationText={setDictationText}
-        disabled={!!validationResult}
+        disabled={false}
         isValidating={isValidating}
         validationMessage={validationMessages[validationMessageIndex]}
         onValidate={handleValidate}
       />
-      <AttemptsTimeline dictation={dictation} />
-      {validationResult && (
-        <ValidationResults
-          analysis={validationResult}
-          userAnswer={dictationText}
-        />
-      )}
+      <AttemptsTimeline
+        dictation={dictation}
+        hasContent={dictationText.trim().length > 0}
+        expandedAttemptId={expandedAttemptId}
+        onExpandedChange={setExpandedAttemptId}
+      />
     </div>
   );
 }
