@@ -1,8 +1,8 @@
+import { createClient } from "@/utils/supabase/server";
 import { promises as fs } from "fs";
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import path from "path";
-import { createClient } from "../../../src/utils/supabase/server";
 
 // Define the source and destination paths
 const SOURCE_AUDIO_DIR = path.join(process.cwd(), "public", "files_to_upload", "audio");
