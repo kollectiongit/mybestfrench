@@ -1,9 +1,7 @@
 import { auth } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
 import { getCurrentProfileFromCookie } from "@/lib/profile-cookies";
 import { NextRequest, NextResponse } from "next/server";
-import { PrismaClient } from "../../generated/prisma";
-
-const prisma = new PrismaClient();
 
 // GET /api/dictations - Fetch dictations filtered by current profile levels
 export async function GET(request: NextRequest) {
@@ -102,9 +100,29 @@ export async function GET(request: NextRequest) {
             correction_total_errors: true,
             correction_success_percentage: true,
           },
+          orderBy: {
+            created_at: 'desc',
+          },
+          take: 1, // Only get the latest attempt for sorting
+        },
+        _count: {
+          select: {
+            dictation_sentences: true,
+            exercices_attempts: {
+              where: {
+                user_id: session.user.id,
+                profile_id: currentProfileId,
+              },
+            },
+          },
         },
       },
       orderBy: [
+        {
+          exercices_attempts: {
+            _count: 'desc',
+          },
+        },
         {
           topic: {
             category: {
@@ -125,15 +143,13 @@ export async function GET(request: NextRequest) {
 
     // Transform the data to include counts and latest attempt timestamp
     const dictationsWithStats = dictations.map(dictation => {
-      const attemptsCount = dictation.exercices_attempts.length;
-      const sentencesCount = dictation.dictation_sentences.length;
+      const attemptsCount = dictation._count.exercices_attempts;
+      const sentencesCount = dictation._count.dictation_sentences;
       const latestAttempt = dictation.exercices_attempts.length > 0 
-        ? Math.max(...dictation.exercices_attempts.map(attempt => 
-            new Date(attempt.created_at!).getTime()
-          ))
+        ? dictation.exercices_attempts[0].created_at
         : null;
 
-      // Calculate min and max correction errors
+      // Calculate min and max correction errors from fetched attempts
       const correctionErrors = dictation.exercices_attempts
         .map(attempt => attempt.correction_total_errors)
         .filter(error => error !== null && error !== undefined);
@@ -150,7 +166,7 @@ export async function GET(request: NextRequest) {
         }
       }
 
-      // Calculate highest success percentage
+      // Calculate highest success percentage from fetched attempts
       const successPercentages = dictation.exercices_attempts
         .map(attempt => attempt.correction_success_percentage)
         .filter(percentage => percentage !== null && percentage !== undefined);
@@ -181,31 +197,11 @@ export async function GET(request: NextRequest) {
       };
     });
 
-    // Sort by exercices_attempts.created_at desc, then by category.id, topic.id, title
-    const sortedDictations = dictationsWithStats.sort((a, b) => {
-      // First sort by latest attempt date (desc)
-      const aLatestAttempt = a.latest_attempt_at ? new Date(a.latest_attempt_at).getTime() : 0;
-      const bLatestAttempt = b.latest_attempt_at ? new Date(b.latest_attempt_at).getTime() : 0;
-      
-      if (aLatestAttempt !== bLatestAttempt) {
-        return bLatestAttempt - aLatestAttempt; // desc
-      }
-      
-      // Then by category.id (asc)
-      if (a.topic.category.id !== b.topic.category.id) {
-        return a.topic.category.id - b.topic.category.id;
-      }
-      
-      // Then by topic.id (asc)
-      if (a.topic.id !== b.topic.id) {
-        return a.topic.id - b.topic.id;
-      }
-      
-      // Finally by title (asc)
-      return a.title.localeCompare(b.title);
+    return NextResponse.json(dictationsWithStats, {
+      headers: {
+        'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=300',
+      },
     });
-
-    return NextResponse.json(sortedDictations);
   } catch (error) {
     console.error("Error fetching dictations:", error);
     return NextResponse.json(

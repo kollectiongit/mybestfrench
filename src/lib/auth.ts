@@ -5,9 +5,7 @@ import { nextCookies } from "better-auth/next-js";
 import { Resend } from "resend";
 // If your Prisma file is located elsewhere, you can change the path
 import { PasswordResetEmail } from "@/components/email-templates/password-reset-email";
-import { PrismaClient } from "../../app/generated/prisma";
-
-const prisma = new PrismaClient();
+import { prisma } from "./prisma";
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 // Debug: Check if Resend API key is configured

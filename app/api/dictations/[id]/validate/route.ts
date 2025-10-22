@@ -1,17 +1,15 @@
 import { auth } from "@/lib/auth";
 import { DicteeAnalysisSchema } from "@/lib/dictation-schema";
 import { getCurrentProfileFromCookie } from "@/lib/profile-cookies";
+import { prisma } from "@/lib/prisma";
 import * as fs from "fs";
 import { NextRequest, NextResponse } from "next/server";
 import OpenAI from "openai";
 import * as path from "path";
-import { PrismaClient } from "../../../../generated/prisma";
 
 const client = new OpenAI({
   apiKey: process.env["OPENAI_API_KEY"],
 });
-
-const prisma = new PrismaClient();
 
 export async function POST(request: NextRequest) {
   try {

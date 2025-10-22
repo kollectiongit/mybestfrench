@@ -1,9 +1,7 @@
 import { auth } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
 import { getCurrentProfileFromCookie } from "@/lib/profile-cookies";
 import { NextRequest, NextResponse } from "next/server";
-import { PrismaClient } from "../../../generated/prisma";
-
-const prisma = new PrismaClient();
 
 // GET /api/dictations/[id] - Fetch single dictation by ID
 export async function GET(
@@ -70,16 +68,40 @@ export async function GET(
         dictation_sentences: {
           select: {
             audio_file: true,
-            order:true,
-            text:true,
+            order: true,
+            text: true,
           },
           orderBy: {
             order: "asc",
           },
         },
+        exercices_attempts: {
+          where: currentProfileId ? {
+            profile_id: currentProfileId,
+          } : undefined,
+          select: {
+            id: true,
+            created_at: true,
+            correction_total_errors: true,
+            correction_errors_spelling: true,
+            correction_errors_grammar: true,
+            correction_errors_conjugation: true,
+            correction_success_percentage: true,
+            correction_full_json: true,
+            user_answer: true,
+          },
+          orderBy: {
+            created_at: 'desc',
+          },
+        },
         _count: {
           select: {
             dictation_sentences: true,
+            exercices_attempts: currentProfileId ? {
+              where: {
+                profile_id: currentProfileId,
+              },
+            } : true,
           },
         },
       },
@@ -92,66 +114,18 @@ export async function GET(
       );
     }
 
-    // Fetch exercices_attempts for this dictation and current profile
-    let exercicesAttempts: Array<{
-      id: number;
-      created_at: Date | null;
-      correction_total_errors: number | null;
-      correction_errors_spelling: number | null;
-      correction_errors_grammar: number | null;
-      correction_errors_conjugation: number | null;
-      correction_success_percentage: number | null;
-      correction_full_json: string | null;
-      user_answer: string | null;
-    }> = [];
-    let attemptsCount = 0;
-    let latestAttemptAt: Date | null = null;
-    let minErrors: number | null = null;
-    let maxErrors: number | null = null;
-
-    if (currentProfileId) {
-      // Get all attempts
-      exercicesAttempts = await prisma.exercices_attempts.findMany({
-        where: {
-          dictation_id: dictationId,
-          profile_id: currentProfileId,
-        },
-        orderBy: {
-          created_at: 'desc',
-        },
-        select: {
-          id: true,
-          created_at: true,
-          correction_total_errors: true,
-          correction_errors_spelling: true,
-          correction_errors_grammar: true,
-          correction_errors_conjugation: true,
-          correction_success_percentage: true,
-          correction_full_json: true,
-          user_answer: true,
-        },
-      });
-
-      // Get count, min, max errors and latest attempt
-      const attemptsStats = await prisma.exercices_attempts.aggregate({
-        where: {
-          dictation_id: dictationId,
-          profile_id: currentProfileId,
-        },
-        _count: true,
-        _min: {
-          correction_total_errors: true,
-        },
-        _max: {
-          correction_total_errors: true,
-        },
-      });
-
-      attemptsCount = attemptsStats._count;
-      minErrors = attemptsStats._min.correction_total_errors;
-      maxErrors = attemptsStats._max.correction_total_errors;
-      latestAttemptAt = exercicesAttempts.length > 0 ? exercicesAttempts[0].created_at : null;
-    }
+    // Calculate stats from the fetched data
+    const exercicesAttempts = dictation.exercices_attempts || [];
+    const attemptsCount = dictation._count.exercices_attempts;
+    const latestAttemptAt = exercicesAttempts.length > 0 ? exercicesAttempts[0].created_at : null;
+    
+    // Calculate min and max errors from fetched attempts
+    const correctionErrors = exercicesAttempts
+      .map(attempt => attempt.correction_total_errors)
+      .filter(error => error !== null && error !== undefined);
+    
+    const minErrors = correctionErrors.length > 0 ? Math.min(...correctionErrors) : null;
+    const maxErrors = correctionErrors.length > 0 ? Math.max(...correctionErrors) : null;
 
     return NextResponse.json({
       ...dictation,
@@ -161,6 +135,10 @@ export async function GET(
       latest_attempt_at: latestAttemptAt,
       exercices_attempts_min_errors: minErrors,
       exercices_attempts_max_errors: maxErrors,
+    }, {
+      headers: {
+        'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=600',
+      },
     });
   } catch (error) {
     console.error("Error fetching dictation:", error);

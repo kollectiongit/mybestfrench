@@ -1,9 +1,7 @@
 import { auth } from "@/lib/auth";
 import { clearCurrentProfileCookie, getCurrentProfileFromCookie, getProfilesFromCacheCookie, setCurrentProfileCookie, setProfilesCacheCookie } from "@/lib/profile-cookies";
 import { NextRequest, NextResponse } from "next/server";
-import { PrismaClient } from "../../generated/prisma";
-
-const prisma = new PrismaClient();
+import { prisma } from "@/lib/prisma";
 
 // POST /api/current-profile - Set current profile
 export async function POST(request: NextRequest) {

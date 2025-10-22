@@ -1,6 +1,4 @@
-import { PrismaClient } from "../../app/generated/prisma";
-
-const prisma = new PrismaClient();
+import { prisma } from "./prisma";
 
 // Interface pour les données pré-chargées
 export interface DictationData {
@@ -50,6 +48,10 @@ interface PrismaDictationData {
     correction_total_errors: number | null;
     correction_success_percentage: number | null;
   }>;
+  _count: {
+    dictation_sentences: number;
+    exercices_attempts: number;
+  };
 }
 
 /**
@@ -110,9 +112,28 @@ export async function getDictationsForProfile(profileId: string, profileLevelIds
           correction_total_errors: true,
           correction_success_percentage: true,
         },
+        orderBy: {
+          created_at: 'desc',
+        },
+        take: 1, // Only get the latest attempt for sorting
+      },
+      _count: {
+        select: {
+          dictation_sentences: true,
+          exercices_attempts: {
+            where: {
+              profile_id: profileId,
+            },
+          },
+        },
       },
     },
     orderBy: [
+      {
+        exercices_attempts: {
+          _count: 'desc',
+        },
+      },
       {
         topic: {
           category: {
@@ -133,18 +154,16 @@ export async function getDictationsForProfile(profileId: string, profileLevelIds
 
   // Transformer les données
   const dictations = dictationsData.map((dictation: PrismaDictationData) => {
-    const attemptsCount = dictation.exercices_attempts.length;
-    const sentencesCount = dictation.dictation_sentences.length;
+    const attemptsCount = dictation._count.exercices_attempts;
+    const sentencesCount = dictation._count.dictation_sentences;
     const latestAttempt = dictation.exercices_attempts.length > 0 
-      ? Math.max(...dictation.exercices_attempts.map(attempt => 
-          new Date(attempt.created_at!).getTime()
-        ))
+      ? dictation.exercices_attempts[0].created_at
       : null;
 
-    // Calculer la plage d'erreurs
+    // Calculate min and max correction errors from fetched attempts
     const correctionErrors = dictation.exercices_attempts
-      .map(attempt => attempt.correction_total_errors)
-      .filter(error => error !== null && error !== undefined);
+      .map((attempt) => attempt.correction_total_errors)
+      .filter((error) => error !== null && error !== undefined);
     
     let errorsRange = null;
     if (correctionErrors.length > 0) {
@@ -158,10 +177,10 @@ export async function getDictationsForProfile(profileId: string, profileLevelIds
       }
     }
 
-    // Calculer le pourcentage de réussite le plus élevé
+    // Calculate highest success percentage from fetched attempts
     const successPercentages = dictation.exercices_attempts
-      .map(attempt => attempt.correction_success_percentage)
-      .filter(percentage => percentage !== null && percentage !== undefined);
+      .map((attempt) => attempt.correction_success_percentage)
+      .filter((percentage) => percentage !== null && percentage !== undefined);
     
     const highestSuccessPercentage = successPercentages.length > 0 
       ? Math.max(...successPercentages) 
@@ -179,8 +198,8 @@ export async function getDictationsForProfile(profileId: string, profileLevelIds
           name: dictation.topic.category.name,
         },
       },
-      levels: dictation.dictations_levels.map(dl => dl.levels.code),
-      audio_files: dictation.dictation_sentences.map(ds => ds.audio_file).filter((file): file is string => file !== null),
+      levels: dictation.dictations_levels.map((dl) => dl.levels.code),
+      audio_files: dictation.dictation_sentences.map((ds) => ds.audio_file).filter((file): file is string => file !== null),
       sentences_count: sentencesCount,
       attempts_count: attemptsCount,
       latest_attempt_at: latestAttempt ? new Date(latestAttempt).toISOString() : null,
@@ -189,23 +208,6 @@ export async function getDictationsForProfile(profileId: string, profileLevelIds
     };
   });
 
-  // Trier par date de dernière tentative (desc), puis par catégorie, sujet, titre
-  return dictations.sort((a, b) => {
-    const aLatestAttempt = a.latest_attempt_at ? new Date(a.latest_attempt_at).getTime() : 0;
-    const bLatestAttempt = b.latest_attempt_at ? new Date(b.latest_attempt_at).getTime() : 0;
-    
-    if (aLatestAttempt !== bLatestAttempt) {
-      return bLatestAttempt - aLatestAttempt;
-    }
-    
-    if (a.topic.category.id !== b.topic.category.id) {
-      return a.topic.category.id - b.topic.category.id;
-    }
-    
-    if (a.topic.id !== b.topic.id) {
-      return a.topic.id - b.topic.id;
-    }
-    
-    return a.title.localeCompare(b.title);
-  });
+  // Return sorted dictations (already sorted by database query)
+  return dictations;
 }

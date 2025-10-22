@@ -1,9 +1,7 @@
 import { auth } from "@/lib/auth";
 import { getProfilesFromCacheCookie, setProfilesCacheCookie } from "@/lib/profile-cookies";
 import { NextRequest, NextResponse } from "next/server";
-import { PrismaClient } from "../../generated/prisma";
-
-const prisma = new PrismaClient();
+import { prisma } from "@/lib/prisma";
 
 // GET /api/profiles - Fetch user's profiles
 export async function GET(request: NextRequest) {

@@ -1,8 +1,6 @@
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
-import { PrismaClient } from "../../app/generated/prisma";
-
-const prisma = new PrismaClient();
+import { prisma } from "./prisma";
 
 export interface Level {
   id: number;

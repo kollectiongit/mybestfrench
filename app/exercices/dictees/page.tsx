@@ -8,6 +8,8 @@ import DicteesPageClient from "./dictees-page-client";
 
 // Force dynamic rendering for this page since it needs authentication
 export const dynamic = "force-dynamic";
+// Cache for 60 seconds to improve performance
+export const revalidate = 60;
 
 export const metadata: Metadata = {
   title: "Liste des dictées | My Best French",
