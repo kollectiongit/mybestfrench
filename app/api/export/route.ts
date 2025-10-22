@@ -1,6 +1,6 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextResponse } from 'next/server'
 
-export async function POST(request: NextRequest) {
+export async function POST() {
   try {
     console.log('🚀 Starting database export via API route...')
 
@@ -91,7 +91,7 @@ export async function POST(request: NextRequest) {
 }
 
 // Also support GET requests for convenience
-export async function GET(request: NextRequest) {
+export async function GET() {
   console.log('📥 GET request received, redirecting to POST...')
-  return POST(request)
+  return POST()
 }

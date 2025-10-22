@@ -1,0 +1,4 @@
+# Exclude Supabase local project files from Vercel uploads
+supabase
+
+

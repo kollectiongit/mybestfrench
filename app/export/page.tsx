@@ -4,7 +4,15 @@ import { useState } from "react";
 
 export default function ExportPage() {
   const [isExporting, setIsExporting] = useState(false);
-  const [result, setResult] = useState<any>(null);
+  type ExportResult = {
+    success: boolean;
+    message?: string;
+    exportFolder?: string;
+    timestamp?: string;
+    edgeFunctionResponse?: unknown;
+    error?: string;
+  };
+  const [result, setResult] = useState<ExportResult | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const handleExport = async () => {
