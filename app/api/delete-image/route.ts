@@ -1,7 +1,7 @@
 import { auth } from "@/lib/auth";
-import { createClient } from "@/utils/supabase/server";
 import { cookies } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
+import { createClient } from "../../../src/utils/supabase/server";
 
 export async function DELETE(request: NextRequest) {
   try {
