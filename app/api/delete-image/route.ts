@@ -1,5 +1,5 @@
 import { auth } from "@/lib/auth";
-import { createClient } from "@/utils/supabase/server";
+import { createClient } from "@/utils/spabase/server";
 import { cookies } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
 

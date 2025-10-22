@@ -1,6 +1,6 @@
 import { auth } from "@/lib/auth";
-import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { NextRequest, NextResponse } from "next/server";
 
 // PUT /api/profiles/[id] - Update a profile
 export async function PUT(
@@ -116,7 +116,7 @@ export async function DELETE(
     // Delete associated avatar file from Supabase if exists
     if (existingProfile.avatar_url) {
       try {
-        const { createClient } = await import("@/utils/supabase/server");
+        const { createClient } = await import("@/utils/spabase/server");
         const { cookies } = await import("next/headers");
         const supabase = await createClient(await cookies());
         

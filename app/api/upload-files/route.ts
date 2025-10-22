@@ -1,4 +1,4 @@
-import { createClient } from "@/utils/supabase/server";
+import { createClient } from "@/utils/spabase/server";
 import { promises as fs } from "fs";
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";

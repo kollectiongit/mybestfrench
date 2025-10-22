@@ -1,7 +1,7 @@
 import { getCurrentProfileFromCookie } from "@/lib/profile-cookies";
 import { getSessionCookie } from "better-auth/cookies";
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "./src/utils/supabase/middleware";
+import { createClient } from "./src/utils/spabase/middleware";
 
 export async function middleware(request: NextRequest) {
   const { response } = createClient(request);
