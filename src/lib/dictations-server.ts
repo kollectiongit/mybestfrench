@@ -1,3 +1,4 @@
+import { unstable_cache } from "next/cache";
 import { prisma } from "./prisma";
 
 // Interface pour les données pré-chargées
@@ -55,9 +56,9 @@ interface PrismaDictationData {
 }
 
 /**
- * Récupère les dictées côté serveur pour un profil donné
+ * Internal function to fetch dictations from database
  */
-export async function getDictationsForProfile(profileId: string, profileLevelIds: number[]): Promise<DictationData[]> {
+async function fetchDictationsFromDB(profileId: string, profileLevelIds: number[]): Promise<DictationData[]> {
   if (profileLevelIds.length === 0) {
     return [];
   }
@@ -129,11 +130,6 @@ export async function getDictationsForProfile(profileId: string, profileLevelIds
       },
     },
     orderBy: [
-      {
-        exercices_attempts: {
-          _count: 'desc',
-        },
-      },
       {
         topic: {
           category: {
@@ -208,6 +204,46 @@ export async function getDictationsForProfile(profileId: string, profileLevelIds
     };
   });
 
-  // Return sorted dictations (already sorted by database query)
-  return dictations;
+  // Sort by latest attempt date (descending) then by category/topic/title
+  return dictations.sort((a, b) => {
+    // Primary sort: by latest attempt date (descending)
+    if (a.latest_attempt_at && b.latest_attempt_at) {
+      const dateA = new Date(a.latest_attempt_at).getTime();
+      const dateB = new Date(b.latest_attempt_at).getTime();
+      return dateB - dateA;
+    }
+    
+    // If one has attempts and the other doesn't, prioritize the one with attempts
+    if (a.latest_attempt_at && !b.latest_attempt_at) return -1;
+    if (!a.latest_attempt_at && b.latest_attempt_at) return 1;
+    
+    // Secondary sort: by category id
+    if (a.topic.category.id !== b.topic.category.id) {
+      return a.topic.category.id - b.topic.category.id;
+    }
+    
+    // Tertiary sort: by topic id
+    if (a.topic.id !== b.topic.id) {
+      return a.topic.id - b.topic.id;
+    }
+    
+    // Final sort: by title
+    return a.title.localeCompare(b.title);
+  });
+}
+
+/**
+ * Récupère les dictées côté serveur pour un profil donné (with caching)
+ */
+export async function getDictationsForProfile(profileId: string, profileLevelIds: number[]): Promise<DictationData[]> {
+  const cacheKey = `dictations-${profileId}-${profileLevelIds.sort().join('-')}`;
+  
+  return unstable_cache(
+    fetchDictationsFromDB,
+    [cacheKey],
+    {
+      tags: ['dictations', `profile-${profileId}`],
+      revalidate: 3600, // Cache for 1 hour
+    }
+  )(profileId, profileLevelIds);
 }

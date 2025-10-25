@@ -64,8 +64,8 @@ supabase functions deploy save-db-tables
 Invoke the function using your production Supabase URL:
 
 ```bash
-curl -i --location --request POST 'https://YOUR_PROJECT_ID.supabase.co/functions/v1/save-db-tables' \
-  --header 'Authorization: Bearer YOUR_ANON_KEY' \
+curl -i --location --request POST 'https://adngholycdorzcztgznq.supabase.co/functions/v1/save-db-tables' \
+  --header 'Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5ycG5ha2J1cGpwa2RmZHZtcnlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY5ODc1OTAsImV4cCI6MjA3MjU2MzU5MH0.gjhxEHWCcu3HIuzf9W3zpIlLG3_cW0bN-g0woYOE3Fo' \
   --header 'Content-Type: application/json' \
   --data '{}'
 ```

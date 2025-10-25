@@ -1,8 +1,9 @@
 import { auth } from "@/lib/auth";
 import { DicteeAnalysisSchema } from "@/lib/dictation-schema";
-import { getCurrentProfileFromCookie } from "@/lib/profile-cookies";
 import { prisma } from "@/lib/prisma";
+import { getCurrentProfileFromCookie } from "@/lib/profile-cookies";
 import * as fs from "fs";
+import { revalidateTag } from "next/cache";
 import { NextRequest, NextResponse } from "next/server";
 import OpenAI from "openai";
 import * as path from "path";
@@ -279,6 +280,18 @@ Ton rôle est d'aider ton élève à progresser en orthographe, grammaire et con
       });
 
       console.log("Exercise attempt saved to database:", exerciceAttempt.id);
+      
+      // Invalidate cache for this dictation and profile
+      try {
+        revalidateTag('dictations');
+        revalidateTag(`dictation-${dictationId}`);
+        if (currentProfileId) {
+          revalidateTag(`profile-${currentProfileId}`);
+        }
+        console.log("Cache invalidated for dictation:", dictationId);
+      } catch (cacheError) {
+        console.error("Error invalidating cache:", cacheError);
+      }
     } catch (dbError) {
       console.error("Error saving to database:", dbError);
       // Continue with the response even if database save fails

@@ -166,9 +166,12 @@ export default function DicteesPageClient({
         />
       </div>
 
+      {/* Dictations grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
         {filteredDictations.map((dictation) => (
-          <DictationCard key={dictation.id} dictation={dictation} />
+          <div key={dictation.id} className="mb-5">
+            <DictationCard dictation={dictation} />
+          </div>
         ))}
       </div>
 

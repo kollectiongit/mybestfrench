@@ -1,6 +1,7 @@
 import { auth } from "@/lib/auth";
-import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { revalidateTag } from "next/cache";
+import { NextRequest, NextResponse } from "next/server";
 
 // DELETE /api/attempts/[id] - Delete an attempt
 export async function DELETE(
@@ -39,6 +40,16 @@ export async function DELETE(
     await prisma.exercices_attempts.delete({
       where: { id: attemptId },
     });
+
+    // Invalidate cache for this dictation and profile
+    try {
+      revalidateTag('dictations');
+      revalidateTag(`dictation-${existingAttempt.dictation_id}`);
+      revalidateTag(`profile-${existingAttempt.profile_id}`);
+      console.log("Cache invalidated after attempt deletion");
+    } catch (cacheError) {
+      console.error("Error invalidating cache:", cacheError);
+    }
 
     return NextResponse.json({ message: "Attempt deleted successfully" });
   } catch (error) {

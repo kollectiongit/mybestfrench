@@ -3,6 +3,9 @@ import { prisma } from "@/lib/prisma";
 import { getCurrentProfileFromCookie } from "@/lib/profile-cookies";
 import { NextRequest, NextResponse } from "next/server";
 
+// Route-level caching
+export const revalidate = 3600; // Cache for 1 hour
+
 // GET /api/dictations - Fetch dictations filtered by current profile levels
 export async function GET(request: NextRequest) {
   try {
@@ -119,11 +122,6 @@ export async function GET(request: NextRequest) {
       },
       orderBy: [
         {
-          exercices_attempts: {
-            _count: 'desc',
-          },
-        },
-        {
           topic: {
             category: {
               id: "asc",
@@ -197,9 +195,36 @@ export async function GET(request: NextRequest) {
       };
     });
 
-    return NextResponse.json(dictationsWithStats, {
+    // Sort by latest attempt date (descending) then by category/topic/title
+    const sortedDictations = dictationsWithStats.sort((a, b) => {
+      // Primary sort: by latest attempt date (descending)
+      if (a.latest_attempt_at && b.latest_attempt_at) {
+        const dateA = new Date(a.latest_attempt_at).getTime();
+        const dateB = new Date(b.latest_attempt_at).getTime();
+        return dateB - dateA;
+      }
+      
+      // If one has attempts and the other doesn't, prioritize the one with attempts
+      if (a.latest_attempt_at && !b.latest_attempt_at) return -1;
+      if (!a.latest_attempt_at && b.latest_attempt_at) return 1;
+      
+      // Secondary sort: by category id
+      if (a.topic.category.id !== b.topic.category.id) {
+        return a.topic.category.id - b.topic.category.id;
+      }
+      
+      // Tertiary sort: by topic id
+      if (a.topic.id !== b.topic.id) {
+        return a.topic.id - b.topic.id;
+      }
+      
+      // Final sort: by title
+      return a.title.localeCompare(b.title);
+    });
+
+    return NextResponse.json(sortedDictations, {
       headers: {
-        'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=300',
+        'Cache-Control': 'public, s-maxage=3600, stale-while-revalidate=300',
       },
     });
   } catch (error) {

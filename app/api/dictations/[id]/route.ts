@@ -1,6 +1,7 @@
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { getCurrentProfileFromCookie } from "@/lib/profile-cookies";
+import { unstable_cache } from "next/cache";
 import { NextRequest, NextResponse } from "next/server";
 
 // GET /api/dictations/[id] - Fetch single dictation by ID
@@ -34,7 +35,12 @@ export async function GET(
     // Get current profile from cookie
     const currentProfileId = await getCurrentProfileFromCookie(request);
 
-    const dictation = await prisma.dictation.findUnique({
+    // Create cache key
+    const cacheKey = `dictation-${dictationId}-${currentProfileId || 'no-profile'}`;
+
+    const dictation = await unstable_cache(
+      async () => {
+        return await prisma.dictation.findUnique({
       where: {
         id: dictationId,
       },
@@ -93,6 +99,7 @@ export async function GET(
           orderBy: {
             created_at: 'desc',
           },
+          take: 10, // Limit to latest 10 attempts for performance
         },
         _count: {
           select: {
@@ -106,6 +113,13 @@ export async function GET(
         },
       },
     });
+      },
+      [cacheKey],
+      {
+        tags: ['dictation', `dictation-${dictationId}`, currentProfileId ? `profile-${currentProfileId}` : 'no-profile'],
+        revalidate: 300, // Cache for 5 minutes (shorter because attempts change frequently)
+      }
+    )();
 
     if (!dictation) {
       return NextResponse.json(
