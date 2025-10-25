@@ -37,11 +37,7 @@ export default function DictationCard({ dictation }: { dictation: Dictation }) {
   };
 
   return (
-    <Link
-      href={`/exercices/dictees/${dictation.id}`}
-      target="_blank"
-      rel="noopener noreferrer"
-    >
+    <Link href={`/exercices/dictees/${dictation.id}`} rel="noopener noreferrer">
       <Card
         className={`overflow-hidden hover:shadow-lg transition-all duration-200 cursor-pointer pt-0 pb-2 gap-0 flex flex-col h-[180px] hover:scale-[1.02] ${
           dictation.attempts_count > 0 ? "border-green-200 bg-green-50/30" : ""
