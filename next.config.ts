@@ -17,13 +17,11 @@ const nextConfig: NextConfig = {
       },
     ],
   },
-  webpack: (config) => {
-    config.resolve = config.resolve || {};
-    config.resolve.alias = {
-      ...(config.resolve.alias || {}),
+  // Turbopack configuration
+  turbopack: {
+    resolveAlias: {
       "@": path.resolve(__dirname, "src"),
-    };
-    return config;
+    },
   },
 };
 

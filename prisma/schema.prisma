@@ -274,6 +274,7 @@ model dictations_levels {
 
   @@index([dictation_id])
   @@index([level_id, dictation_id])
+  @@index([level_id]) // Added for filtering by level_id
 }
 
 model dictation_sentence {

@@ -1,0 +1,8 @@
+{
+  "functions": {
+    "app/api/**/*.ts": {
+      "regions": ["hnd1"]
+    }
+  },
+  "regions": ["hnd1"]
+}
