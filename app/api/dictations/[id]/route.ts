@@ -4,6 +4,9 @@ import { getCurrentProfileFromCookie } from "@/lib/profile-cookies";
 import { unstable_cache } from "next/cache";
 import { NextRequest, NextResponse } from "next/server";
 
+// Force dynamic rendering due to request.headers usage
+export const dynamic = 'force-dynamic';
+
 // GET /api/dictations/[id] - Fetch single dictation by ID
 export async function GET(
   request: NextRequest,

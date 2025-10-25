@@ -14,7 +14,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { authClient } from "@/lib/auth-client";
+import { useSession } from "@/contexts/session-context";
 import { Contact, GraduationCap, Home } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -28,7 +28,7 @@ const navigationLinks = [
 
 export default function Component() {
   const pathname = usePathname();
-  const { data: session, isPending } = authClient.useSession();
+  const { isAuthenticated } = useSession();
 
   // Function to determine if a link is active
   const isLinkActive = (href: string) => {
@@ -145,9 +145,7 @@ export default function Component() {
             {/* <NotificationMenu /> */}
           </div>
           {/* Authentication-based content */}
-          {isPending ? (
-            <></>
-          ) : session ? (
+          {isAuthenticated ? (
             <div className="flex items-center gap-3">
               <ProfileSwitcher />
             </div>

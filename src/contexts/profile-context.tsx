@@ -47,13 +47,24 @@ export function ProfileProvider({
   serverSideAuthChecked = false,
 }: ProfileProviderProps) {
   // Initialize with cached data first, then fallback to initial data
+  // But only use cached data on client-side to prevent hydration mismatches
   const [currentProfile, setCurrentProfileState] =
-    useState<CurrentProfile | null>(
-      () => getCachedCurrentProfile() || initialProfile
-    );
-  const [allProfiles, setAllProfiles] = useState<CurrentProfile[]>(() =>
-    getCachedProfiles().length > 0 ? getCachedProfiles() : initialProfiles
-  );
+    useState<CurrentProfile | null>(() => {
+      // Only use cached data on client-side
+      if (typeof window !== "undefined") {
+        return getCachedCurrentProfile() || initialProfile;
+      }
+      return initialProfile;
+    });
+  const [allProfiles, setAllProfiles] = useState<CurrentProfile[]>(() => {
+    // Only use cached data on client-side
+    if (typeof window !== "undefined") {
+      return getCachedProfiles().length > 0
+        ? getCachedProfiles()
+        : initialProfiles;
+    }
+    return initialProfiles;
+  });
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [hasAttemptedFetch, setHasAttemptedFetch] = useState(false);
@@ -70,18 +81,33 @@ export function ProfileProvider({
         serverSideAuthChecked &&
         !initialProfile &&
         initialProfiles.length === 0 &&
-        !getCachedCurrentProfile() &&
-        getCachedProfiles().length === 0
+        (typeof window === "undefined" ||
+          (!getCachedCurrentProfile() && getCachedProfiles().length === 0))
       ) {
         // User is not authenticated, no need to fetch
         return;
       }
 
+      // If we have valid initial data from server-side, don't fetch
+      if (
+        serverSideAuthChecked &&
+        (initialProfile || initialProfiles.length > 0)
+      ) {
+        // Server-side data is available, no need to fetch
+        return;
+      }
+
       // Only fetch if we don't have cached data or initial data
-      if (!getCachedCurrentProfile() && !initialProfile) {
+      // Check cached data only on client-side
+      const hasCachedCurrentProfile =
+        typeof window !== "undefined" ? getCachedCurrentProfile() : null;
+      const hasCachedProfiles =
+        typeof window !== "undefined" ? getCachedProfiles().length > 0 : false;
+
+      if (!hasCachedCurrentProfile && !initialProfile) {
         fetchCurrentProfile();
       }
-      if (getCachedProfiles().length === 0 && initialProfiles.length === 0) {
+      if (!hasCachedProfiles && initialProfiles.length === 0) {
         fetchAllProfiles();
       }
     }
@@ -92,6 +118,37 @@ export function ProfileProvider({
     hasAttemptedFetch,
     serverSideAuthChecked,
   ]);
+
+  // Sync with cached data after hydration (client-side only)
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      // Check if cached data is different from current state
+      const cachedCurrentProfile = getCachedCurrentProfile();
+      const cachedProfiles = getCachedProfiles();
+
+      // Only update if we have server-side data but cached data is different
+      // This prevents hydration mismatches by only updating when necessary
+      if (serverSideAuthChecked && initialProfile && cachedCurrentProfile) {
+        // If cached profile is different from server-side profile, update to cached
+        if (cachedCurrentProfile.id !== initialProfile.id) {
+          setCurrentProfileState(cachedCurrentProfile);
+        }
+      }
+
+      if (
+        serverSideAuthChecked &&
+        initialProfiles.length > 0 &&
+        cachedProfiles.length > 0
+      ) {
+        // If cached profiles are different from server-side profiles, update to cached
+        if (
+          JSON.stringify(cachedProfiles) !== JSON.stringify(initialProfiles)
+        ) {
+          setAllProfiles(cachedProfiles);
+        }
+      }
+    }
+  }, [serverSideAuthChecked, initialProfile, initialProfiles]); // Include dependencies
 
   const fetchCurrentProfile = async () => {
     try {

@@ -116,13 +116,81 @@ export default function DicteesPageClient({
     filterDictations();
   }, [filterDictations]);
 
+  // Effect to make cards in the same row have equal height
+  useEffect(() => {
+    const equalizeCardHeights = () => {
+      const grid = document.getElementById("dictations-grid");
+      if (!grid) return;
+
+      // Get all card wrappers
+      const cardWrappers = grid.querySelectorAll(".dictation-card-wrapper");
+      if (cardWrappers.length === 0) return;
+
+      // Reset heights first
+      cardWrappers.forEach((wrapper) => {
+        (wrapper as HTMLElement).style.height = "auto";
+      });
+
+      // Get grid computed styles to determine columns
+      const gridStyles = window.getComputedStyle(grid);
+      const gridTemplateColumns = gridStyles.gridTemplateColumns;
+      const columns = gridTemplateColumns.split(" ").length;
+
+      // Group cards by row
+      const rows: HTMLElement[][] = [];
+      let currentRow: HTMLElement[] = [];
+
+      cardWrappers.forEach((wrapper, index) => {
+        currentRow.push(wrapper as HTMLElement);
+
+        // If we've filled a row or this is the last item
+        if ((index + 1) % columns === 0 || index === cardWrappers.length - 1) {
+          rows.push([...currentRow]);
+          currentRow = [];
+        }
+      });
+
+      // Set equal height for each row
+      rows.forEach((row) => {
+        let maxHeight = 0;
+
+        // Find the maximum height in this row
+        row.forEach((wrapper) => {
+          const height = wrapper.offsetHeight;
+          if (height > maxHeight) {
+            maxHeight = height;
+          }
+        });
+
+        // Set all cards in this row to the maximum height
+        row.forEach((wrapper) => {
+          wrapper.style.height = `${maxHeight}px`;
+        });
+      });
+    };
+
+    // Run on mount and when filtered dictations change
+    equalizeCardHeights();
+
+    // Also run on window resize to handle responsive changes
+    const handleResize = () => {
+      setTimeout(equalizeCardHeights, 100); // Small delay to ensure layout is updated
+    };
+
+    window.addEventListener("resize", handleResize);
+
+    return () => {
+      window.removeEventListener("resize", handleResize);
+    };
+  }, [filteredDictations]);
+
   // Utiliser le profil initial si disponible, sinon le profil du context
   const currentProfile = initialProfile || profile;
 
   if (profileLoading) {
     return (
       <div className="container mx-auto px-4 py-8">
-        <div className="flex items-center justify-center min-h-[400px]">
+        <div className="flex items-center justify-center">
           <div className="text-center">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto mb-4"></div>
             <p className="text-gray-600">Chargement des dictées...</p>
@@ -143,6 +211,11 @@ export default function DicteesPageClient({
       {/* Alignement horizontal des filtres */}
       <div className="mb-6 flex flex-wrap items-center gap-4">
         <SearchBar value={searchTerm} onChange={setSearchTerm} />
+        <TopicDialog
+          dictations={dictations}
+          selectedTopics={selectedTopics}
+          setSelectedTopics={setSelectedTopics}
+        />
         <StatusFilters
           dictations={dictations}
           showAttemptedOnly={showAttemptedOnly}
@@ -157,19 +230,13 @@ export default function DicteesPageClient({
         />
       </div>
 
-      {/* Dialog pour les sujets */}
-      <div className="mb-6">
-        <TopicDialog
-          dictations={dictations}
-          selectedTopics={selectedTopics}
-          setSelectedTopics={setSelectedTopics}
-        />
-      </div>
-
       {/* Dictations grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+      <div
+        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4"
+        id="dictations-grid"
+      >
         {filteredDictations.map((dictation) => (
-          <div key={dictation.id} className="mb-5">
+          <div key={dictation.id} className="dictation-card-wrapper">
             <DictationCard dictation={dictation} />
           </div>
         ))}

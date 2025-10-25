@@ -88,7 +88,7 @@ export default function Filters({
       className={`group relative inline-flex items-center gap-2 px-3 py-1.5 rounded-lg transition-all duration-200 cursor-pointer min-h-[32px] ${
         isSelected
           ? "bg-blue-100 text-blue-800 hover:bg-blue-200"
-          : "bg-gray-50 text-gray-700 hover:bg-gray-100"
+          : "bg-gray-200 text-gray-700 hover:bg-gray-100"
       }`}
       onClick={onClick}
     >
@@ -113,13 +113,13 @@ export default function Filters({
 
   return (
     <div className="mb-6 space-y-3">
-      {/* Row 0: Attempted filters */}
+      {/* Row 0: Attempted filters - Updated bg colors */}
       <div className="flex flex-wrap gap-3">
         <div
           className={`group relative inline-flex items-center gap-2 px-3 py-1.5 rounded-lg transition-all duration-200 cursor-pointer min-h-[32px] ${
             showAttemptedOnly
               ? "bg-green-100 text-green-800 hover:bg-green-200"
-              : "bg-gray-50 text-gray-700 hover:bg-gray-100"
+              : "bg-white text-gray-600 "
           }`}
           onClick={() => setShowAttemptedOnly(!showAttemptedOnly)}
         >
@@ -146,7 +146,7 @@ export default function Filters({
           className={`group relative inline-flex items-center gap-2 px-3 py-1.5 rounded-lg transition-all duration-200 cursor-pointer min-h-[32px] ${
             showNotAttemptedOnly
               ? "bg-orange-100 text-orange-800 hover:bg-orange-200"
-              : "bg-gray-50 text-gray-700 hover:bg-gray-100"
+              : "bg-white text-gray-600 "
           }`}
           onClick={() => setShowNotAttemptedOnly(!showNotAttemptedOnly)}
         >
@@ -156,7 +156,7 @@ export default function Filters({
             className={`text-[10px] font-bold h-6 w-6 rounded-full text-center flex items-center justify-center ${
               showNotAttemptedOnly
                 ? "bg-orange-200 text-orange-700 group-hover:bg-orange-300 transition-all duration-200"
-                : "bg-gray-200 text-gray-600"
+                : "bg-white text-gray-600 "
             }`}
           >
             {notAttemptedCount}

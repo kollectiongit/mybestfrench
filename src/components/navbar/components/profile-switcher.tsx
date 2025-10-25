@@ -12,6 +12,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useProfile } from "@/contexts/profile-context";
+import { useSession } from "@/contexts/session-context";
 import { authClient } from "@/lib/auth-client";
 import {
   Check,
@@ -25,7 +26,7 @@ import Image from "next/image";
 import Link from "next/link";
 
 export default function ProfileSwitcher() {
-  const { data: session } = authClient.useSession();
+  const { session } = useSession();
   const {
     currentProfile,
     allProfiles,

@@ -1,7 +1,10 @@
 import { auth } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
 import { getProfilesFromCacheCookie, setProfilesCacheCookie } from "@/lib/profile-cookies";
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+
+// Force dynamic rendering due to request.headers usage
+export const dynamic = 'force-dynamic';
 
 // GET /api/profiles - Fetch user's profiles
 export async function GET(request: NextRequest) {

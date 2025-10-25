@@ -3,6 +3,9 @@ import { prisma } from "@/lib/prisma";
 import { revalidateTag } from "next/cache";
 import { NextRequest, NextResponse } from "next/server";
 
+// Force dynamic rendering due to request.headers usage
+export const dynamic = 'force-dynamic';
+
 // DELETE /api/attempts/[id] - Delete an attempt
 export async function DELETE(
   request: NextRequest,

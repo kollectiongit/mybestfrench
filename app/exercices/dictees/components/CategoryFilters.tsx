@@ -58,7 +58,7 @@ export default function CategoryFilters({
       className={`group relative inline-flex items-center gap-2 px-3 py-1.5 rounded-lg transition-all duration-200 cursor-pointer min-h-[32px] ${
         isSelected
           ? "bg-blue-100 text-blue-800 hover:bg-blue-200"
-          : "bg-gray-50 text-gray-700 hover:bg-gray-100"
+          : "bg-gray-200 text-gray-700 hover:bg-gray-300 transition-all duration-200"
       }`}
       onClick={onClick}
     >
@@ -67,7 +67,7 @@ export default function CategoryFilters({
         className={`text-[10px] font-bold h-6 w-6 rounded-full text-center flex items-center justify-center ${
           isSelected
             ? "bg-blue-200 text-blue-700 group-hover:bg-blue-300 transition-all duration-200"
-            : "bg-gray-200 text-gray-600"
+            : "bg-gray-50 text-gray-500"
         }`}
       >
         {count}
@@ -114,7 +114,7 @@ export default function CategoryFilters({
       {/* Clear filters button */}
       {selectedTopics.length > 0 && (
         <div
-          className="group relative inline-flex items-center gap-2 px-3 py-1.5 rounded-lg transition-all duration-200 cursor-pointer min-h-[32px] bg-gray-50 text-gray-700 hover:bg-gray-100"
+          className="group relative inline-flex items-center gap-2 px-3 py-1.5 rounded-lg transition-all duration-200 cursor-pointer min-h-[32px] bg-gray-200 text-gray-700 hover:bg-gray-300"
           onClick={() => setSelectedTopics([])}
         >
           <X className="h-4 w-4" />

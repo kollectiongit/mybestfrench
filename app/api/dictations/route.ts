@@ -5,6 +5,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 // Route-level caching
 export const revalidate = 3600; // Cache for 1 hour
+export const dynamic = 'force-dynamic'; // Force dynamic rendering due to request.headers usage
 
 // GET /api/dictations - Fetch dictations filtered by current profile levels
 export async function GET(request: NextRequest) {

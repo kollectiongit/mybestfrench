@@ -3,6 +3,9 @@ import { createClient } from "@/utils/spabase/server";
 import { cookies } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
 
+// Force dynamic rendering due to request.headers usage
+export const dynamic = 'force-dynamic';
+
 export async function POST(request: NextRequest) {
   try {
     console.log("Upload API: Starting upload process");

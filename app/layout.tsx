@@ -1,8 +1,16 @@
 import Navbar from "@/components/navbar/navbar";
 import { ServerProfileProvider } from "@/components/server-profile-provider";
 import { Toaster } from "@/components/ui/sonner";
+import { SessionProvider } from "@/contexts/session-context";
+import { auth } from "@/lib/auth";
+import {
+  CurrentProfile,
+  getCurrentProfile,
+  getUserProfiles,
+} from "@/lib/current-profile";
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { headers } from "next/headers";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -38,11 +46,25 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // Fetch session and profile data server-side
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
+
+  let currentProfile = null;
+  let allProfiles: CurrentProfile[] = [];
+
+  if (session) {
+    // Only fetch profiles if user is authenticated
+    currentProfile = await getCurrentProfile();
+    allProfiles = await getUserProfiles();
+  }
+
   return (
     <html lang="fr">
       <head>
@@ -51,11 +73,17 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <ServerProfileProvider>
-          <Navbar />
-          {children}
-          <Toaster />
-        </ServerProfileProvider>
+        <SessionProvider session={session}>
+          <ServerProfileProvider
+            initialProfile={currentProfile}
+            initialProfiles={allProfiles}
+            session={session}
+          >
+            <Navbar />
+            {children}
+            <Toaster />
+          </ServerProfileProvider>
+        </SessionProvider>
       </body>
     </html>
   );

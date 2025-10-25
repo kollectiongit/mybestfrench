@@ -1,7 +1,12 @@
 "use client";
 
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardTitle,
+} from "@/components/ui/card";
 import Link from "next/link";
 
 interface Topic {
@@ -39,15 +44,30 @@ export default function DictationCard({ dictation }: { dictation: Dictation }) {
   return (
     <Link href={`/exercices/dictees/${dictation.id}`} rel="noopener noreferrer">
       <Card
-        className={`overflow-hidden hover:shadow-lg transition-all duration-200 cursor-pointer pt-0 pb-2 gap-0 flex flex-col h-[180px] hover:scale-[1.02] ${
+        className={`overflow-hidden hover:shadow-lg transition-all duration-200 cursor-pointer pt-0 pb-2 gap-0 flex flex-col hover:scale-[1.02] ${
           dictation.attempts_count > 0 ? "border-green-200 bg-green-50/30" : ""
         }`}
       >
         <CardContent className="p-4 flex flex-col justify-between flex-1">
-          <div className="mb-4">
-            <CardTitle className="text-md line-clamp-2 mb-3">
+          <div className="mb-2">
+            <CardTitle className="text-md line-clamp-2 ">
               {dictation.title}
             </CardTitle>
+            <CardDescription className="text-xs text-gray-500 mb-3">
+              {dictation.topic.name}
+            </CardDescription>
+            {/* 2nd row: Sentences, Words, and Level */}
+            <div className="flex flex-wrap gap-1 mb-0">
+              <Badge variant="outline" className="text-xs ">
+                {dictation.sentences_count}{" "}
+                {dictation.sentences_count === 1 ? "phrase" : "phrases"}
+              </Badge>
+              {dictation.count_words && (
+                <Badge variant="outline" className="text-xs">
+                  {dictation.count_words} mots
+                </Badge>
+              )}
+            </div>
           </div>
 
           <div className="space-y-2 flex-1 flex flex-col justify-between">
@@ -58,29 +78,11 @@ export default function DictationCard({ dictation }: { dictation: Dictation }) {
                   {dictation.topic.category.name}
                 </Badge>
               )}
-              {dictation.topic.name && (
-                <Badge className="text-xs bg-gray-500">
-                  {dictation.topic.name}
-                </Badge>
-              )}
               {dictation.levels.map((level, index) => (
                 <Badge key={index} className="text-xs bg-gray-500">
                   {level}
                 </Badge>
               ))}
-            </div>
-
-            {/* 2nd row: Sentences, Words, and Level */}
-            <div className="flex flex-wrap gap-1 mb-4">
-              <Badge variant="outline" className="text-xs ">
-                {dictation.sentences_count}{" "}
-                {dictation.sentences_count === 1 ? "phrase" : "phrases"}
-              </Badge>
-              {dictation.count_words && (
-                <Badge variant="outline" className="text-xs">
-                  {dictation.count_words} mots
-                </Badge>
-              )}
             </div>
 
             {/* 3rd row: Attempts, Errors, Success Percentage, and Date */}

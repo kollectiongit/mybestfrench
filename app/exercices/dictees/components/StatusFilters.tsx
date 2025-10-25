@@ -47,7 +47,7 @@ export default function StatusFilters({
         className={`group relative inline-flex items-center gap-2 px-3 py-1.5 rounded-lg transition-all duration-200 cursor-pointer min-h-[32px] ${
           showAttemptedOnly
             ? "bg-green-100 text-green-800 hover:bg-green-200"
-            : "bg-gray-50 text-gray-700 hover:bg-gray-100"
+            : "bg-gray-200 text-gray-700 hover:bg-gray-300 hover:text-gray-800"
         }`}
         onClick={() => setShowAttemptedOnly(!showAttemptedOnly)}
       >
@@ -57,7 +57,7 @@ export default function StatusFilters({
           className={`text-[10px] font-bold h-6 w-6 rounded-full text-center flex items-center justify-center ${
             showAttemptedOnly
               ? "bg-green-200 text-green-700 group-hover:bg-green-300 transition-all duration-200"
-              : "bg-gray-200 text-gray-600"
+              : "bg-gray-50 text-gray-500 "
           }`}
         >
           {attemptedCount}
@@ -74,7 +74,7 @@ export default function StatusFilters({
         className={`group relative inline-flex items-center gap-2 px-3 py-1.5 rounded-lg transition-all duration-200 cursor-pointer min-h-[32px] ${
           showNotAttemptedOnly
             ? "bg-orange-100 text-orange-800 hover:bg-orange-200"
-            : "bg-gray-50 text-gray-700 hover:bg-gray-100"
+            : "bg-gray-200 text-gray-700 hover:bg-gray-300 hover:text-gray-800"
         }`}
         onClick={() => setShowNotAttemptedOnly(!showNotAttemptedOnly)}
       >
@@ -84,7 +84,7 @@ export default function StatusFilters({
           className={`text-[10px] font-bold h-6 w-6 rounded-full text-center flex items-center justify-center ${
             showNotAttemptedOnly
               ? "bg-orange-200 text-orange-700 group-hover:bg-orange-300 transition-all duration-200"
-              : "bg-gray-200 text-gray-600"
+              : "bg-gray-50 text-gray-500 "
           }`}
         >
           {notAttemptedCount}

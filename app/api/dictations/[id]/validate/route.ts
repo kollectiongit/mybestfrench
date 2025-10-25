@@ -8,6 +8,9 @@ import { NextRequest, NextResponse } from "next/server";
 import OpenAI from "openai";
 import * as path from "path";
 
+// Force dynamic rendering due to request.headers usage
+export const dynamic = 'force-dynamic';
+
 const client = new OpenAI({
   apiKey: process.env["OPENAI_API_KEY"],
 });

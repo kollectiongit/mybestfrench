@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
-import { Check, CircleX } from "lucide-react";
+import { Check, CircleX, MoveDiagonal } from "lucide-react";
 import { useState } from "react";
 
 interface Topic {
@@ -133,8 +133,9 @@ export default function TopicDialog({
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" className="h-8 px-3 ">
-          <span className="text-sm font-medium">Sujets</span>
+        <Button className="h-8 px-3 bg-cyan-500 text-white">
+          <MoveDiagonal className="w-4 h-4 text-white" />
+          <span className="text-xs font-bold">Filtrer par thèmes</span>
           {selectedTopics.length > 0 && (
             <span className="ml-2 h-5 w-5 rounded-full bg-blue-100 text-blue-700 text-xs font-bold flex items-center justify-center">
               {selectedTopics.length}
