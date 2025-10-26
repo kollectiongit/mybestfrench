@@ -28,6 +28,7 @@ interface ExerciceAttempt {
   correction_success_percentage: number | null;
   correction_full_json: string | null;
   user_answer: string | null;
+  question_text: string | null;
 }
 interface Dictation {
   exercicesAttempts: ExerciceAttempt[];
@@ -223,9 +224,17 @@ export default function AttemptsTimeline({
                         const analysis = JSON.parse(
                           attempt.correction_full_json
                         );
+                        // Add originalText from attempt.question_text if not present in the stored analysis
+                        const analysisWithOriginalText = {
+                          ...analysis,
+                          originalText:
+                            analysis.originalText ||
+                            attempt.question_text ||
+                            undefined,
+                        };
                         return (
                           <ValidationResults
-                            analysis={analysis}
+                            analysis={analysisWithOriginalText}
                             userAnswer={attempt.user_answer || undefined}
                           />
                         );

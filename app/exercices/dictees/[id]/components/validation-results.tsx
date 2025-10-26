@@ -12,13 +12,35 @@ export default function ValidationResults({
   userAnswer?: string;
 }) {
   return (
-    <div className="mt-8 p-6 bg-gray-50 rounded-lg">
-      {userAnswer && (
-        <div className="mb-6">
-          <h3 className="text-lg font-semibold mb-2">Ta dictée</h3>
-          <div className="p-4 bg-white rounded border">
-            <p className="text-gray-700 whitespace-pre-wrap">{userAnswer}</p>
-          </div>
+    <div className="mt-8 p-6 bg-gray-50 rounded-lg ">
+      {/* User's answer and correct text side by side */}
+      {(userAnswer || analysis.originalText) && (
+        <div className="mb-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+          {userAnswer && (
+            <div>
+              <h3 className="text-lg font-semibold mb-2 text-blue-600">
+                Ta dictée
+              </h3>
+              <div className="p-4 bg-white rounded border-blue-200 border-1 h-fit">
+                <p className="text-gray-700 whitespace-pre-wrap">
+                  {userAnswer}
+                </p>
+              </div>
+            </div>
+          )}
+          {analysis.originalText !== null &&
+            analysis.originalText !== undefined && (
+              <div>
+                <h3 className="text-lg font-semibold mb-2 text-green-500">
+                  Version correcte
+                </h3>
+                <div className="p-4 bg-white rounded border-green-200 border-1 h-fit">
+                  <p className="text-gray-700 whitespace-pre-wrap">
+                    {analysis.originalText}
+                  </p>
+                </div>
+              </div>
+            )}
         </div>
       )}
 
@@ -29,29 +51,29 @@ export default function ValidationResults({
             <div className="text-2xl font-bold text-red-600">
               {analysis.stats.total_fautes}
             </div>
-            <div className="text-sm text-gray-600">Total fautes</div>
+            <div className="text-sm font-bold text-gray-600">Total fautes</div>
           </div>
           <div className="text-center p-3 bg-white rounded">
-            <div className="text-2xl font-bold text-orange-600">
+            <div className="text-2xl font-bold text-red-600">
               {analysis.stats.fautes_orthographe}
             </div>
             <div className="text-sm text-gray-600">Orthographe</div>
           </div>
           <div className="text-center p-3 bg-white rounded">
-            <div className="text-2xl font-bold text-blue-600">
+            <div className="text-2xl font-bold text-red-600">
               {analysis.stats.fautes_grammaire}
             </div>
             <div className="text-sm text-gray-600">Grammaire</div>
           </div>
           <div className="text-center p-3 bg-white rounded">
-            <div className="text-2xl font-bold text-purple-600">
+            <div className="text-2xl font-bold text-red-600">
               {analysis.stats.fautes_conjugaison}
             </div>
             <div className="text-sm text-gray-600">Conjugaison</div>
           </div>
           <div className="text-center p-3 bg-white rounded">
             <div className="text-2xl font-bold text-green-600">
-              {analysis.stats.pourcentage_reussite}%
+              {Math.round(analysis.stats.pourcentage_reussite)}%
             </div>
             <div className="text-sm text-gray-600">Mots corrects</div>
           </div>

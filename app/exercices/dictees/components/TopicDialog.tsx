@@ -133,11 +133,11 @@ export default function TopicDialog({
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <Button className="h-8 px-3 bg-cyan-500 text-white">
+        <Button className="h-10 px-3 bg-primary text-white">
           <MoveDiagonal className="w-4 h-4 text-white" />
-          <span className="text-xs font-bold">Filtrer par thèmes</span>
+          <span className="text-xs font-bold">Thèmes</span>
           {selectedTopics.length > 0 && (
-            <span className="ml-2 h-5 w-5 rounded-full bg-blue-100 text-blue-700 text-xs font-bold flex items-center justify-center">
+            <span className="ml-2 h-6 w-6 rounded-full bg-gray-700 text-white text-[10px] font-bold text-center flex items-center justify-center">
               {selectedTopics.length}
             </span>
           )}
@@ -162,7 +162,7 @@ export default function TopicDialog({
             <div className="w-full sm:min-w-0 sm:max-w-md lg:max-w-2xl">
               <Input
                 type="text"
-                placeholder="Rechercher un sujet..."
+                placeholder="Rechercher un thème..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-full"

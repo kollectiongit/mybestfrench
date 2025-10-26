@@ -98,6 +98,7 @@ export async function GET(
             correction_success_percentage: true,
             correction_full_json: true,
             user_answer: true,
+            question_text: true,
           },
           orderBy: {
             created_at: 'desc',

@@ -44,10 +44,10 @@ export default function StatusFilters({
   return (
     <>
       <div
-        className={`group relative inline-flex items-center gap-2 px-3 py-1.5 rounded-lg transition-all duration-200 cursor-pointer min-h-[32px] ${
+        className={`group relative inline-flex items-center gap-2 px-3 py-1.5 rounded-lg transition-all duration-200 cursor-pointer h-10 border ${
           showAttemptedOnly
-            ? "bg-green-100 text-green-800 hover:bg-green-200"
-            : "bg-gray-200 text-gray-700 hover:bg-gray-300 hover:text-gray-800"
+            ? "border-green-400 text-green-400 hover:border-green-500 hover:text-green-500"
+            : "border bg-white hover:bg-gray-50"
         }`}
         onClick={() => setShowAttemptedOnly(!showAttemptedOnly)}
       >
@@ -56,25 +56,25 @@ export default function StatusFilters({
         <span
           className={`text-[10px] font-bold h-6 w-6 rounded-full text-center flex items-center justify-center ${
             showAttemptedOnly
-              ? "bg-green-200 text-green-700 group-hover:bg-green-300 transition-all duration-200"
-              : "bg-gray-50 text-gray-500 "
+              ? "bg-green-100 text-green-700 group-hover:bg-green-200 transition-all duration-200"
+              : "bg-gray-100 text-gray-600 "
           }`}
         >
           {attemptedCount}
         </span>
         {showAttemptedOnly && (
           <div className="flex items-center justify-center w-5 h-5">
-            <Check className="w-4 h-4 text-green-600 group-hover:hidden" />
-            <CircleX className="w-4 h-4 text-green-600 hidden group-hover:block" />
+            <Check className="w-4 h-4 text-green-400 group-hover:hidden" />
+            <CircleX className="w-4 h-4 text-green-400 hidden group-hover:block" />
           </div>
         )}
       </div>
 
       <div
-        className={`group relative inline-flex items-center gap-2 px-3 py-1.5 rounded-lg transition-all duration-200 cursor-pointer min-h-[32px] ${
+        className={`group relative inline-flex items-center gap-2 px-3 py-1.5 rounded-lg transition-all duration-200 cursor-pointer h-10 border ${
           showNotAttemptedOnly
-            ? "bg-orange-100 text-orange-800 hover:bg-orange-200"
-            : "bg-gray-200 text-gray-700 hover:bg-gray-300 hover:text-gray-800"
+            ? "border-red-400 text-red-400 hover:border-red-500 hover:text-red-500"
+            : "border bg-white hover:bg-gray-50"
         }`}
         onClick={() => setShowNotAttemptedOnly(!showNotAttemptedOnly)}
       >
@@ -83,16 +83,16 @@ export default function StatusFilters({
         <span
           className={`text-[10px] font-bold h-6 w-6 rounded-full text-center flex items-center justify-center ${
             showNotAttemptedOnly
-              ? "bg-orange-200 text-orange-700 group-hover:bg-orange-300 transition-all duration-200"
-              : "bg-gray-50 text-gray-500 "
+              ? "bg-red-100 text-red-700 group-hover:bg-red-200 transition-all duration-200"
+              : "bg-gray-100 text-gray-600 "
           }`}
         >
           {notAttemptedCount}
         </span>
         {showNotAttemptedOnly && (
           <div className="flex items-center justify-center w-5 h-5">
-            <Check className="w-4 h-4 text-orange-600 group-hover:hidden" />
-            <CircleX className="w-4 h-4 text-orange-600 hidden group-hover:block" />
+            <Check className="w-4 h-4 text-red-400 group-hover:hidden" />
+            <CircleX className="w-4 h-4 text-red-400 hidden group-hover:block" />
           </div>
         )}
       </div>

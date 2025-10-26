@@ -41,6 +41,17 @@ export default function DictationCard({ dictation }: { dictation: Dictation }) {
     });
   };
 
+  const getCategoryBadgeClasses = (categoryName: string) => {
+    if (categoryName === "Orthographe") {
+      return "bg-orange-300 text-orange-950";
+    } else if (categoryName === "Grammaire") {
+      return "bg-cyan-300 text-cyan-950";
+    } else if (categoryName === "Conjugaison") {
+      return "bg-fuchsia-300 text-fuchsia-950";
+    }
+    return "";
+  };
+
   return (
     <Link href={`/exercices/dictees/${dictation.id}`} rel="noopener noreferrer">
       <Card
@@ -74,12 +85,16 @@ export default function DictationCard({ dictation }: { dictation: Dictation }) {
             {/* 1st row: Category and Topic */}
             <div className="flex flex-wrap gap-1">
               {dictation.topic.category.name && (
-                <Badge className="text-xs">
+                <Badge
+                  className={`text-xs ${getCategoryBadgeClasses(
+                    dictation.topic.category.name
+                  )}`}
+                >
                   {dictation.topic.category.name}
                 </Badge>
               )}
               {dictation.levels.map((level, index) => (
-                <Badge key={index} className="text-xs bg-gray-500">
+                <Badge key={index} className="text-xs">
                   {level}
                 </Badge>
               ))}

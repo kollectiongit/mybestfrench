@@ -2,11 +2,13 @@
 
 import { useCurrentProfile } from "@/hooks/use-current-profile";
 import { CurrentProfile } from "@/lib/current-profile";
+import { Trash2 } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import CategoryFilters from "./components/CategoryFilters";
 import DictationCard from "./components/DictationCard";
 import Header from "./components/Header";
 import SearchBar from "./components/SearchBar";
+import SentenceCountFilter from "./components/SentenceCountFilter";
 import StatusFilters from "./components/StatusFilters";
 import TopicDialog from "./components/TopicDialog";
 
@@ -50,6 +52,9 @@ export default function DicteesPageClient({
   const [selectedTopics, setSelectedTopics] = useState<number[]>([]);
   const [showAttemptedOnly, setShowAttemptedOnly] = useState(false);
   const [showNotAttemptedOnly, setShowNotAttemptedOnly] = useState(false);
+  const [selectedSentenceCount, setSelectedSentenceCount] = useState<
+    number | null
+  >(null);
   const [isLoading, setIsLoading] = useState(false); // Plus de loading initial
 
   // Mettre à jour les dictées quand les données initiales changent
@@ -76,7 +81,9 @@ export default function DicteesPageClient({
     }
   }, []);
 
-  const filterDictations = useCallback(() => {
+  // Helper function to get filtered dictations without sentence count filter
+  // This is used to calculate the counts in the sentence count filter
+  const getFilteredWithoutSentenceCount = useCallback(() => {
     let filtered = dictations;
     if (searchTerm.trim()) {
       filtered = filtered.filter(
@@ -103,7 +110,7 @@ export default function DicteesPageClient({
     if (showNotAttemptedOnly) {
       filtered = filtered.filter((dictation) => dictation.attempts_count === 0);
     }
-    setFilteredDictations(filtered);
+    return filtered;
   }, [
     dictations,
     searchTerm,
@@ -111,6 +118,25 @@ export default function DicteesPageClient({
     showAttemptedOnly,
     showNotAttemptedOnly,
   ]);
+
+  const filterDictations = useCallback(() => {
+    let filtered = getFilteredWithoutSentenceCount();
+
+    // Apply sentence count filter if selected
+    if (selectedSentenceCount !== null) {
+      if (selectedSentenceCount === 6) {
+        // >5 sentences
+        filtered = filtered.filter(
+          (dictation) => dictation.sentences_count > 5
+        );
+      } else {
+        filtered = filtered.filter(
+          (dictation) => dictation.sentences_count === selectedSentenceCount
+        );
+      }
+    }
+    setFilteredDictations(filtered);
+  }, [getFilteredWithoutSentenceCount, selectedSentenceCount]);
 
   useEffect(() => {
     filterDictations();
@@ -206,12 +232,17 @@ export default function DicteesPageClient({
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <Header count={filteredDictations.length} />
+      {/* Header with title and search */}
+      <div className="mb-8 flex items-center justify-between gap-4 w-full">
+        <Header count={filteredDictations.length} />
+        <div className="flex-shrink-0">
+          <SearchBar value={searchTerm} onChange={setSearchTerm} />
+        </div>
+      </div>
 
-      {/* Alignement horizontal des filtres */}
-      <div className="mb-6 flex flex-wrap items-center gap-4">
-        <SearchBar value={searchTerm} onChange={setSearchTerm} />
-        <TopicDialog
+      {/* Filtres: Grammaire, Conjugaison, Orthographe, etc. */}
+      <div className="mb-6 flex flex-wrap items-center gap-2">
+        <CategoryFilters
           dictations={dictations}
           selectedTopics={selectedTopics}
           setSelectedTopics={setSelectedTopics}
@@ -223,11 +254,35 @@ export default function DicteesPageClient({
           showNotAttemptedOnly={showNotAttemptedOnly}
           setShowNotAttemptedOnly={setShowNotAttemptedOnly}
         />
-        <CategoryFilters
+        <SentenceCountFilter
+          dictations={dictations}
+          selectedSentenceCount={selectedSentenceCount}
+          setSelectedSentenceCount={setSelectedSentenceCount}
+          filteredDictations={getFilteredWithoutSentenceCount()}
+        />
+        <TopicDialog
           dictations={dictations}
           selectedTopics={selectedTopics}
           setSelectedTopics={setSelectedTopics}
         />
+        {/* Clear all filters button */}
+        {(selectedTopics.length > 0 ||
+          showAttemptedOnly ||
+          showNotAttemptedOnly ||
+          selectedSentenceCount !== null) && (
+          <div
+            className="group relative inline-flex items-center gap-2 px-3 py-1.5 rounded-lg transition-all duration-200 cursor-pointer h-10 bg-red-500 text-red-50 hover:bg-red-600 hover:scale-105"
+            onClick={() => {
+              setSelectedTopics([]);
+              setShowAttemptedOnly(false);
+              setShowNotAttemptedOnly(false);
+              setSelectedSentenceCount(null);
+            }}
+          >
+            <Trash2 className="h-4 w-4" />
+            <span className="text-xs font-medium">Effacer les filtres</span>
+          </div>
+        )}
       </div>
 
       {/* Dictations grid */}

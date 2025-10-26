@@ -3,6 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { useAutosave } from "@/hooks/use-autosave";
 import { useCurrentProfile } from "@/hooks/use-current-profile";
+import { DicteeAnalysis } from "@/lib/dictation-schema";
 import { ArrowLeftIcon, Pause, Repeat } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -12,6 +13,7 @@ import AttemptsTimeline from "./components/attempts-timeline";
 import DicteeEditor from "./components/dictee-editor";
 import DicteeHeader from "./components/dictee-header";
 import DicteeSentencesAudio from "./components/dictee-sentences-audio";
+import StreamingValidationResults from "./components/streaming-validation-results";
 
 interface Level {
   code: string;
@@ -41,6 +43,7 @@ interface ExerciceAttempt {
   correction_success_percentage: number | null;
   correction_full_json: string | null;
   user_answer: string | null;
+  question_text: string | null;
 }
 
 interface DictationSentence {
@@ -80,6 +83,9 @@ export default function DicteeClient({ dictationId }: { dictationId: number }) {
   const [expandedAttemptId, setExpandedAttemptId] = useState<number | null>(
     null
   );
+  const [streamingAnalysis, setStreamingAnalysis] =
+    useState<Partial<DicteeAnalysis> | null>(null);
+  const [streamingError, setStreamingError] = useState<string | null>(null);
 
   const { value: dictationText, setValue: setDictationText } = useAutosave("", {
     key: dictationId ? `dictation-${dictationId}` : "",
@@ -166,9 +172,13 @@ export default function DicteeClient({ dictationId }: { dictationId: number }) {
       return;
 
     setIsValidating(true);
+    setStreamingAnalysis({});
+    setStreamingError(null);
+
     try {
       const levelsCodes =
         profile.profile_levels?.map((pl) => pl.levels.code).join(", ") || "";
+
       const response = await fetch(`/api/dictations/${dictationId}/validate`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -182,45 +192,93 @@ export default function DicteeClient({ dictationId }: { dictationId: number }) {
           profileLevels: levelsCodes,
         }),
       });
-      if (response.ok) {
-        const result = await response.json();
 
-        // Add the new attempt to the dictation's attempts
-        if (result.attempt && dictation) {
-          const newAttempt: ExerciceAttempt = {
-            id: result.attempt.id,
-            created_at: result.attempt.created_at,
-            correction_total_errors: result.attempt.correction_total_errors,
-            correction_errors_spelling:
-              result.attempt.correction_errors_spelling,
-            correction_errors_grammar: result.attempt.correction_errors_grammar,
-            correction_errors_conjugation:
-              result.attempt.correction_errors_conjugation,
-            correction_success_percentage:
-              result.attempt.correction_success_percentage,
-            correction_full_json: result.attempt.correction_full_json,
-            user_answer: result.attempt.user_answer,
-          };
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
 
-          setDictation({
-            ...dictation,
-            exercicesAttempts: [newAttempt, ...dictation.exercicesAttempts],
-          });
+      const reader = response.body?.getReader();
+      if (!reader) {
+        throw new Error("No response body");
+      }
 
-          // Set the new attempt as expanded
-          setExpandedAttemptId(newAttempt.id);
+      const decoder = new TextDecoder();
+      let buffer = "";
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split("\n\n");
+        buffer = lines.pop() || "";
+
+        for (const line of lines) {
+          if (line.startsWith("data: ")) {
+            try {
+              const data = JSON.parse(line.slice(6));
+
+              if (data.type === "delta") {
+                // Update with partial data directly
+                if (data.partial) {
+                  setStreamingAnalysis((prev) => ({
+                    ...prev,
+                    ...data.partial,
+                  }));
+                }
+              } else if (data.type === "complete") {
+                // Final result received
+                if (data.analysis && data.attempt && dictation) {
+                  const newAttempt: ExerciceAttempt = {
+                    id: data.attempt.id,
+                    created_at: data.attempt.created_at,
+                    correction_total_errors:
+                      data.attempt.correction_total_errors,
+                    correction_errors_spelling:
+                      data.attempt.correction_errors_spelling,
+                    correction_errors_grammar:
+                      data.attempt.correction_errors_grammar,
+                    correction_errors_conjugation:
+                      data.attempt.correction_errors_conjugation,
+                    correction_success_percentage:
+                      data.attempt.correction_success_percentage,
+                    correction_full_json: data.attempt.correction_full_json,
+                    user_answer: data.attempt.user_answer,
+                    question_text: data.attempt.question_text,
+                  };
+
+                  setDictation({
+                    ...dictation,
+                    exercicesAttempts: [
+                      newAttempt,
+                      ...dictation.exercicesAttempts,
+                    ],
+                  });
+
+                  // Set the new attempt as expanded
+                  setExpandedAttemptId(newAttempt.id);
+                }
+
+                // Clear streaming state
+                setStreamingAnalysis(null);
+                setStreamingError(null);
+                setDictationText("");
+              } else if (data.type === "error") {
+                setStreamingError(data.error);
+              } else if (data.type === "refusal") {
+                setStreamingError(
+                  "Le modèle a refusé de traiter cette demande"
+                );
+              }
+            } catch (parseError) {
+              console.error("Error parsing SSE data:", parseError);
+            }
+          }
         }
-
-        setDictationText("");
-      } else {
-        console.error(
-          "Validation failed:",
-          response.status,
-          await response.text()
-        );
       }
     } catch (err) {
       console.error("Error validating dictation:", err);
+      setStreamingError("Erreur lors de l'analyse de la dictée");
     } finally {
       setIsValidating(false);
     }
@@ -321,9 +379,23 @@ export default function DicteeClient({ dictationId }: { dictationId: number }) {
         validationMessage={validationMessages[validationMessageIndex]}
         onValidate={handleValidate}
       />
+
+      {/* Show streaming results during validation */}
+      {streamingAnalysis && (
+        <StreamingValidationResults
+          userAnswer={dictationText}
+          originalText={dictation.original_text || ""}
+          partialAnalysis={streamingAnalysis}
+          isStreaming={isValidating}
+          error={streamingError || undefined}
+        />
+      )}
+
       <AttemptsTimeline
         dictation={dictation}
-        hasContent={dictationText.trim().length > 0}
+        hasContent={
+          dictationText.trim().length > 0 || streamingAnalysis !== null
+        }
         expandedAttemptId={expandedAttemptId}
         onExpandedChange={setExpandedAttemptId}
       />

@@ -116,7 +116,7 @@ export default function Filters({
       {/* Row 0: Attempted filters - Updated bg colors */}
       <div className="flex flex-wrap gap-3">
         <div
-          className={`group relative inline-flex items-center gap-2 px-3 py-1.5 rounded-lg transition-all duration-200 cursor-pointer min-h-[32px] ${
+          className={`group relative inline-flex items-center gap-2 px-3 py-1.5 rounded-lg transition-all duration-200 cursor-pointer h-8 ${
             showAttemptedOnly
               ? "bg-green-100 text-green-800 hover:bg-green-200"
               : "bg-white text-gray-600 "
@@ -143,7 +143,7 @@ export default function Filters({
         </div>
 
         <div
-          className={`group relative inline-flex items-center gap-2 px-3 py-1.5 rounded-lg transition-all duration-200 cursor-pointer min-h-[32px] ${
+          className={`group relative inline-flex items-center gap-2 px-3 py-1.5 rounded-lg transition-all duration-200 cursor-pointer h-8 ${
             showNotAttemptedOnly
               ? "bg-orange-100 text-orange-800 hover:bg-orange-200"
               : "bg-white text-gray-600 "

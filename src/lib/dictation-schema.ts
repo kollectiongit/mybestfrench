@@ -20,6 +20,7 @@ export const DicteeAnalysisSchema = z.object({
     })
   ),
   conclusion_positive: z.string(),
+  originalText: z.string().nullable(),
 });
 
 export type DicteeAnalysis = z.infer<typeof DicteeAnalysisSchema>;
