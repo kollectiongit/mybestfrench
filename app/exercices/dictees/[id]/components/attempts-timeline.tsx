@@ -29,6 +29,8 @@ interface ExerciceAttempt {
   correction_full_json: string | null;
   user_answer: string | null;
   question_text: string | null;
+  correction_user_answer_errors_highlighted: string | null;
+  original_text_errors_highlighted: string | null;
 }
 interface Dictation {
   exercicesAttempts: ExerciceAttempt[];
@@ -224,17 +226,25 @@ export default function AttemptsTimeline({
                         const analysis = JSON.parse(
                           attempt.correction_full_json
                         );
-                        // Add originalText from attempt.question_text if not present in the stored analysis
-                        const analysisWithOriginalText = {
+                        // Add originalText and highlighted fields from attempt if not present in the stored analysis
+                        const analysisWithAdditionalFields = {
                           ...analysis,
                           originalText:
                             analysis.originalText ||
                             attempt.question_text ||
                             undefined,
+                          dictation_submitted_errors_highlighted:
+                            analysis.dictation_submitted_errors_highlighted ||
+                            attempt.correction_user_answer_errors_highlighted ||
+                            null,
+                          original_text_errors_highlighted:
+                            analysis.original_text_errors_highlighted ||
+                            attempt.original_text_errors_highlighted ||
+                            null,
                         };
                         return (
                           <ValidationResults
-                            analysis={analysisWithOriginalText}
+                            analysis={analysisWithAdditionalFields}
                             userAnswer={attempt.user_answer || undefined}
                           />
                         );

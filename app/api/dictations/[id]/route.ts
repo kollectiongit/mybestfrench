@@ -99,6 +99,8 @@ export async function GET(
             correction_full_json: true,
             user_answer: true,
             question_text: true,
+            correction_user_answer_errors_highlighted: true,
+            original_text_errors_highlighted: true,
           },
           orderBy: {
             created_at: 'desc',

@@ -44,6 +44,8 @@ interface ExerciceAttempt {
   correction_full_json: string | null;
   user_answer: string | null;
   question_text: string | null;
+  correction_user_answer_errors_highlighted: string | null;
+  original_text_errors_highlighted: string | null;
 }
 
 interface DictationSentence {
@@ -245,6 +247,10 @@ export default function DicteeClient({ dictationId }: { dictationId: number }) {
                     correction_full_json: data.attempt.correction_full_json,
                     user_answer: data.attempt.user_answer,
                     question_text: data.attempt.question_text,
+                    correction_user_answer_errors_highlighted:
+                      data.attempt.correction_user_answer_errors_highlighted,
+                    original_text_errors_highlighted:
+                      data.attempt.original_text_errors_highlighted,
                   };
 
                   setDictation({

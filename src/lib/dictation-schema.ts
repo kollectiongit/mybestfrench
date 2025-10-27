@@ -9,7 +9,18 @@ export const DicteeAnalysisSchema = z.object({
     // Use a number 0-100 (easier than "83%")
     pourcentage_reussite: z.number().min(0).max(100),
   }),
+  dictation_submitted_errors_highlighted: z.string().nullable(),
+  original_text_errors_highlighted: z.string().nullable(),
   message_general: z.string(),
+  errors: z.array(
+    z.object({
+      order: z.number().int(),
+      wrong: z.string(),
+      right: z.string(),
+      type: z.enum(["orthographe", "grammaire", "conjugaison"]),
+      explication: z.string(),
+    })
+  ),
   fautes: z.array(
     z.object({
       sentence_order_number: z.number().int(),

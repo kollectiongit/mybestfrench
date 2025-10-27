@@ -23,7 +23,16 @@ function extractPartialFields(jsonText: string): Partial<{
     fautes_conjugaison: number;
     pourcentage_reussite: number;
   };
+  dictation_submitted_errors_highlighted: string | null;
+  original_text_errors_highlighted: string | null;
   message_general: string;
+  errors: Array<{
+    order: number;
+    wrong: string;
+    right: string;
+    type: string;
+    explication: string;
+  }>;
   fautes: Array<{
     sentence_order_number: number;
     texte_eleve: string;
@@ -45,6 +54,18 @@ function extractPartialFields(jsonText: string): Partial<{
       } catch {}
     }
     
+    // Try to extract dictation_submitted_errors_highlighted
+    const submittedMatch = jsonText.match(/"dictation_submitted_errors_highlighted":\s*"([^"]*(?:\\.[^"]*)*)"/);
+    if (submittedMatch) {
+      partial.dictation_submitted_errors_highlighted = submittedMatch[1];
+    }
+    
+    // Try to extract original_text_errors_highlighted
+    const originalMatch = jsonText.match(/"original_text_errors_highlighted":\s*"([^"]*(?:\\.[^"]*)*)"/);
+    if (originalMatch) {
+      partial.original_text_errors_highlighted = originalMatch[1];
+    }
+    
     // Try to extract message_general
     const messageMatch = jsonText.match(/"message_general":\s*"([^"]*(?:\\.[^"]*)*)"/);
     if (messageMatch) {
@@ -55,6 +76,26 @@ function extractPartialFields(jsonText: string): Partial<{
     const conclusionMatch = jsonText.match(/"conclusion_positive":\s*"([^"]*(?:\\.[^"]*)*)"/);
     if (conclusionMatch) {
       partial.conclusion_positive = conclusionMatch[1];
+    }
+    
+    // Try to extract errors array (simplified - just check if it exists)
+    const errorsMatch = jsonText.match(/"errors":\s*\[/);
+    if (errorsMatch) {
+      // Try to extract complete error objects
+      const errorObjects = [];
+      const errorRegex = /\{[^}]*"order"[^}]*\}/g;
+      let match;
+      while ((match = errorRegex.exec(jsonText)) !== null) {
+        try {
+          const error = JSON.parse(match[0]);
+          if (error.order && error.wrong && error.right && error.type) {
+            errorObjects.push(error);
+          }
+        } catch {}
+      }
+      if (errorObjects.length > 0) {
+        partial.errors = errorObjects;
+      }
     }
     
     // Try to extract fautes array (simplified - just check if it exists)
@@ -179,15 +220,41 @@ Ton rôle est d'aider ton élève à progresser en orthographe, grammaire et con
     2. Donne un **bilan global** :
       - Nombre total de fautes  
       - Répartition : fautes d'orthographe / de grammaire / de conjugaison  
-      - % de mots bien orthographiés  
+      - % de mots bien orthographiés
+
+    2bis. Génère le texte complet avec highlighting :
+      - "dictation_submitted_errors_highlighted" : réécris tout le texte de la copie de l'élève en marquant **en gras** chaque mot ou expression avec erreur
+      - "original_text_errors_highlighted" : réécris tout le texte original en marquant *en italique* chaque mot ou expression où l'élève a fait une erreur (pour montrer la version correcte)
+
+    2ter. Crée une liste d'erreurs individuelles ("errors") :
+      - Chaque erreur doit avoir : "order" (numéro d'ordre), "wrong" (texte incorrect avec **gras**), "right" (texte correct avec *italique*), "type" ("orthographe" ou "grammaire" ou "conjugaison"), "explication" (explication courte)
+      - Cette liste est séparée des fautes regroupées par phrase
+      - Exemple : {"order": 1, "wrong": "salle de **bein**", "right": "salle de *bains*", "type": "orthographe", "explication": "Le mot bains s'écrit avec un ai car il désigne une pièce où l'on prend des bains."}
 
     3. Analyse **chaque faute** en regroupant par phrase :
-      - a. Ce que ${profileFirstName || 'ton élève'} a écrit  
-      - b. La bonne correction  
-      - c. Pourquoi c'est une faute  
-      - d. La règle expliquée simplement  
+      - a. Ce que ${profileFirstName || 'ton élève'} a écrit : marque **en gras** chaque mot ou expression contenant une erreur dans la phrase (ex: La salle de **bein** se trouve au **fon** du couloir.)
+      - b. La bonne correction : marque *en italique* chaque mot ou expression corrigée dans la phrase (ex: La salle de *bains* se trouve au *fond* du couloir.)
+      - c. Pourquoi c'est une faute : utilise **gras** pour l'erreur et *italique* pour la correction (ex: Tu as écrit **bein** au lieu de *bains*)
+      - d. La règle expliquée simplement : utilise **gras** pour mettre en évidence les mots importants (mots corrigés, règles orthographiques, lettres importantes, etc.). Ex: Le mot **bains** s'écrit avec un **ai** car il désigne une pièce où l'on prend des bains. Pour **fond**, c'est un mot qui se termine par **d** muet, utilisé pour parler de l'extrémité ou du bas d'un espace.
 
     4. Termine par une **conclusion encourageante** pour motiver ${profileFirstName || 'ton élève'}.
+    
+    **IMPORTANT :** Dans TOUS les champs de texte, tu DOIS utiliser le formatage Markdown :
+    - "dictation_submitted_errors_highlighted" : texte COMPLET de la copie avec **gras** sur toutes les erreurs (ex: La salle de **bein** se trouve au **fon** du couloir. Tu as très **bien** recopié ce passage.)
+    - "original_text_errors_highlighted" : texte COMPLET de l'original avec *italique* sur les corrections (ex: La salle de *bains* se trouve au *fond* du couloir. Tu as très bien recopié ce passage.)
+    - Pour "texte_eleve" : mets en **gras** (**mot**) chaque mot ou expression avec erreur
+    - Pour "correction" : mets en *italique* (*mot*) chaque mot ou expression corrigée
+    - Pour "explication" : utilise **gras** pour faire référence aux erreurs et *italique* pour les corrections
+    - Pour "regle" : utilise **gras** pour mettre en évidence les mots importants (mots corrigés, règles orthographiques, lettres importantes, terminaisons grammaticales, etc.)
+    - Pour "errors" : chaque "wrong" doit avoir **gras** sur l'erreur, chaque "right" doit avoir *italique* sur la correction
+    
+    Exemple :
+    - "dictation_submitted_errors_highlighted": "La salle de **bein** se trouve au **fon** du couloir. Tu as très **bien** recopié ce passage."
+    - "original_text_errors_highlighted": "La salle de *bains* se trouve au *fond* du couloir. Tu as très bien recopié ce passage."
+    - "errors": [{"order": 1, "wrong": "salle de **bein**", "right": "salle de *bains*", "type": "orthographe", "explication": "Le mot bains s'écrit avec un ai car il désigne une pièce où l'on prend des bains."}, {"order": 2, "wrong": "au **fon**", "right": "au *fond*", "type": "orthographe", "explication": "Le mot fond se termine par un d muet, utilisé pour parler de l'extrémité ou du bas d'un espace."}]
+    - "texte_eleve": "La salle de **bein** se trouve au **fon** du couloir."
+    - "correction": "La salle de *bains* se trouve au *fond* du couloir."
+    - "explication": "Tu as écrit **bein** au lieu de *bains*. Le mot **fon** devrait être *fond*."
     
     Analyse cette dictée selon les instructions données et réponds en JSON avec la structure exacte demandée.`;
 
@@ -216,7 +283,16 @@ Ton rôle est d'aider ton élève à progresser en orthographe, grammaire et con
               fautes_conjugaison: number;
               pourcentage_reussite: number;
             };
+            dictation_submitted_errors_highlighted: string | null;
+            original_text_errors_highlighted: string | null;
             message_general: string;
+            errors: Array<{
+              order: number;
+              wrong: string;
+              right: string;
+              type: string;
+              explication: string;
+            }>;
             fautes: Array<{
               sentence_order_number: number;
               texte_eleve: string;
@@ -226,7 +302,7 @@ Ton rôle est d'aider ton élève à progresser en orthographe, grammaire et con
             }>;
             conclusion_positive: string;
           } | null = null;
-          let exerciceAttempt: unknown = null;
+          let exerciceAttempt: { id: number } | null = null;
           
           try {
             stream
@@ -315,7 +391,10 @@ Ton rôle est d'aider ton élève à progresser en orthographe, grammaire et con
                       fautes_conjugaison: 0,
                       pourcentage_reussite: 100
                     },
+                    dictation_submitted_errors_highlighted: null,
+                    original_text_errors_highlighted: null,
                     message_general: "Analyse terminée",
+                    errors: [],
                     fautes: [],
                     conclusion_positive: "Continue tes efforts, tu progresses bien !"
                   };
@@ -324,28 +403,49 @@ Ton rôle est d'aider ton élève à progresser en orthographe, grammaire et con
 
               // Save the analysis results to the database
               try {
-                exerciceAttempt = await prisma.exercices_attempts.create({
-                  data: {
-                    user_id: session.user.id,
-                    profile_id: currentProfileId,
-                    dictation_id: dictationId,
-                    question_type: "DICTEE",
-                    question_text: originalText,
-                    user_answer: studentText,
-                    is_correct: validatedResult.stats.total_fautes === 0,
-                    correction_total_errors: validatedResult.stats.total_fautes,
-                    correction_errors_spelling: validatedResult.stats.fautes_orthographe,
-                    correction_errors_grammar: validatedResult.stats.fautes_grammaire,
-                    correction_errors_conjugation: validatedResult.stats.fautes_conjugaison,
-                    correction_success_percentage: validatedResult.stats.pourcentage_reussite,
-                    correction_greeting_message: validatedResult.message_general,
-                    correction_errors_by_sentence_json: validatedResult.fautes,
-                    correction_conclusion_message: validatedResult.conclusion_positive,
-                    correction_full_json: JSON.stringify(validatedResult),
-                  },
-                });
+                if (validatedResult) {
+                  exerciceAttempt = await prisma.exercices_attempts.create({
+                    data: {
+                      user_id: session.user.id,
+                      profile_id: currentProfileId,
+                      dictation_id: dictationId,
+                      question_type: "DICTEE",
+                      question_text: originalText,
+                      user_answer: studentText,
+                      is_correct: validatedResult.stats.total_fautes === 0,
+                      correction_total_errors: validatedResult.stats.total_fautes,
+                      correction_errors_spelling: validatedResult.stats.fautes_orthographe,
+                      correction_errors_grammar: validatedResult.stats.fautes_grammaire,
+                      correction_errors_conjugation: validatedResult.stats.fautes_conjugaison,
+                      correction_success_percentage: validatedResult.stats.pourcentage_reussite,
+                      correction_greeting_message: validatedResult.message_general,
+                      correction_errors_by_sentence_json: validatedResult.fautes,
+                      correction_conclusion_message: validatedResult.conclusion_positive,
+                      correction_full_json: JSON.stringify(validatedResult),
+                      correction_user_answer_errors_highlighted: validatedResult.dictation_submitted_errors_highlighted,
+                      original_text_errors_highlighted: validatedResult.original_text_errors_highlighted,
+                    },
+                  });
+                }
 
-                console.log("Exercise attempt saved to database:", (exerciceAttempt as { id: number }).id);
+                console.log("Exercise attempt saved to database:", exerciceAttempt?.id);
+                
+                // Save individual errors to database
+                if (validatedResult && validatedResult.errors && validatedResult.errors.length > 0 && exerciceAttempt?.id) {
+                  await prisma.exercices_errors.createMany({
+                    data: validatedResult.errors.map((error) => ({
+                      user_id: session.user.id,
+                      profile_id: currentProfileId,
+                      attempt_id: exerciceAttempt!.id,
+                      dictation_id: dictationId,
+                      wrong_text: error.wrong,
+                      right_text: error.right,
+                      error_type: error.type,
+                      explication: error.explication,
+                    })),
+                  });
+                  console.log(`Saved ${validatedResult.errors.length} errors to database`);
+                }
                 
                 // Invalidate cache for this dictation and profile
                 try {
