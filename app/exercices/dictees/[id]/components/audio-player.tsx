@@ -156,7 +156,7 @@ export function EnhancedAudioPlayer({
         onClick={handlePlayPause}
         disabled={isLoading || hasError}
         data-audio-id={audioId}
-        className={`h-12 px-6 rounded-full transition-all duration-200 w-full ${
+        className={`h-8 md:h-12 px-2 md:px-6 rounded-full transition-all duration-200 w-full text-xs md:text-base ${
           isPlaying || (isCardActive && currentTime > 0)
             ? "bg-black text-white hover:bg-gray-800"
             : isCardActive
@@ -174,9 +174,9 @@ export function EnhancedAudioPlayer({
         {hasError ? (
           "Erreur"
         ) : isPlaying ? (
-          <PauseIcon className="h-5 w-5 mr-2" />
+          <PauseIcon className="h-3 w-3 md:h-5 md:w-5 mr-1 md:mr-2" />
         ) : (
-          <PlayIcon className="h-5 w-5 mr-2" />
+          <PlayIcon className="h-3 w-3 md:h-5 md:w-5 mr-1 md:mr-2" />
         )}
         {hasError ? "Fichier non trouvé" : isPlaying ? "Pause" : "Écouter"}
       </Button>

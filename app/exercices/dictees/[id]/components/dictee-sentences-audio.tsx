@@ -163,10 +163,10 @@ export default function DicteeSentencesAudio({
   if (!dictationSentences || dictationSentences.length === 0) return null;
 
   return (
-    <div className="mb-8 space-y-6">
+    <div className="mb-8 space-y-4 md:space-y-6">
       {/* Global Controls */}
-      <div className="bg-gray-50 rounded-lg p-6">
-        <div className="flex items-center justify-between gap-6">
+      <div className="bg-gray-50 rounded-lg p-4 md:p-6">
+        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 md:gap-6">
           {/* Loop Control */}
           <div className="flex items-center gap-4">
             <Switch
@@ -180,21 +180,21 @@ export default function DicteeSentencesAudio({
           </div>
 
           {/* Pause Duration Control */}
-          <div className="space-y-3 min-w-[300px]">
-            <Label className="tabular-nums">
+          <div className="space-y-2 md:space-y-3 w-full md:min-w-[300px]">
+            <Label className="tabular-nums text-sm md:text-base">
               {pauseDuration[0]} secondes de pause entre chaque loop
             </Label>
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2 md:gap-4">
               <div>
                 <Button
                   variant="outline"
                   size="icon"
-                  className="size-8"
+                  className="size-6 md:size-8"
                   aria-label="Decrease value"
                   onClick={decreaseValue}
                   disabled={pauseDuration[0] === 0}
                 >
-                  <Minus size={16} strokeWidth={2} aria-hidden="true" />
+                  <Minus size={14} strokeWidth={2} aria-hidden="true" />
                 </Button>
               </div>
               <Slider
@@ -210,12 +210,12 @@ export default function DicteeSentencesAudio({
                 <Button
                   variant="outline"
                   size="icon"
-                  className="size-8"
+                  className="size-6 md:size-8"
                   aria-label="Increase value"
                   onClick={increaseValue}
                   disabled={pauseDuration[0] === 10}
                 >
-                  <Plus size={16} strokeWidth={2} aria-hidden="true" />
+                  <Plus size={14} strokeWidth={2} aria-hidden="true" />
                 </Button>
               </div>
             </div>
@@ -224,7 +224,7 @@ export default function DicteeSentencesAudio({
       </div>
 
       {/* Audio Cards - 3 per row */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-2 md:gap-4">
         {sortedSentences.map((sentence) => {
           const isCurrentlyPlaying = playingAudioId === sentence.audio_file;
           const hasBeenPlayed = playedAudioIds.has(sentence.audio_file);
@@ -233,16 +233,16 @@ export default function DicteeSentencesAudio({
           return (
             <Card
               key={sentence.order}
-              className={`py-2 transition-all duration-200 cursor-pointer ${
+              className={`py-1 md:py-2 transition-all duration-200 cursor-pointer ${
                 isActive ? "ring-2 ring-blue-500 bg-blue-50" : "hover:shadow-md"
               }`}
               onClick={() => handleCardClick(sentence.audio_file)}
             >
-              <CardContent className="p-4">
-                <div className="flex items-center gap-4">
+              <CardContent className="p-2 md:p-4">
+                <div className="flex items-center gap-2 md:gap-4">
                   <div className="flex-shrink-0">
                     <span
-                      className={`text-sm font-medium rounded-full w-8 h-8 flex items-center justify-center transition-colors duration-200 ${
+                      className={`text-xs md:text-sm font-medium rounded-full w-6 h-6 md:w-8 md:h-8 flex items-center justify-center transition-colors duration-200 ${
                         isActive
                           ? "bg-blue-500 text-white"
                           : "text-gray-600 bg-gray-100"

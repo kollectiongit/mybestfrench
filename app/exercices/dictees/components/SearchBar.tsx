@@ -62,13 +62,13 @@ export default function SearchBar({
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        <div className="flex-shrink-0 relative w-80">
+        <div className="flex-shrink-0 relative w-full md:w-80">
           <Input
             type="text"
             placeholder="Recherche"
             value={value}
             onChange={(e) => onChange(e.target.value)}
-            className="w-80 h-10 bg-gray-100 pr-20"
+            className="w-full md:w-80 h-10 bg-gray-100 pr-20"
           />
           {/* Clear button */}
           {value && (
@@ -93,7 +93,10 @@ export default function SearchBar({
           </button>
         </div>
       </PopoverTrigger>
-      <PopoverContent className="w-80 p-0" align="start">
+      <PopoverContent
+        className="w-[calc(100vw-2rem)] md:w-80 p-0"
+        align="start"
+      >
         <Command>
           <CommandList>
             <CommandEmpty>Aucun historique</CommandEmpty>

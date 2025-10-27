@@ -74,7 +74,21 @@ export default function DicteeHeader({ dictation }: DictationHeaderProps) {
 
   return (
     <div className="mb-8">
-      <div className="mb-6">
+      {/* Mobile: buttons in same row with space-between */}
+      <div className="flex justify-between items-center mb-6 md:hidden">
+        <Button asChild variant="ghost">
+          <Link href="/exercices/dictees" className="inline-flex items-center">
+            <ArrowLeftIcon className="h-4 w-4 mr-2" />
+            Retour aux dictées
+          </Link>
+        </Button>
+        <RulesDialog
+          rulesExplanationMessage={dictation.topic.rules_explanation_message}
+        />
+      </div>
+
+      {/* Desktop: back button alone, then title with rules */}
+      <div className="hidden md:block mb-6">
         <Button asChild variant="ghost">
           <Link href="/exercices/dictees" className="inline-flex items-center">
             <ArrowLeftIcon className="h-4 w-4 mr-2" />
@@ -84,9 +98,11 @@ export default function DicteeHeader({ dictation }: DictationHeaderProps) {
       </div>
       <div className="flex justify-between items-center mb-4">
         <h1 className="text-3xl font-bold text-gray-900">{dictation.title}</h1>
-        <RulesDialog
-          rulesExplanationMessage={dictation.topic.rules_explanation_message}
-        />
+        <div className="hidden md:block">
+          <RulesDialog
+            rulesExplanationMessage={dictation.topic.rules_explanation_message}
+          />
+        </div>
       </div>
       <div className="flex flex-wrap items-center gap-2 mb-2">
         {/* Category Badge */}
@@ -102,7 +118,10 @@ export default function DicteeHeader({ dictation }: DictationHeaderProps) {
             </Badge>
           ))}
         </div>
+      </div>
 
+      {/* Sentences and words count on new row */}
+      <div className="flex flex-wrap items-center gap-2 mb-2">
         {/* Sentences count */}
         <Badge variant="outline" className="text-gray-600">
           {dictation.sentences_count}{" "}

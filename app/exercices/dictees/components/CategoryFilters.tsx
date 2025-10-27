@@ -109,7 +109,7 @@ export default function CategoryFilters({
     return (
       <div
         key={id}
-        className={`group relative inline-flex items-center gap-2 px-3 py-1.5 rounded-lg transition-all duration-200 cursor-pointer h-10 ${getButtonClasses()}`}
+        className={`group relative inline-flex items-center gap-2 px-2 md:px-3 py-1.5 rounded-lg transition-all duration-200 cursor-pointer h-10 ${getButtonClasses()}`}
         onClick={onClick}
       >
         <span className="text-xs font-medium">{name}</span>

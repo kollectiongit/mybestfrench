@@ -7,6 +7,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useState } from "react";
 
 export interface Dictation {
   id: number;
@@ -38,6 +39,7 @@ export default function SentenceCountFilter({
   setSelectedSentenceCount: (v: number | null) => void;
   filteredDictations?: Dictation[];
 }) {
+  const [open, setOpen] = useState(false);
   // Use filtered dictations if provided, otherwise use all dictations
   const dictationsToCount = filteredDictations || dictations;
 
@@ -88,11 +90,14 @@ export default function SentenceCountFilter({
 
   return (
     <div
-      className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border bg-white cursor-pointer h-10 transition-all duration-200 ${
+      className={`flex items-center gap-2 px-2 md:px-3 py-1.5 rounded-lg border bg-white cursor-pointer h-10 transition-all duration-200 ${
         isActive ? "border-gray-700 text-gray-700" : "border hover:bg-gray-50"
       }`}
+      onClick={() => setOpen(true)}
     >
       <Select
+        open={open}
+        onOpenChange={setOpen}
         value={
           selectedSentenceCount === null
             ? "all"
@@ -100,7 +105,7 @@ export default function SentenceCountFilter({
         }
         onValueChange={handleValueChange}
       >
-        <SelectTrigger className="border-0 p-0 h-auto w-auto focus:ring-0 focus-visible:ring-0">
+        <SelectTrigger className="border-0 p-0 h-auto w-auto focus:ring-0 focus-visible:ring-0 shadow-none">
           <SelectValue>
             <span className="text-xs font-medium">{getDisplayLabel()}</span>
           </SelectValue>

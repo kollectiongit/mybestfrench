@@ -231,17 +231,29 @@ export default function DicteesPageClient({
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      {/* Header with title and search */}
-      <div className="mb-8 flex items-center justify-between gap-4 w-full">
-        <Header count={filteredDictations.length} />
-        <div className="flex-shrink-0">
-          <SearchBar value={searchTerm} onChange={setSearchTerm} />
+    <div className="container mx-auto px-4 py-8 space-y-3">
+      {/* Header with title and search (md+): same row with space-between */}
+      <div className="mb-8 flex flex-col md:flex-row md:items-center md:justify-between md:gap-4">
+        <div className="md:mb-0 mb-4">
+          <Header count={filteredDictations.length} />
+        </div>
+        <div className="flex flex-row items-center gap-2 md:max-w-md">
+          <div className="flex-1 w-full md:w-auto">
+            <SearchBar value={searchTerm} onChange={setSearchTerm} />
+          </div>
+          {/* Thèmes button on xs */}
+          <div className="flex-shrink-0 md:hidden">
+            <TopicDialog
+              dictations={dictations}
+              selectedTopics={selectedTopics}
+              setSelectedTopics={setSelectedTopics}
+            />
+          </div>
         </div>
       </div>
 
       {/* Filtres: Grammaire, Conjugaison, Orthographe, etc. */}
-      <div className="mb-6 flex flex-wrap items-center gap-2">
+      <div className="flex flex-wrap items-center gap-2">
         <CategoryFilters
           dictations={dictations}
           selectedTopics={selectedTopics}
@@ -260,18 +272,21 @@ export default function DicteesPageClient({
           setSelectedSentenceCount={setSelectedSentenceCount}
           filteredDictations={getFilteredWithoutSentenceCount()}
         />
-        <TopicDialog
-          dictations={dictations}
-          selectedTopics={selectedTopics}
-          setSelectedTopics={setSelectedTopics}
-        />
+        {/* Thèmes button (md+) */}
+        <div className="hidden md:block">
+          <TopicDialog
+            dictations={dictations}
+            selectedTopics={selectedTopics}
+            setSelectedTopics={setSelectedTopics}
+          />
+        </div>
         {/* Clear all filters button */}
         {(selectedTopics.length > 0 ||
           showAttemptedOnly ||
           showNotAttemptedOnly ||
           selectedSentenceCount !== null) && (
           <div
-            className="group relative inline-flex items-center gap-2 px-3 py-1.5 rounded-lg transition-all duration-200 cursor-pointer h-10 bg-red-500 text-red-50 hover:bg-red-600 hover:scale-105"
+            className="group relative inline-flex items-center gap-2 px-2 md:px-3 py-1.5 rounded-lg transition-all duration-200 cursor-pointer h-10 bg-red-500 text-red-50 hover:bg-red-600 hover:scale-105"
             onClick={() => {
               setSelectedTopics([]);
               setShowAttemptedOnly(false);

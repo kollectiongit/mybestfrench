@@ -133,7 +133,7 @@ export default function TopicDialog({
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <Button className="h-10 px-3 bg-primary text-white">
+        <Button className="h-10 px-2 md:px-3 bg-primary text-white">
           <MoveDiagonal className="w-4 h-4 text-white" />
           <span className="text-xs font-bold">Thèmes</span>
           {selectedTopics.length > 0 && (

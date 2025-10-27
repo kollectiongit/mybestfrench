@@ -2,6 +2,13 @@
 
 import { Badge } from "@/components/ui/badge";
 import {
+  Drawer,
+  DrawerContent,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerTrigger,
+} from "@/components/ui/drawer";
+import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
@@ -40,7 +47,7 @@ function buildErrorTooltipMap(
   return errorMap;
 }
 
-// Component for error word with tooltip
+// Component for error word with tooltip (desktop) and drawer (mobile)
 function ErrorWithTooltip({
   children,
   explanation,
@@ -56,36 +63,94 @@ function ErrorWithTooltip({
     );
   }
 
+  // Split markdown content into plain text for title
+  const getTitle = (text: string) => {
+    const match = text.match(/\*\*([^*]+)\*\*/);
+    return match ? match[1] : text.split(" ")[0];
+  };
+
   return (
-    <Tooltip>
-      <TooltipTrigger asChild>
-        <strong className="text-red-600 bg-red-100 px-1 rounded font-bold cursor-help underline decoration-dotted">
-          {children}
-        </strong>
-      </TooltipTrigger>
-      <TooltipContent
-        side="top"
-        className="max-w-xs bg-gray-900 text-white p-3"
-      >
-        <div className="text-sm">
-          <ReactMarkdown
-            components={{
-              strong: ({ children }) => (
-                <strong className="text-red-400 font-bold">{children}</strong>
-              ),
-              em: ({ children }) => (
-                <em className="text-green-400 font-bold not-italic">
-                  {children}
-                </em>
-              ),
-              p: ({ children }) => <p className="mb-1 last:mb-0">{children}</p>,
-            }}
-          >
-            {explanation}
-          </ReactMarkdown>
-        </div>
-      </TooltipContent>
-    </Tooltip>
+    <>
+      {/* Desktop: Use Tooltip */}
+      <Tooltip>
+        <TooltipTrigger asChild className="hidden md:inline">
+          <strong className="text-red-600 bg-red-100 px-1 rounded font-bold cursor-help underline decoration-dotted">
+            {children}
+          </strong>
+        </TooltipTrigger>
+        <TooltipContent
+          side="top"
+          className="max-w-xs bg-gray-900 text-white p-3"
+        >
+          <div className="text-sm">
+            <ReactMarkdown
+              components={{
+                strong: ({ children }) => (
+                  <strong className="text-red-400 font-bold">{children}</strong>
+                ),
+                em: ({ children }) => (
+                  <em className="text-green-400 font-bold not-italic">
+                    {children}
+                  </em>
+                ),
+                p: ({ children }) => (
+                  <p className="mb-1 last:mb-0">{children}</p>
+                ),
+              }}
+            >
+              {explanation}
+            </ReactMarkdown>
+          </div>
+        </TooltipContent>
+      </Tooltip>
+
+      {/* Mobile: Use Drawer */}
+      <Drawer>
+        <DrawerTrigger asChild className="md:hidden">
+          <strong className="text-red-600 bg-red-100 px-1 rounded font-bold cursor-pointer underline decoration-dotted active:bg-red-200">
+            {children}
+          </strong>
+        </DrawerTrigger>
+        <DrawerContent>
+          <DrawerHeader>
+            <DrawerTitle className="text-left">
+              Correction : {getTitle(explanation)}
+            </DrawerTitle>
+          </DrawerHeader>
+          <div className="px-4 pb-4">
+            <div className="text-sm">
+              <ReactMarkdown
+                components={{
+                  strong: ({ children }) => (
+                    <strong className="text-red-400 font-bold">
+                      {children}
+                    </strong>
+                  ),
+                  em: ({ children }) => (
+                    <em className="text-green-400 font-bold not-italic">
+                      {children}
+                    </em>
+                  ),
+                  p: ({ children }) => (
+                    <p className="mb-3 last:mb-0">{children}</p>
+                  ),
+                  ul: ({ children }) => (
+                    <ul className="list-disc list-inside ml-4">{children}</ul>
+                  ),
+                  ol: ({ children }) => (
+                    <ol className="list-decimal list-inside ml-4">
+                      {children}
+                    </ol>
+                  ),
+                }}
+              >
+                {explanation}
+              </ReactMarkdown>
+            </div>
+          </div>
+        </DrawerContent>
+      </Drawer>
+    </>
   );
 }
 
@@ -105,15 +170,13 @@ export default function ValidationResults({
   }, [analysis.errors]);
 
   return (
-    <div className="mt-8 p-6 bg-gray-50 rounded-lg ">
+    <div className="mt-8 py-6 px-3 md:p-6 bg-gray-50 rounded-lg ">
       {/* User's answer and correct text side by side */}
       {(userAnswer || analysis.originalText) && (
         <div className="mb-6 grid grid-cols-1 md:grid-cols-2 gap-4">
           {userAnswer && (
             <div>
-              <h3 className="text-lg font-semibold mb-2 text-blue-600">
-                Ta dictée
-              </h3>
+              <h3 className="text-lg font-semibold mb-2 ">Ta dictée</h3>
               <div className="p-4 bg-white rounded border-blue-200 border-1 h-fit">
                 {analysis.dictation_submitted_errors_highlighted ? (
                   <div className="text-gray-700">
@@ -163,9 +226,7 @@ export default function ValidationResults({
           {analysis.originalText !== null &&
             analysis.originalText !== undefined && (
               <div>
-                <h3 className="text-lg font-semibold mb-2 text-green-500">
-                  Version correcte
-                </h3>
+                <h3 className="text-lg font-semibold mb-2">Version correcte</h3>
                 <div className="p-4 bg-white rounded border-green-200 border-1 h-fit">
                   {analysis.original_text_errors_highlighted ? (
                     <div className="text-gray-700">
@@ -209,13 +270,20 @@ export default function ValidationResults({
 
       <div className="mb-6">
         <h3 className="text-lg font-semibold mb-2">Bilan global</h3>
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+        <div className="grid grid-cols-3 md:grid-cols-5 gap-4">
+          <div className="text-center p-3 bg-white rounded">
+            <div className="text-2xl font-bold text-green-600">
+              {Math.round(analysis.stats.pourcentage_reussite)}%
+            </div>
+            <div className="text-sm text-gray-600">Réussite</div>
+          </div>
           <div className="text-center p-3 bg-white rounded">
             <div className="text-2xl font-bold text-red-600">
               {analysis.stats.total_fautes}
             </div>
-            <div className="text-sm font-bold text-gray-600">Total fautes</div>
+            <div className="text-sm  text-gray-600">Fautes</div>
           </div>
+          <div className=" p-3 bg-transarent rounded block md:hidden"></div>
           <div className="text-center p-3 bg-white rounded">
             <div className="text-2xl font-bold text-red-600">
               {analysis.stats.fautes_orthographe}
@@ -234,12 +302,6 @@ export default function ValidationResults({
             </div>
             <div className="text-sm text-gray-600">Conjugaison</div>
           </div>
-          <div className="text-center p-3 bg-white rounded">
-            <div className="text-2xl font-bold text-green-600">
-              {Math.round(analysis.stats.pourcentage_reussite)}%
-            </div>
-            <div className="text-sm text-gray-600">Mots corrects</div>
-          </div>
         </div>
       </div>
 
@@ -256,136 +318,146 @@ export default function ValidationResults({
       {analysis.fautes && analysis.fautes.length > 0 && (
         <div className="mb-6">
           <h2 className="text-3xl font-bold mb-4">Correction de ta dictée</h2>
-          <div className="space-y-4">
+          <div className="space-y-6">
             {analysis.fautes.map((faute, index: number) => (
-              <div key={index} className="p-4 bg-white rounded border relative">
-                <div className="absolute top-4 right-4">
-                  <Badge variant="outline">
-                    Phrase #{faute.sentence_order_number}
-                  </Badge>
-                </div>
-                <div className="mb-2 flex flex-row gap-2">
-                  <Badge variant="destructive" className="bg-red-500">
-                    Ta version
-                  </Badge>
-                  <div className="text-gray-700">
-                    <ReactMarkdown
-                      components={{
-                        strong: ({ children }) => (
-                          <strong className="text-red-600 bg-red-100 px-1 rounded font-bold">
-                            {children}
-                          </strong>
-                        ),
-                        em: ({ children }) => (
-                          <strong className="text-green-600 bg-green-100 px-1 rounded font-bold">
-                            {children}
-                          </strong>
-                        ),
-                        ul: ({ children }) => (
-                          <ul className="list-disc list-inside ml-4">
-                            {children}
-                          </ul>
-                        ),
-                        ol: ({ children }) => (
-                          <ol className="list-decimal list-inside ml-4">
-                            {children}
-                          </ol>
-                        ),
-                      }}
+              <div key={index}>
+                <Badge variant="outline" className="mb-2 font-bolder">
+                  Phrase #{faute.sentence_order_number}
+                </Badge>
+                <div className="p-4 bg-white rounded border">
+                  <div className="mb-2 flex flex-col gap-2">
+                    <Badge
+                      variant="destructive"
+                      className="bg-red-500 w-fit font-bolder!"
                     >
-                      {faute.texte_eleve}
-                    </ReactMarkdown>
+                      Ta version
+                    </Badge>
+                    <div className="text-gray-700">
+                      <ReactMarkdown
+                        components={{
+                          strong: ({ children }) => (
+                            <strong className="text-red-600 bg-red-100 px-1 rounded font-bold">
+                              {children}
+                            </strong>
+                          ),
+                          em: ({ children }) => (
+                            <strong className="text-green-600 bg-green-100 px-1 rounded font-bold">
+                              {children}
+                            </strong>
+                          ),
+                          ul: ({ children }) => (
+                            <ul className="list-disc list-inside ml-4">
+                              {children}
+                            </ul>
+                          ),
+                          ol: ({ children }) => (
+                            <ol className="list-decimal list-inside ml-4">
+                              {children}
+                            </ol>
+                          ),
+                        }}
+                      >
+                        {faute.texte_eleve}
+                      </ReactMarkdown>
+                    </div>
                   </div>
-                </div>
-                <div className="mb-2 flex flex-row gap-2">
-                  <Badge variant="destructive" className="bg-green-500">
-                    Correction
-                  </Badge>
-                  <div className="text-gray-700">
-                    <ReactMarkdown
-                      components={{
-                        strong: ({ children }) => (
-                          <strong className="text-red-600 bg-red-100 px-1 rounded font-bold">
-                            {children}
-                          </strong>
-                        ),
-                        em: ({ children }) => (
-                          <strong className="text-green-600 bg-green-100 px-1 rounded font-bold">
-                            {children}
-                          </strong>
-                        ),
-                        ul: ({ children }) => (
-                          <ul className="list-disc list-inside ml-4">
-                            {children}
-                          </ul>
-                        ),
-                        ol: ({ children }) => (
-                          <ol className="list-decimal list-inside ml-4">
-                            {children}
-                          </ol>
-                        ),
-                      }}
+                  <div className="mb-2 mt-4 flex flex-col gap-2">
+                    <Badge
+                      variant="destructive"
+                      className="bg-green-500 w-fit font-bolder"
                     >
-                      {faute.correction}
-                    </ReactMarkdown>
+                      Correction
+                    </Badge>
+                    <div className="text-gray-700">
+                      <ReactMarkdown
+                        components={{
+                          strong: ({ children }) => (
+                            <strong className="text-red-600 bg-red-100 px-1 rounded font-bold">
+                              {children}
+                            </strong>
+                          ),
+                          em: ({ children }) => (
+                            <strong className="text-green-600 bg-green-100 px-1 rounded font-bold">
+                              {children}
+                            </strong>
+                          ),
+                          ul: ({ children }) => (
+                            <ul className="list-disc list-inside ml-4">
+                              {children}
+                            </ul>
+                          ),
+                          ol: ({ children }) => (
+                            <ol className="list-decimal list-inside ml-4">
+                              {children}
+                            </ol>
+                          ),
+                        }}
+                      >
+                        {faute.correction}
+                      </ReactMarkdown>
+                    </div>
                   </div>
-                </div>
-                <div className="mb-2">
-                  <Badge className="font-semibold mt-4 mb-2">Explication</Badge>
-                  <div className="text-gray-700">
-                    <ReactMarkdown
-                      components={{
-                        strong: ({ children }) => (
-                          <strong className="text-red-600 bg-red-100 px-1 rounded font-bold">
-                            {children}
-                          </strong>
-                        ),
-                        em: ({ children }) => (
-                          <strong className="text-green-600 bg-green-100 px-1 rounded font-bold">
-                            {children}
-                          </strong>
-                        ),
-                        ul: ({ children }) => (
-                          <ul className="list-disc list-outside ml-4">
-                            {children}
-                          </ul>
-                        ),
-                        ol: ({ children }) => (
-                          <ol className="list-decimal list-outside ml-4">
-                            {children}
-                          </ol>
-                        ),
-                        li: ({ children }) => (
-                          <li className="py-1">{children}</li>
-                        ),
-                      }}
-                    >
-                      {faute.explication}
-                    </ReactMarkdown>
+                  <div className="mb-2">
+                    <Badge className="font-semibold mt-4 mb-2 font-bolder">
+                      Explication
+                    </Badge>
+                    <div className="text-gray-700">
+                      <ReactMarkdown
+                        components={{
+                          strong: ({ children }) => (
+                            <strong className="text-red-600 bg-red-100 px-1 rounded font-bold">
+                              {children}
+                            </strong>
+                          ),
+                          em: ({ children }) => (
+                            <strong className="text-green-600 bg-green-100 px-1 rounded font-bold">
+                              {children}
+                            </strong>
+                          ),
+                          ul: ({ children }) => (
+                            <ul className="list-disc list-outside ml-4">
+                              {children}
+                            </ul>
+                          ),
+                          ol: ({ children }) => (
+                            <ol className="list-decimal list-outside ml-4">
+                              {children}
+                            </ol>
+                          ),
+                          li: ({ children }) => (
+                            <li className="py-1">{children}</li>
+                          ),
+                        }}
+                      >
+                        {faute.explication}
+                      </ReactMarkdown>
+                    </div>
                   </div>
-                </div>
-                <div>
-                  <Badge className="font-semibold mt-4 mb-2">Règle</Badge>
-                  <div className="text-gray-700">
-                    <ReactMarkdown
-                      components={{
-                        ul: ({ children }) => (
-                          <ul className="list-disc list-outside ml-4">
-                            {children}
-                          </ul>
-                        ),
-                        ol: ({ children }) => (
-                          <ol className="list-decimal list-outside ml-4">
-                            {children}
-                          </ol>
-                        ),
-                        li: ({ children }) => (
-                          <li className="py-1">{children}</li>
-                        ),
-                      }}
-                    >
-                      {faute.regle}
-                    </ReactMarkdown>
+                  <div>
+                    <Badge className="font-semibold mt-4 mb-2 font-bolder!">
+                      Règle
+                    </Badge>
+                    <div className="text-gray-700">
+                      <ReactMarkdown
+                        components={{
+                          ul: ({ children }) => (
+                            <ul className="list-disc list-outside ml-4">
+                              {children}
+                            </ul>
+                          ),
+                          ol: ({ children }) => (
+                            <ol className="list-decimal list-outside ml-4">
+                              {children}
+                            </ol>
+                          ),
+                          li: ({ children }) => (
+                            <li className="py-1">{children}</li>
+                          ),
+                        }}
+                      >
+                        {faute.regle}
+                      </ReactMarkdown>
+                    </div>
                   </div>
                 </div>
               </div>

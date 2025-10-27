@@ -35,7 +35,7 @@ export default function DicteeEditor(props: {
       {pictureFile ? (
         <div className="grid grid-cols-4 gap-6">
           <div className="col-span-1 flex">
-            <div className="relative w-full h-full min-h-[200px]">
+            <div className="relative w-full h-full min-h-[100px] md:min-h-[200px]">
               <Image
                 src={getImageUrl(pictureFile) || ""}
                 alt={`Dictée - ${topicName}`}
@@ -45,7 +45,7 @@ export default function DicteeEditor(props: {
             </div>
           </div>
           <div className="col-span-3 flex">
-            <div className="w-full h-full min-h-[200px]">
+            <div className="w-full h-full min-h-[100px] md:min-h-[200px]">
               <textarea
                 value={dictationText}
                 onChange={(e) => setDictationText(e.target.value)}
@@ -55,10 +55,9 @@ export default function DicteeEditor(props: {
                 autoComplete="off"
                 spellCheck="false"
                 autoCapitalize="off"
-                className={`w-full h-full min-h-[200px] p-4 border border-gray-300 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                className={`w-full h-full min-h-[100px] md:min-h-[200px] p-4 border border-gray-300 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
                   disabled ? "bg-gray-100 cursor-not-allowed text-gray-700" : ""
                 }`}
-                style={{ minHeight: "200px", height: "200px" }}
               />
             </div>
           </div>
@@ -74,10 +73,9 @@ export default function DicteeEditor(props: {
             autoComplete="off"
             spellCheck="false"
             autoCapitalize="off"
-            className={`w-full min-h-[200px] p-4 border border-gray-300 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+            className={`w-full min-h-[100px] md:min-h-[200px] p-4 border border-gray-300 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
               disabled ? "bg-gray-100 cursor-not-allowed text-gray-700" : ""
             }`}
-            style={{ minHeight: "200px", height: "200px" }}
           />
         </div>
       )}

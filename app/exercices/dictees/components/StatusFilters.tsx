@@ -44,7 +44,7 @@ export default function StatusFilters({
   return (
     <>
       <div
-        className={`group relative inline-flex items-center gap-2 px-3 py-1.5 rounded-lg transition-all duration-200 cursor-pointer h-10 border ${
+        className={`group relative inline-flex items-center gap-2 px-2 md:px-3 py-1.5 rounded-lg transition-all duration-200 cursor-pointer h-10 border ${
           showAttemptedOnly
             ? "border-green-400 text-green-400 hover:border-green-500 hover:text-green-500"
             : "border bg-white hover:bg-gray-50"
@@ -52,7 +52,7 @@ export default function StatusFilters({
         onClick={() => setShowAttemptedOnly(!showAttemptedOnly)}
       >
         <ThumbsUp className="w-4 h-4" />
-        <span className="text-xs font-medium">Dictée déjà faite</span>
+        <span className="text-xs font-medium">Déjà fait</span>
         <span
           className={`text-[10px] font-bold h-6 w-6 rounded-full text-center flex items-center justify-center ${
             showAttemptedOnly
@@ -71,7 +71,7 @@ export default function StatusFilters({
       </div>
 
       <div
-        className={`group relative inline-flex items-center gap-2 px-3 py-1.5 rounded-lg transition-all duration-200 cursor-pointer h-10 border ${
+        className={`group relative inline-flex items-center gap-2 px-2 md:px-3 py-1.5 rounded-lg transition-all duration-200 cursor-pointer h-10 border ${
           showNotAttemptedOnly
             ? "border-red-400 text-red-400 hover:border-red-500 hover:text-red-500"
             : "border bg-white hover:bg-gray-50"
@@ -79,7 +79,7 @@ export default function StatusFilters({
         onClick={() => setShowNotAttemptedOnly(!showNotAttemptedOnly)}
       >
         <ThumbsDown className="w-4 h-4" />
-        <span className="text-xs font-medium">Dictée jamais faite</span>
+        <span className="text-xs font-medium">Jamais fait</span>
         <span
           className={`text-[10px] font-bold h-6 w-6 rounded-full text-center flex items-center justify-center ${
             showNotAttemptedOnly

@@ -124,7 +124,7 @@ export default function Filters({
           onClick={() => setShowAttemptedOnly(!showAttemptedOnly)}
         >
           <ThumbsUp className="w-4 h-4" />
-          <span className="text-xs font-medium">Dictée déjà faite</span>
+          <span className="text-xs font-medium">Déjà fait</span>
           <span
             className={`text-[10px] font-bold h-6 w-6 rounded-full text-center flex items-center justify-center ${
               showAttemptedOnly
@@ -151,7 +151,7 @@ export default function Filters({
           onClick={() => setShowNotAttemptedOnly(!showNotAttemptedOnly)}
         >
           <ThumbsDown className="w-4 h-4" />
-          <span className="text-xs font-medium">Dictée jamais faite</span>
+          <span className="text-xs font-medium">Jamais fait</span>
           <span
             className={`text-[10px] font-bold h-6 w-6 rounded-full text-center flex items-center justify-center ${
               showNotAttemptedOnly

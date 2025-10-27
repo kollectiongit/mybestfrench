@@ -327,14 +327,14 @@ export default function DicteeClient({ dictationId }: { dictationId: number }) {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-4xl">
+    <div className="container mx-auto px-2 md:px-4 py-8 max-w-4xl">
       <DicteeHeader dictation={dictation} />
       <DicteeSentencesAudio
         dictationSentences={dictation.dictation_sentences}
       />
 
       {/* Shortcut Buttons */}
-      <div className="flex flex-wrap gap-2 mb-6 bg-green-50 rounded-lg p-3">
+      <div className="hidden md:flex flex-wrap gap-2 mb-6 bg-green-50 rounded-lg p-3">
         <Button variant="outline">
           Précédente phrase
           <kbd className="-me-1 ms-3 inline-flex h-5 max-h-full items-center rounded border border-border bg-background px-1 font-[inherit] text-[0.625rem] font-medium text-muted-foreground/70">
