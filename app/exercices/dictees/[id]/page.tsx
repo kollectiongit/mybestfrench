@@ -10,6 +10,10 @@ export const metadata: Metadata = {
   description: "Prêt pour la dictée ?",
 };
 
+// Disable page caching and force dynamic rendering
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 export default async function Page({ params }: PageProps) {
   const { id } = await params;
   const dictationId = Number(id);

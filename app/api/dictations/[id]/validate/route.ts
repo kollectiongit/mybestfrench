@@ -449,6 +449,8 @@ Ton rôle est d'aider ton élève à progresser en orthographe, grammaire et con
                 
                 // Invalidate cache for this dictation and profile
                 try {
+                  // Match tags used in GET /api/dictations/[id] and list endpoint
+                  revalidateTag('dictation');
                   revalidateTag('dictations');
                   revalidateTag(`dictation-${dictationId}`);
                   if (currentProfileId) {

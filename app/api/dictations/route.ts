@@ -1,11 +1,12 @@
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { getCurrentProfileFromCookie } from "@/lib/profile-cookies";
+// no next/cache unstable_cache here: we want fresh data on each request
 import { NextRequest, NextResponse } from "next/server";
 
-// Route-level caching
-export const revalidate = 3600; // Cache for 1 hour
-export const dynamic = 'force-dynamic'; // Force dynamic rendering due to request.headers usage
+// No route-level caching
+export const revalidate = 0;
+export const dynamic = 'force-dynamic';
 
 // GET /api/dictations - Fetch dictations filtered by current profile levels
 export async function GET(request: NextRequest) {
@@ -19,8 +20,10 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    // Get current profile ID from cookie
-    const currentProfileId = await getCurrentProfileFromCookie(request);
+    // Resolve current profile: prefer middleware-propagated header, fallback to signed cookie
+    const headerProfileId = request.headers.get('x-current-profile-id');
+    const cookieProfileId = await getCurrentProfileFromCookie(request);
+    const currentProfileId = headerProfileId || cookieProfileId;
     
     if (!currentProfileId) {
       return NextResponse.json({ error: "No profile selected" }, { status: 400 });
@@ -54,7 +57,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Fetch dictations that have at least one level in common with the profile
-    const dictations = await prisma.dictation.findMany({
+    const fetchDictations = async () => prisma.dictation.findMany({
       where: {
         dictations_levels: {
           some: {
@@ -139,6 +142,9 @@ export async function GET(request: NextRequest) {
         },
       ],
     });
+
+    // Always fetch fresh data
+    const dictations = await fetchDictations();
 
     // Transform the data to include counts and latest attempt timestamp
     const dictationsWithStats = dictations.map(dictation => {
@@ -225,7 +231,8 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(sortedDictations, {
       headers: {
-        'Cache-Control': 'public, s-maxage=3600, stale-while-revalidate=300',
+        // Per-user/profile data; avoid public shared caching
+        'Cache-Control': 'private, no-store',
       },
     });
   } catch (error) {

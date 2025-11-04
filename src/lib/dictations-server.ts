@@ -1,4 +1,4 @@
-import { unstable_cache } from "next/cache";
+// No caching here: always fetch fresh data for SSR page
 import { prisma } from "./prisma";
 
 // Interface pour les données pré-chargées
@@ -236,14 +236,5 @@ async function fetchDictationsFromDB(profileId: string, profileLevelIds: number[
  * Récupère les dictées côté serveur pour un profil donné (with caching)
  */
 export async function getDictationsForProfile(profileId: string, profileLevelIds: number[]): Promise<DictationData[]> {
-  const cacheKey = `dictations-${profileId}-${profileLevelIds.sort().join('-')}`;
-  
-  return unstable_cache(
-    fetchDictationsFromDB,
-    [cacheKey],
-    {
-      tags: ['dictations', `profile-${profileId}`],
-      revalidate: 3600, // Cache for 1 hour
-    }
-  )(profileId, profileLevelIds);
+  return fetchDictationsFromDB(profileId, profileLevelIds);
 }

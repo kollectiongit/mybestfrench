@@ -1,7 +1,7 @@
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { getCurrentProfileFromCookie } from "@/lib/profile-cookies";
-import { unstable_cache } from "next/cache";
+// no next/cache unstable_cache here: we want fresh data on each request
 import { NextRequest, NextResponse } from "next/server";
 
 // Force dynamic rendering due to request.headers usage
@@ -35,15 +35,12 @@ export async function GET(
       );
     }
 
-    // Get current profile from cookie
-    const currentProfileId = await getCurrentProfileFromCookie(request);
+    // Resolve current profile: prefer middleware-propagated header, fallback to signed cookie
+    const headerProfileId = request.headers.get('x-current-profile-id');
+    const cookieProfileId = await getCurrentProfileFromCookie(request);
+    const currentProfileId = headerProfileId || cookieProfileId;
 
-    // Create cache key
-    const cacheKey = `dictation-${dictationId}-${currentProfileId || 'no-profile'}`;
-
-    const dictation = await unstable_cache(
-      async () => {
-        return await prisma.dictation.findUnique({
+    const dictation = await prisma.dictation.findUnique({
       where: {
         id: dictationId,
       },
@@ -119,13 +116,6 @@ export async function GET(
         },
       },
     });
-      },
-      [cacheKey],
-      {
-        tags: ['dictation', `dictation-${dictationId}`, currentProfileId ? `profile-${currentProfileId}` : 'no-profile'],
-        revalidate: 300, // Cache for 5 minutes (shorter because attempts change frequently)
-      }
-    )();
 
     if (!dictation) {
       return NextResponse.json(
@@ -157,7 +147,8 @@ export async function GET(
       exercices_attempts_max_errors: maxErrors,
     }, {
       headers: {
-        'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=600',
+        // Per-user data: avoid public caching to prevent cross-user/profile leakage
+        'Cache-Control': 'private, no-store',
       },
     });
   } catch (error) {
