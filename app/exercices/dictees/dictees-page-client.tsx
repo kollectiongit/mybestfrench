@@ -3,7 +3,11 @@
 import { useCurrentProfile } from "@/hooks/use-current-profile";
 import { CurrentProfile } from "@/lib/current-profile";
 import { Trash2 } from "lucide-react";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  addFavoriteDictation,
+  removeFavoriteDictation,
+} from "./actions";
 import CategoryFilters from "./components/CategoryFilters";
 import DictationCard from "./components/DictationCard";
 import Header from "./components/Header";
@@ -16,6 +20,7 @@ interface Topic {
   id: number;
   name: string;
   category: {
+    id: number;
     name: string;
   };
 }
@@ -27,11 +32,13 @@ interface Dictation {
   topic: Topic;
   levels: string[];
   audio_files: string[];
+  dictation_sentences?: string[];
   sentences_count: number;
   attempts_count: number;
   latest_attempt_at: string | null;
   errors_range: string | null;
   highest_success_percentage: number | null;
+  is_favorite: boolean;
 }
 
 // Props pour les données pré-chargées
@@ -56,12 +63,50 @@ export default function DicteesPageClient({
     number | null
   >(null);
   const [isLoading, setIsLoading] = useState(false); // Plus de loading initial
+  const [pendingFavoriteIds, setPendingFavoriteIds] = useState<Set<number>>(
+    () => new Set()
+  );
+  const [animatedFavoriteId, setAnimatedFavoriteId] = useState<number | null>(
+    null
+  );
+  const favoriteAnimationTimeout = useRef<ReturnType<typeof setTimeout> | null>(
+    null
+  );
+  const previousDictationsRef = useRef<Dictation[] | null>(null);
+  // Utiliser le profil initial si disponible, sinon le profil du context
+  const currentProfile = initialProfile || profile;
+
+  const sortDictations = useCallback(
+    (items: Dictation[]): Dictation[] => {
+      return [...items].sort((a, b) => {
+        if (a.is_favorite !== b.is_favorite) {
+          return a.is_favorite ? -1 : 1;
+        }
+        if (a.latest_attempt_at && b.latest_attempt_at) {
+          const dateA = new Date(a.latest_attempt_at).getTime();
+          const dateB = new Date(b.latest_attempt_at).getTime();
+          return dateB - dateA;
+        }
+        if (a.latest_attempt_at && !b.latest_attempt_at) return -1;
+        if (!a.latest_attempt_at && b.latest_attempt_at) return 1;
+        if (a.topic.category.id !== b.topic.category.id) {
+          return a.topic.category.id - b.topic.category.id;
+        }
+        if (a.topic.id !== b.topic.id) {
+          return a.topic.id - b.topic.id;
+        }
+        return a.title.localeCompare(b.title);
+      });
+    },
+    []
+  );
 
   // Mettre à jour les dictées quand les données initiales changent
   useEffect(() => {
-    setDictations(initialDictations);
-    setFilteredDictations(initialDictations);
-  }, [initialDictations]);
+    const sorted = sortDictations(initialDictations);
+    setDictations(sorted);
+    setFilteredDictations(sorted);
+  }, [initialDictations, sortDictations]);
 
   // Fonction pour recharger les dictées (si nécessaire)
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -71,76 +116,182 @@ export default function DicteesPageClient({
       const response = await fetch("/api/dictations");
       if (response.ok) {
         const data = await response.json();
-        setDictations(data);
-        setFilteredDictations(data);
+        const sorted = sortDictations(data);
+        setDictations(sorted);
+        setFilteredDictations(sorted);
       }
     } catch (error) {
       console.error("Error refreshing dictations:", error);
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [sortDictations]);
 
   // Helper function to get filtered dictations without sentence count filter
   // This is used to calculate the counts in the sentence count filter
-  const getFilteredWithoutSentenceCount = useCallback(() => {
-    let filtered = dictations;
-    if (searchTerm.trim()) {
-      filtered = filtered.filter(
-        (dictation) =>
-          dictation.topic.name
-            .toLowerCase()
-            .includes(searchTerm.toLowerCase()) ||
-          dictation.topic.category.name
-            .toLowerCase()
-            .includes(searchTerm.toLowerCase()) ||
-          dictation.levels.some((level) =>
-            level.toLowerCase().includes(searchTerm.toLowerCase())
-          )
-      );
-    }
-    if (selectedTopics.length > 0) {
-      filtered = filtered.filter((dictation) =>
-        selectedTopics.includes(dictation.topic.id)
-      );
-    }
-    if (showAttemptedOnly) {
-      filtered = filtered.filter((dictation) => dictation.attempts_count > 0);
-    }
-    if (showNotAttemptedOnly) {
-      filtered = filtered.filter((dictation) => dictation.attempts_count === 0);
-    }
-    return filtered;
-  }, [
-    dictations,
-    searchTerm,
-    selectedTopics,
-    showAttemptedOnly,
-    showNotAttemptedOnly,
-  ]);
+  const getFilteredWithoutSentenceCount = useCallback(
+    (source?: Dictation[]) => {
+      let filtered = source ?? dictations;
+      const normalizedSearchTerm = searchTerm.trim().toLowerCase();
 
-  const filterDictations = useCallback(() => {
-    let filtered = getFilteredWithoutSentenceCount();
+      if (normalizedSearchTerm) {
+        filtered = filtered.filter((dictation) => {
+          const matchesTitle = dictation.title
+            .toLowerCase()
+            .includes(normalizedSearchTerm);
+          const matchesTopic = dictation.topic.name
+            .toLowerCase()
+            .includes(normalizedSearchTerm);
+          const matchesCategory = dictation.topic.category.name
+            .toLowerCase()
+            .includes(normalizedSearchTerm);
+          const matchesLevel = dictation.levels.some((level) =>
+            level.toLowerCase().includes(normalizedSearchTerm)
+          );
+          const matchesSentence = dictation.dictation_sentences?.some(
+            (sentence) => sentence.toLowerCase().includes(normalizedSearchTerm)
+          );
 
-    // Apply sentence count filter if selected
-    if (selectedSentenceCount !== null) {
-      if (selectedSentenceCount === 6) {
-        // >5 sentences
-        filtered = filtered.filter(
-          (dictation) => dictation.sentences_count > 5
-        );
-      } else {
-        filtered = filtered.filter(
-          (dictation) => dictation.sentences_count === selectedSentenceCount
+          return (
+            matchesTitle ||
+            matchesTopic ||
+            matchesCategory ||
+            matchesLevel ||
+            matchesSentence
+          );
+        });
+      }
+      if (selectedTopics.length > 0) {
+        filtered = filtered.filter((dictation) =>
+          selectedTopics.includes(dictation.topic.id)
         );
       }
-    }
-    setFilteredDictations(filtered);
-  }, [getFilteredWithoutSentenceCount, selectedSentenceCount]);
+      if (showAttemptedOnly) {
+        filtered = filtered.filter((dictation) => dictation.attempts_count > 0);
+      }
+      if (showNotAttemptedOnly) {
+        filtered = filtered.filter(
+          (dictation) => dictation.attempts_count === 0
+        );
+      }
+      return filtered;
+    },
+    [
+      dictations,
+      searchTerm,
+      selectedTopics,
+      showAttemptedOnly,
+      showNotAttemptedOnly,
+    ]
+  );
+
+  const filterDictations = useCallback(
+    (source?: Dictation[]) => {
+      let filtered = getFilteredWithoutSentenceCount(source);
+
+      // Apply sentence count filter if selected
+      if (selectedSentenceCount !== null) {
+        if (selectedSentenceCount === 6) {
+          filtered = filtered.filter(
+            (dictation) => dictation.sentences_count > 5
+          );
+        } else {
+          filtered = filtered.filter(
+            (dictation) => dictation.sentences_count === selectedSentenceCount
+          );
+        }
+      }
+
+      return sortDictations(filtered);
+    },
+    [getFilteredWithoutSentenceCount, selectedSentenceCount, sortDictations]
+  );
 
   useEffect(() => {
-    filterDictations();
+    setFilteredDictations(filterDictations());
   }, [filterDictations]);
+
+  useEffect(
+    () => () => {
+      if (favoriteAnimationTimeout.current) {
+        clearTimeout(favoriteAnimationTimeout.current);
+      }
+    },
+    []
+  );
+
+  const handleToggleFavorite = useCallback(
+    async (dictationId: number, shouldFavorite: boolean) => {
+      if (!currentProfile) return;
+
+      previousDictationsRef.current = dictations;
+
+      const optimisticDictations = dictations.map((dictation) =>
+        dictation.id === dictationId
+          ? { ...dictation, is_favorite: shouldFavorite }
+          : dictation
+      );
+      const sortedOptimistic = sortDictations(optimisticDictations);
+
+      setDictations(sortedOptimistic);
+      setFilteredDictations(filterDictations(sortedOptimistic));
+
+      if (shouldFavorite) {
+        if (favoriteAnimationTimeout.current) {
+          clearTimeout(favoriteAnimationTimeout.current);
+        }
+        setAnimatedFavoriteId(dictationId);
+        favoriteAnimationTimeout.current = setTimeout(() => {
+          setAnimatedFavoriteId((current) =>
+            current === dictationId ? null : current
+          );
+          favoriteAnimationTimeout.current = null;
+        }, 800);
+      } else if (animatedFavoriteId === dictationId) {
+        setAnimatedFavoriteId(null);
+      }
+
+      setPendingFavoriteIds((prev) => {
+        const next = new Set(prev);
+        next.add(dictationId);
+        return next;
+      });
+
+      try {
+        if (shouldFavorite) {
+          await addFavoriteDictation(dictationId, currentProfile.id);
+        } else {
+          await removeFavoriteDictation(dictationId, currentProfile.id);
+        }
+      } catch (error) {
+        console.error("Error toggling favorite dictation:", error);
+        const rollback = previousDictationsRef.current ?? dictations;
+        const sortedRollback = sortDictations(rollback);
+        setDictations(sortedRollback);
+        setFilteredDictations(filterDictations(sortedRollback));
+        if (favoriteAnimationTimeout.current) {
+          clearTimeout(favoriteAnimationTimeout.current);
+          favoriteAnimationTimeout.current = null;
+        }
+        setAnimatedFavoriteId((current) =>
+          current === dictationId ? null : current
+        );
+      } finally {
+        setPendingFavoriteIds((prev) => {
+          const next = new Set(prev);
+          next.delete(dictationId);
+          return next;
+        });
+      }
+    },
+    [
+      animatedFavoriteId,
+      currentProfile,
+      dictations,
+      filterDictations,
+      sortDictations,
+    ]
+  );
 
   // Effect to make cards in the same row have equal height
   useEffect(() => {
@@ -209,9 +360,6 @@ export default function DicteesPageClient({
       window.removeEventListener("resize", handleResize);
     };
   }, [filteredDictations]);
-
-  // Utiliser le profil initial si disponible, sinon le profil du context
-  const currentProfile = initialProfile || profile;
 
   if (profileLoading) {
     return (
@@ -307,7 +455,13 @@ export default function DicteesPageClient({
       >
         {filteredDictations.map((dictation) => (
           <div key={dictation.id} className="dictation-card-wrapper">
-            <DictationCard dictation={dictation} />
+            <DictationCard
+              dictation={dictation}
+              onToggleFavorite={handleToggleFavorite}
+              isFavoritePending={pendingFavoriteIds.has(dictation.id)}
+              isFavoriteAnimating={animatedFavoriteId === dictation.id}
+              disabled={!currentProfile}
+            />
           </div>
         ))}
       </div>

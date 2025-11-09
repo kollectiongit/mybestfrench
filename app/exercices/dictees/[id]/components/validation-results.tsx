@@ -14,7 +14,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { DicteeAnalysis } from "@/lib/dictation-schema";
-import { useMemo } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import ReactMarkdown from "react-markdown";
 
 // Helper function to parse highlighted text and match errors to explanations
@@ -55,6 +55,37 @@ function ErrorWithTooltip({
   children: React.ReactNode;
   explanation?: string;
 }) {
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const scrollPositionRef = useRef(0);
+
+  const handleOpenChange = (open: boolean) => {
+    if (typeof window !== "undefined" && open) {
+      scrollPositionRef.current = window.scrollY;
+    }
+    setIsDrawerOpen(open);
+  };
+
+  useEffect(() => {
+    if (!isDrawerOpen || typeof window === "undefined") {
+      return;
+    }
+
+    const restoreScroll = () => {
+      window.scrollTo({
+        top: scrollPositionRef.current,
+        left: 0,
+      });
+    };
+
+    const rafId = window.requestAnimationFrame(restoreScroll);
+    const timeoutId = window.setTimeout(restoreScroll, 0);
+
+    return () => {
+      window.cancelAnimationFrame(rafId);
+      window.clearTimeout(timeoutId);
+    };
+  }, [isDrawerOpen]);
+
   if (!explanation) {
     return (
       <strong className="text-red-600 bg-red-100 px-1 rounded font-bold">
@@ -105,20 +136,23 @@ function ErrorWithTooltip({
       </Tooltip>
 
       {/* Mobile: Use Drawer */}
-      <Drawer>
+      <Drawer open={isDrawerOpen} onOpenChange={handleOpenChange}>
         <DrawerTrigger asChild className="md:hidden">
-          <strong className="text-red-600 bg-red-100 px-1 rounded font-bold cursor-pointer underline decoration-dotted active:bg-red-200">
-            {children}
-          </strong>
+          <button
+            type="button"
+            className="inline-flex items-center text-red-600 bg-red-100 px-1 rounded font-bold underline decoration-dotted cursor-pointer active:bg-red-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-400"
+          >
+            <span className="font-bold">{children}</span>
+          </button>
         </DrawerTrigger>
-        <DrawerContent>
+        <DrawerContent className="pb-12">
           <DrawerHeader>
-            <DrawerTitle className="text-left">
+            <DrawerTitle className="text-left text-xl text-gray-800">
               Correction : {getTitle(explanation)}
             </DrawerTitle>
           </DrawerHeader>
           <div className="px-4 pb-4">
-            <div className="text-sm">
+            <div className="text-sm text-gray-500">
               <ReactMarkdown
                 components={{
                   strong: ({ children }) => (

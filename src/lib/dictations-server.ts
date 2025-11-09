@@ -16,11 +16,13 @@ export interface DictationData {
   };
   levels: string[];
   audio_files: string[];
+  dictation_sentences: string[];
   sentences_count: number;
   attempts_count: number;
   latest_attempt_at: string | null;
   errors_range: string | null;
   highest_success_percentage: number | null;
+  is_favorite: boolean;
 }
 
 // Types Prisma pour éviter les 'any'
@@ -43,11 +45,15 @@ interface PrismaDictationData {
   }>;
   dictation_sentences: Array<{
     audio_file: string | null;
+    text: string;
   }>;
   exercices_attempts: Array<{
     created_at: Date | null;
     correction_total_errors: number | null;
     correction_success_percentage: number | null;
+  }>;
+  favorite_profiles: Array<{
+    id: number;
   }>;
   _count: {
     dictation_sentences: number;
@@ -78,6 +84,14 @@ async function fetchDictationsFromDB(profileId: string, profileLevelIds: number[
       id: true,
       title: true,
       count_words: true,
+      favorite_profiles: {
+        where: {
+          profile_id: profileId,
+        },
+        select: {
+          id: true,
+        },
+      },
       topic: {
         select: {
           id: true,
@@ -102,6 +116,7 @@ async function fetchDictationsFromDB(profileId: string, profileLevelIds: number[
       dictation_sentences: {
         select: {
           audio_file: true,
+          text: true,
         },
       },
       exercices_attempts: {
@@ -182,6 +197,11 @@ async function fetchDictationsFromDB(profileId: string, profileLevelIds: number[
       ? Math.max(...successPercentages) 
       : null;
 
+    const isFavorite = dictation.favorite_profiles.length > 0;
+    const sentenceTexts = dictation.dictation_sentences
+      .map((ds) => ds.text)
+      .filter((text): text is string => typeof text === "string" && text.length > 0);
+
     return {
       id: dictation.id,
       title: dictation.title,
@@ -196,16 +216,21 @@ async function fetchDictationsFromDB(profileId: string, profileLevelIds: number[
       },
       levels: dictation.dictations_levels.map((dl) => dl.levels.code),
       audio_files: dictation.dictation_sentences.map((ds) => ds.audio_file).filter((file): file is string => file !== null),
+      dictation_sentences: sentenceTexts,
       sentences_count: sentencesCount,
       attempts_count: attemptsCount,
       latest_attempt_at: latestAttempt ? new Date(latestAttempt).toISOString() : null,
       errors_range: errorsRange,
       highest_success_percentage: highestSuccessPercentage,
+      is_favorite: isFavorite,
     };
   });
 
   // Sort by latest attempt date (descending) then by category/topic/title
   return dictations.sort((a, b) => {
+    if (a.is_favorite !== b.is_favorite) {
+      return a.is_favorite ? -1 : 1;
+    }
     // Primary sort: by latest attempt date (descending)
     if (a.latest_attempt_at && b.latest_attempt_at) {
       const dateA = new Date(a.latest_attempt_at).getTime();

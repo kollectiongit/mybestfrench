@@ -49,6 +49,16 @@ export async function GET(
         title: true,
         picture_file: true,
         count_words: true,
+        favorite_profiles: currentProfileId
+          ? {
+              where: {
+                profile_id: currentProfileId,
+              },
+              select: {
+                id: true,
+              },
+            }
+          : undefined,
         topic: {
           select: {
             id: true,
@@ -137,14 +147,18 @@ export async function GET(
     const minErrors = correctionErrors.length > 0 ? Math.min(...correctionErrors) : null;
     const maxErrors = correctionErrors.length > 0 ? Math.max(...correctionErrors) : null;
 
+    const { favorite_profiles, ...dictationData } = dictation;
+    const isFavorite = Array.isArray(favorite_profiles) && favorite_profiles.length > 0;
+
     return NextResponse.json({
-      ...dictation,
+      ...dictationData,
       exercicesAttempts,
       sentences_count: dictation._count.dictation_sentences,
       attempts_count: attemptsCount,
       latest_attempt_at: latestAttemptAt,
       exercices_attempts_min_errors: minErrors,
       exercices_attempts_max_errors: maxErrors,
+      is_favorite: isFavorite,
     }, {
       headers: {
         // Per-user data: avoid public caching to prevent cross-user/profile leakage

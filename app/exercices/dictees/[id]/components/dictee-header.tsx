@@ -2,7 +2,7 @@
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { ArrowLeftIcon } from "lucide-react";
+import { ArrowLeftIcon, Heart } from "lucide-react";
 import Link from "next/link";
 import { RulesDialog } from "./rules-dialog";
 
@@ -32,10 +32,21 @@ interface DictationHeaderProps {
     latest_attempt_at: Date | null;
     exercices_attempts_min_errors: number | null;
     exercices_attempts_max_errors: number | null;
+    is_favorite: boolean;
   };
+  onToggleFavorite?: () => void;
+  isFavoritePending?: boolean;
+  isFavoriteAnimating?: boolean;
+  favoriteDisabled?: boolean;
 }
 
-export default function DicteeHeader({ dictation }: DictationHeaderProps) {
+export default function DicteeHeader({
+  dictation,
+  onToggleFavorite,
+  isFavoritePending = false,
+  isFavoriteAnimating = false,
+  favoriteDisabled = false,
+}: DictationHeaderProps) {
   // Format latest attempt date
   const formatDate = (date: Date | null) => {
     if (!date) return null;
@@ -72,19 +83,56 @@ export default function DicteeHeader({ dictation }: DictationHeaderProps) {
     return `${exercices_attempts_min_errors} - ${exercices_attempts_max_errors} ${errorText}`;
   };
 
+  const handleFavoriteClick = () => {
+    if (favoriteDisabled || isFavoritePending) return;
+    onToggleFavorite?.();
+  };
+
+  const FavoriteButton = (
+    <button
+      type="button"
+      aria-label={
+        dictation.is_favorite
+          ? "Retirer la dictée des favoris"
+          : "Ajouter la dictée aux favoris"
+      }
+      aria-pressed={dictation.is_favorite}
+      onClick={handleFavoriteClick}
+      disabled={favoriteDisabled || isFavoritePending}
+      className={`inline-flex h-10 w-10 items-center justify-center rounded-full border border-transparent bg-white/90 shadow-sm transition-all duration-200 hover:scale-110 focus-visible:scale-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-red-400 ${
+        favoriteDisabled || isFavoritePending
+          ? "opacity-60 cursor-not-allowed"
+          : ""
+      }`}
+    >
+      <Heart
+        className={`h-5 w-5 transition-transform duration-200 ${
+          dictation.is_favorite ? "text-red-500" : "text-gray-400"
+        } ${isFavoriteAnimating ? "scale-110" : ""} ${
+          isFavoritePending ? "animate-pulse" : ""
+        }`}
+        strokeWidth={1.75}
+        fill={dictation.is_favorite ? "currentColor" : "transparent"}
+      />
+    </button>
+  );
+
   return (
     <div className="mb-8">
       {/* Mobile: buttons in same row with space-between */}
-      <div className="flex justify-between items-center mb-6 md:hidden">
-        <Button asChild variant="ghost">
+      <div className="flex justify-between items-center mb-6 md:hidden gap-3">
+        <Button asChild variant="ghost" className="flex-1 justify-start">
           <Link href="/exercices/dictees" className="inline-flex items-center">
             <ArrowLeftIcon className="h-4 w-4 mr-2" />
             Retour aux dictées
           </Link>
         </Button>
-        <RulesDialog
-          rulesExplanationMessage={dictation.topic.rules_explanation_message}
-        />
+        <div className="flex items-center gap-2">
+          <RulesDialog
+            rulesExplanationMessage={dictation.topic.rules_explanation_message}
+          />
+          {FavoriteButton}
+        </div>
       </div>
 
       {/* Desktop: back button alone, then title with rules */}
@@ -96,12 +144,13 @@ export default function DicteeHeader({ dictation }: DictationHeaderProps) {
           </Link>
         </Button>
       </div>
-      <div className="flex justify-between items-center mb-4">
+      <div className="flex justify-between items-center mb-4 gap-3">
         <h1 className="text-3xl font-bold text-gray-900">{dictation.title}</h1>
-        <div className="hidden md:block">
+        <div className="hidden md:flex items-center gap-2">
           <RulesDialog
             rulesExplanationMessage={dictation.topic.rules_explanation_message}
           />
+          {FavoriteButton}
         </div>
       </div>
       <div className="flex flex-wrap items-center gap-2 mb-2">

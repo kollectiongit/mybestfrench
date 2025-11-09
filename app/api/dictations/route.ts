@@ -71,6 +71,14 @@ export async function GET(request: NextRequest) {
         id: true,
         title: true,
         count_words: true,
+        favorite_profiles: {
+          where: {
+            profile_id: currentProfileId,
+          },
+          select: {
+            id: true,
+          },
+        },
         topic: {
           select: {
             id: true,
@@ -95,6 +103,7 @@ export async function GET(request: NextRequest) {
         dictation_sentences: {
           select: {
             audio_file: true,
+            text: true,
           },
         },
         exercices_attempts: {
@@ -180,6 +189,11 @@ export async function GET(request: NextRequest) {
         ? Math.max(...successPercentages) 
         : null;
 
+      const isFavorite = dictation.favorite_profiles.length > 0;
+      const sentenceTexts = dictation.dictation_sentences
+        .map(ds => ds.text)
+        .filter((text): text is string => typeof text === "string" && text.length > 0);
+
       return {
         id: dictation.id,
         title: dictation.title,
@@ -194,16 +208,21 @@ export async function GET(request: NextRequest) {
         },
         levels: dictation.dictations_levels.map(dl => dl.levels.code),
         audio_files: dictation.dictation_sentences.map(ds => ds.audio_file).filter(Boolean),
+        dictation_sentences: sentenceTexts,
         sentences_count: sentencesCount,
         attempts_count: attemptsCount,
         latest_attempt_at: latestAttempt ? new Date(latestAttempt).toISOString() : null,
         errors_range: errorsRange,
         highest_success_percentage: highestSuccessPercentage,
+        is_favorite: isFavorite,
       };
     });
 
     // Sort by latest attempt date (descending) then by category/topic/title
     const sortedDictations = dictationsWithStats.sort((a, b) => {
+      if (a.is_favorite !== b.is_favorite) {
+        return a.is_favorite ? -1 : 1;
+      }
       // Primary sort: by latest attempt date (descending)
       if (a.latest_attempt_at && b.latest_attempt_at) {
         const dateA = new Date(a.latest_attempt_at).getTime();

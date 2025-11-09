@@ -8,6 +8,8 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import Link from "next/link";
+import { Heart } from "lucide-react";
+import { MouseEvent } from "react";
 
 interface Topic {
   id: number;
@@ -29,9 +31,24 @@ export interface Dictation {
   latest_attempt_at: string | null;
   errors_range: string | null;
   highest_success_percentage: number | null;
+  is_favorite: boolean;
 }
 
-export default function DictationCard({ dictation }: { dictation: Dictation }) {
+interface DictationCardProps {
+  dictation: Dictation;
+  onToggleFavorite: (dictationId: number, shouldFavorite: boolean) => void;
+  isFavoritePending?: boolean;
+  isFavoriteAnimating?: boolean;
+  disabled?: boolean;
+}
+
+export default function DictationCard({
+  dictation,
+  onToggleFavorite,
+  isFavoritePending = false,
+  isFavoriteAnimating = false,
+  disabled = false,
+}: DictationCardProps) {
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     return date.toLocaleDateString("fr-FR", {
@@ -52,13 +69,45 @@ export default function DictationCard({ dictation }: { dictation: Dictation }) {
     return "";
   };
 
+  const handleFavoriteClick = (event: MouseEvent<HTMLButtonElement>) => {
+    event.preventDefault();
+    event.stopPropagation();
+    if (disabled || isFavoritePending) return;
+    onToggleFavorite(dictation.id, !dictation.is_favorite);
+  };
+
   return (
     <Link href={`/exercices/dictees/${dictation.id}`} rel="noopener noreferrer">
       <Card
-        className={`overflow-hidden hover:shadow-lg transition-all duration-200 cursor-pointer pt-0 pb-2 gap-0 flex flex-col hover:scale-[1.02] ${
+        className={`relative overflow-hidden hover:shadow-lg transition-all duration-200 cursor-pointer pt-0 pb-2 gap-0 flex flex-col hover:scale-[1.02] ${
           dictation.attempts_count > 0 ? "border-green-200 bg-green-50/30" : ""
         }`}
       >
+        <button
+          type="button"
+          aria-label={
+            dictation.is_favorite
+              ? "Retirer la dictée des favoris"
+              : "Ajouter la dictée aux favoris"
+          }
+          onClick={handleFavoriteClick}
+          disabled={disabled || isFavoritePending}
+          className={`absolute right-2 top-2 z-10 inline-flex h-9 w-9 items-center justify-center rounded-full border border-transparent bg-white/80 shadow-sm transition-all duration-200 hover:scale-110 focus-visible:scale-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-red-400 ${
+            disabled || isFavoritePending ? "opacity-60 cursor-not-allowed" : ""
+          }`}
+        >
+          <Heart
+            className={`h-5 w-5 transition-transform duration-200 ${
+              dictation.is_favorite
+                ? "text-red-500"
+                : "text-gray-400 hover:text-red-400"
+            } ${isFavoriteAnimating ? "scale-110" : ""} ${
+              isFavoritePending ? "animate-pulse" : ""
+            }`}
+            strokeWidth={1.75}
+            fill={dictation.is_favorite ? "currentColor" : "transparent"}
+          />
+        </button>
         <CardContent className="p-4 flex flex-col justify-between flex-1">
           <div className="mb-2">
             <CardTitle className="text-md line-clamp-2 ">

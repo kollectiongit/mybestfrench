@@ -7,7 +7,11 @@ import { DicteeAnalysis } from "@/lib/dictation-schema";
 import { ArrowLeftIcon, Pause, Repeat } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  addFavoriteDictation,
+  removeFavoriteDictation,
+} from "../actions";
 
 import AttemptsTimeline from "./components/attempts-timeline";
 import DicteeEditor from "./components/dictee-editor";
@@ -71,6 +75,7 @@ interface Dictation {
   latest_attempt_at: Date | null;
   exercices_attempts_min_errors: number | null;
   exercices_attempts_max_errors: number | null;
+  is_favorite: boolean;
 }
 
 export default function DicteeClient({ dictationId }: { dictationId: number }) {
@@ -88,6 +93,11 @@ export default function DicteeClient({ dictationId }: { dictationId: number }) {
   const [streamingAnalysis, setStreamingAnalysis] =
     useState<Partial<DicteeAnalysis> | null>(null);
   const [streamingError, setStreamingError] = useState<string | null>(null);
+  const [isFavoritePending, setIsFavoritePending] = useState(false);
+  const [isFavoriteAnimating, setIsFavoriteAnimating] = useState(false);
+  const favoriteAnimationTimeout = useRef<ReturnType<typeof setTimeout> | null>(
+    null
+  );
 
   const { value: dictationText, setValue: setDictationText } = useAutosave("", {
     key: dictationId ? `dictation-${dictationId}` : "",
@@ -163,6 +173,59 @@ export default function DicteeClient({ dictationId }: { dictationId: number }) {
       document.title = "Dictée | My Best French";
     }
   }, [dictation?.topic?.name]);
+
+  useEffect(
+    () => () => {
+      if (favoriteAnimationTimeout.current) {
+        clearTimeout(favoriteAnimationTimeout.current);
+      }
+    },
+    []
+  );
+
+  const handleToggleFavorite = useCallback(async () => {
+    if (!dictation || !profile) return;
+
+    const previousDictation = dictation;
+    const nextFavorite = !dictation.is_favorite;
+
+    setDictation({ ...dictation, is_favorite: nextFavorite });
+
+    if (favoriteAnimationTimeout.current) {
+      clearTimeout(favoriteAnimationTimeout.current);
+      favoriteAnimationTimeout.current = null;
+    }
+
+    if (nextFavorite) {
+      setIsFavoriteAnimating(true);
+      favoriteAnimationTimeout.current = setTimeout(() => {
+        setIsFavoriteAnimating(false);
+        favoriteAnimationTimeout.current = null;
+      }, 800);
+    } else {
+      setIsFavoriteAnimating(false);
+    }
+
+    setIsFavoritePending(true);
+
+    try {
+      if (nextFavorite) {
+        await addFavoriteDictation(dictationId, profile.id);
+      } else {
+        await removeFavoriteDictation(dictationId, profile.id);
+      }
+    } catch (error) {
+      console.error("Error toggling favorite dictation:", error);
+      setDictation(previousDictation);
+      if (favoriteAnimationTimeout.current) {
+        clearTimeout(favoriteAnimationTimeout.current);
+        favoriteAnimationTimeout.current = null;
+      }
+      setIsFavoriteAnimating(false);
+    } finally {
+      setIsFavoritePending(false);
+    }
+  }, [dictation, dictationId, profile]);
 
   const handleValidate = async () => {
     if (
@@ -328,7 +391,13 @@ export default function DicteeClient({ dictationId }: { dictationId: number }) {
 
   return (
     <div className="container mx-auto px-2 md:px-4 py-8 max-w-4xl">
-      <DicteeHeader dictation={dictation} />
+      <DicteeHeader
+        dictation={dictation}
+        onToggleFavorite={handleToggleFavorite}
+        isFavoritePending={isFavoritePending}
+        isFavoriteAnimating={isFavoriteAnimating}
+        favoriteDisabled={!profile}
+      />
       <DicteeSentencesAudio
         dictationSentences={dictation.dictation_sentences}
       />
