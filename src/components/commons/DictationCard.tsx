@@ -7,8 +7,8 @@ import {
   CardDescription,
   CardTitle,
 } from "@/components/ui/card";
-import Link from "next/link";
 import { Heart } from "lucide-react";
+import Link from "next/link";
 import { MouseEvent } from "react";
 
 interface Topic {

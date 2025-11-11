@@ -1,10 +1,8 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
-import { SplashCursor } from "@/components/ui/splash-cursor";
-import { useCurrentProfile } from "@/hooks/use-current-profile";
-import { ArrowRight } from "lucide-react";
-import Link from "next/link";
+import { ExerciseAttemptsChart } from "@/components/homepage/exercise-attempts-chart";
+import { FavoriteDictationsSection } from "@/components/homepage/favorite-dictations-section";
+/* import { SplashCursor } from "@/components/ui/splash-cursor"; */
 
 const BackgroundSnippet = () => {
   return (
@@ -15,49 +13,22 @@ const BackgroundSnippet = () => {
 };
 
 export default function Home() {
-  const { profile, isLoading } = useCurrentProfile();
-
-  if (isLoading) {
-    return (
+  return (
+    <>
       <div className="h-[calc(100vh-4rem)] flex items-center justify-center relative">
         <BackgroundSnippet />
-        <SplashCursor />
-        <div className="text-center relative z-10"></div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="h-[calc(100vh-4rem)] flex items-center justify-center relative">
-      <BackgroundSnippet />
-      <SplashCursor />
-      <div className="w-2xl mx-auto text-center px-6 relative z-10">
-        <div className="bg-white/60 backdrop-blur-xl border border-white/30 rounded-2xl p-16 shadow-2xl space-y-6">
-          <h1 className="text-4xl font-bold text-gray-900">
-            👋 Salut {profile?.first_name || ""}
-          </h1>
-
-          <p className="text-xl text-gray-600">
-            {profile
-              ? "Prêt pour une petite dictée 🤓 ?"
-              : "Connectez-vous pour commencer vos dictées"}
-          </p>
-
-          <div className="pt-4">
-            <Link href={profile ? "/exercices/dictees" : "/login"}>
-              <Button
-                size="lg"
-                className="w-full group cursor-pointer transition-all duration-300 ease-in-out hover:scale-105 "
-              >
-                <span className="flex items-center justify-center gap-2">
-                  {profile ? "Commencer" : "Me connecter"}
-                  <ArrowRight className="w-4 h-4 transition-transform duration-300 ease-in-out group-hover:translate-x-1" />
-                </span>
-              </Button>
-            </Link>
+        {/* <SplashCursor /> */}
+        <div className="w-full mx-auto text-center px-6 relative z-10">
+          <div className="bg-white/50 backdrop-blur-xl border-2 border-white/80 rounded-2xl p-16 shadow-2xl space-y-6 h-[calc(100vh-12rem)]">
+            <ExerciseAttemptsChart />
           </div>
         </div>
       </div>
-    </div>
+      <div className="w-full px-6 py-8 ">
+        <div className=" p-16 space-y-6 h-[calc(100vh-12rem)] z-90">
+          <FavoriteDictationsSection />
+        </div>
+      </div>
+    </>
   );
 }

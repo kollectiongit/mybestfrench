@@ -8,10 +8,7 @@ import { ArrowLeftIcon, Pause, Repeat } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import {
-  addFavoriteDictation,
-  removeFavoriteDictation,
-} from "../actions";
+import { addFavoriteDictation, removeFavoriteDictation } from "../actions";
 
 import AttemptsTimeline from "./components/attempts-timeline";
 import DicteeEditor from "./components/dictee-editor";

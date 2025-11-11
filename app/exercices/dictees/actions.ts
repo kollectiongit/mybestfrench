@@ -2,8 +2,8 @@
 
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
+import { headers } from "next/headers";
 
 async function validateSessionAndProfile(profileId: string) {
   const session = await auth.api.getSession({

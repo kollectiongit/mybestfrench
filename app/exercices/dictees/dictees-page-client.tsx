@@ -4,12 +4,9 @@ import { useCurrentProfile } from "@/hooks/use-current-profile";
 import { CurrentProfile } from "@/lib/current-profile";
 import { Trash2 } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
-import {
-  addFavoriteDictation,
-  removeFavoriteDictation,
-} from "./actions";
+import DictationCard from "../../../src/components/commons/DictationCard";
+import { addFavoriteDictation, removeFavoriteDictation } from "./actions";
 import CategoryFilters from "./components/CategoryFilters";
-import DictationCard from "./components/DictationCard";
 import Header from "./components/Header";
 import SearchBar from "./components/SearchBar";
 import SentenceCountFilter from "./components/SentenceCountFilter";
@@ -76,30 +73,27 @@ export default function DicteesPageClient({
   // Utiliser le profil initial si disponible, sinon le profil du context
   const currentProfile = initialProfile || profile;
 
-  const sortDictations = useCallback(
-    (items: Dictation[]): Dictation[] => {
-      return [...items].sort((a, b) => {
-        if (a.is_favorite !== b.is_favorite) {
-          return a.is_favorite ? -1 : 1;
-        }
-        if (a.latest_attempt_at && b.latest_attempt_at) {
-          const dateA = new Date(a.latest_attempt_at).getTime();
-          const dateB = new Date(b.latest_attempt_at).getTime();
-          return dateB - dateA;
-        }
-        if (a.latest_attempt_at && !b.latest_attempt_at) return -1;
-        if (!a.latest_attempt_at && b.latest_attempt_at) return 1;
-        if (a.topic.category.id !== b.topic.category.id) {
-          return a.topic.category.id - b.topic.category.id;
-        }
-        if (a.topic.id !== b.topic.id) {
-          return a.topic.id - b.topic.id;
-        }
-        return a.title.localeCompare(b.title);
-      });
-    },
-    []
-  );
+  const sortDictations = useCallback((items: Dictation[]): Dictation[] => {
+    return [...items].sort((a, b) => {
+      if (a.is_favorite !== b.is_favorite) {
+        return a.is_favorite ? -1 : 1;
+      }
+      if (a.latest_attempt_at && b.latest_attempt_at) {
+        const dateA = new Date(a.latest_attempt_at).getTime();
+        const dateB = new Date(b.latest_attempt_at).getTime();
+        return dateB - dateA;
+      }
+      if (a.latest_attempt_at && !b.latest_attempt_at) return -1;
+      if (!a.latest_attempt_at && b.latest_attempt_at) return 1;
+      if (a.topic.category.id !== b.topic.category.id) {
+        return a.topic.category.id - b.topic.category.id;
+      }
+      if (a.topic.id !== b.topic.id) {
+        return a.topic.id - b.topic.id;
+      }
+      return a.title.localeCompare(b.title);
+    });
+  }, []);
 
   // Mettre à jour les dictées quand les données initiales changent
   useEffect(() => {
