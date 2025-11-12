@@ -214,11 +214,14 @@ Ton rôle est d'aider ton élève à progresser en orthographe, grammaire et con
     # Copie de l'élève
     ${studentText}
 
+    # Important :
+    Les oublis ou erreurs de ponctuation, de majuscules ou d'apostrophes ne doivent pas être comptés et considérés comme des fautes.
+
     # Tâches
     1. Analyse la copie de l'élève et la compare à la dictée correcte.
 
     2. Donne un **bilan global** :
-      - Nombre total de fautes (ne compte pas les erreurs de ponctuation et de majuscules. Par exemple si la phrase de commence pas par une majuscule ou ne termine pas par un signe de ponctuation, ne compte pas cette erreur)
+      - Nombre total de fautes (ne compte pas les erreurs de ponctuation, de majuscules ou d'apostrophes. Par exemple si la phrase ne commence pas par une majuscule ou ne termine pas par un signe de ponctuation, ne compte pas cette erreur)
       - Répartition : fautes d'orthographe / de grammaire / de conjugaison  
       - % de mots bien orthographiés
 
