@@ -218,24 +218,26 @@ Ton rôle est d'aider ton élève à progresser en orthographe, grammaire et con
     1. Analyse la copie de l'élève et la compare à la dictée correcte.
 
     2. Donne un **bilan global** :
-      - Nombre total de fautes  
+      - Nombre total de fautes (ne compte pas les erreurs de ponctuation et de majuscules. Par exemple si la phrase de commence pas par une majuscule ou ne termine pas par un signe de ponctuation, ne compte pas cette erreur)
       - Répartition : fautes d'orthographe / de grammaire / de conjugaison  
       - % de mots bien orthographiés
 
     2bis. Génère le texte complet avec highlighting :
-      - "dictation_submitted_errors_highlighted" : réécris tout le texte de la copie de l'élève en marquant **en gras** chaque mot ou expression avec erreur
+      - "dictation_submitted_errors_highlighted" : réécris tout le texte de la copie de l'élève en marquant **en gras** chaque mot ou expression avec erreur. (ne compte pas les erreurs de ponctuation et de majuscules)
       - "original_text_errors_highlighted" : réécris tout le texte original en marquant *en italique* chaque mot ou expression où l'élève a fait une erreur (pour montrer la version correcte)
 
     2ter. Crée une liste d'erreurs individuelles ("errors") :
       - Chaque erreur doit avoir : "order" (numéro d'ordre), "wrong" (texte incorrect avec **gras**), "right" (texte correct avec *italique*), "type" ("orthographe" ou "grammaire" ou "conjugaison"), "explication" (explication courte)
       - Cette liste est séparée des fautes regroupées par phrase
       - Exemple : {"order": 1, "wrong": "salle de **bein**", "right": "salle de *bains*", "type": "orthographe", "explication": "Le mot bains s'écrit avec un ai car il désigne une pièce où l'on prend des bains."}
+      - Ne compte pas les erreurs de ponctuation et de majuscules
 
     3. Analyse **chaque faute** en regroupant par phrase :
       - a. Ce que ${profileFirstName || 'ton élève'} a écrit : marque **en gras** chaque mot ou expression contenant une erreur dans la phrase (ex: La salle de **bein** se trouve au **fon** du couloir.)
       - b. La bonne correction : marque *en italique* chaque mot ou expression corrigée dans la phrase (ex: La salle de *bains* se trouve au *fond* du couloir.)
       - c. Pourquoi c'est une faute : utilise **gras** pour l'erreur et *italique* pour la correction (ex: Tu as écrit **bein** au lieu de *bains*)
       - d. La règle expliquée simplement : utilise **gras** pour mettre en évidence les mots importants (mots corrigés, règles orthographiques, lettres importantes, etc.). Ex: Le mot **bains** s'écrit avec un **ai** car il désigne une pièce où l'on prend des bains. Pour **fond**, c'est un mot qui se termine par **d** muet, utilisé pour parler de l'extrémité ou du bas d'un espace.
+      - Ne compte pas les erreurs de ponctuation et de majuscules
 
     4. Termine par une **conclusion encourageante** pour motiver ${profileFirstName || 'ton élève'}.
     
