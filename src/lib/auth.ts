@@ -71,6 +71,12 @@ export const auth = betterAuth({
   database: prismaAdapter(prisma, {
     provider: "postgresql", // or "mysql", "postgresql", ...etc
   }),
+  session: {
+    // 1 year in seconds
+    expiresIn: 60 * 60 * 24 * 365,
+    // How often the session expiry is refreshed on activity (keep short for good UX)
+    updateAge: 60 * 60 * 24 * 7, // 1 week
+  },
   emailAndPassword: {
     enabled: true,
     requireEmailVerification: false,
@@ -78,9 +84,9 @@ export const auth = betterAuth({
       await sendEmail({
         to: user.email, // Send to the user's actual email
         subject: "Réinitialisation de votre mot de passe",
-        react: PasswordResetEmail({ 
-          firstName: user.name || user.email.split('@')[0], 
-          resetUrl: url 
+        react: PasswordResetEmail({
+          firstName: user.name || user.email.split('@')[0],
+          resetUrl: url,
         }),
       });
     },
