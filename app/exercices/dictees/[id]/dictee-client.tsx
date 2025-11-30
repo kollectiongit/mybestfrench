@@ -450,6 +450,8 @@ export default function DicteeClient({ dictationId }: { dictationId: number }) {
         isValidating={isValidating}
         validationMessage={validationMessages[validationMessageIndex]}
         onValidate={handleValidate}
+        onFocus={() => setExpandedAttemptId(null)}
+        onChange={() => setExpandedAttemptId(null)}
       />
 
       {/* Show streaming results during validation */}

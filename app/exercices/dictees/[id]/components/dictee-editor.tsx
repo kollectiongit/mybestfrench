@@ -18,6 +18,8 @@ export default function DicteeEditor(props: {
   isValidating: boolean;
   validationMessage: string;
   onValidate: () => void;
+  onFocus?: () => void;
+  onChange?: () => void;
 }) {
   const {
     pictureFile,
@@ -28,6 +30,8 @@ export default function DicteeEditor(props: {
     isValidating,
     validationMessage,
     onValidate,
+    onFocus,
+    onChange,
   } = props;
 
   return (
@@ -44,29 +48,35 @@ export default function DicteeEditor(props: {
               />
             </div>
           </div>
-          <div className="col-span-3 flex">
-            <div className="w-full h-full min-h-[100px] md:min-h-[200px]">
-              <textarea
-                value={dictationText}
-                onChange={(e) => setDictationText(e.target.value)}
-                placeholder="Écrivez votre dictée ici..."
-                disabled={disabled}
-                autoCorrect="off"
-                autoComplete="off"
-                spellCheck="false"
-                autoCapitalize="off"
-                className={`w-full h-full min-h-[100px] md:min-h-[200px] p-4 border border-gray-300 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                  disabled ? "bg-gray-100 cursor-not-allowed text-gray-700" : ""
-                }`}
-              />
-            </div>
+          <div className="flex">
+            <textarea
+              value={dictationText}
+              onChange={(e) => {
+                setDictationText(e.target.value);
+                onChange?.();
+              }}
+              onFocus={() => onFocus?.()}
+              placeholder="Écrivez votre dictée ici..."
+              disabled={disabled}
+              autoCorrect="off"
+              autoComplete="off"
+              spellCheck="false"
+              autoCapitalize="off"
+              className={`w-full p-4 border border-gray-300 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+                disabled ? "bg-gray-100 cursor-not-allowed text-gray-700" : ""
+              }`}
+            />
           </div>
         </div>
       ) : (
         <div className="w-full">
           <textarea
             value={dictationText}
-            onChange={(e) => setDictationText(e.target.value)}
+            onChange={(e) => {
+              setDictationText(e.target.value);
+              onChange?.();
+            }}
+            onFocus={() => onFocus?.()}
             placeholder="Écrivez votre dictée ici..."
             disabled={disabled}
             autoCorrect="off"

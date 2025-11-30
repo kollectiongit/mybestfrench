@@ -13,7 +13,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import DeleteAttemptDialog from "./delete-attempt-dialog";
 import ValidationResults from "./validation-results";
@@ -89,6 +89,7 @@ export default function AttemptsTimeline({
   const [attemptToDelete, setAttemptToDelete] = useState<number | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [attempts, setAttempts] = useState(dictation.exercicesAttempts);
+  const timelineRef = useRef<HTMLDivElement>(null);
 
   // Update attempts when dictation changes (e.g., new attempt added)
   useEffect(() => {
@@ -109,6 +110,29 @@ export default function AttemptsTimeline({
       }, 100);
     }
   }, [expandedAttemptId]);
+
+  // Close all accordions when hasContent is true (user is typing)
+  useEffect(() => {
+    if (hasContent && expandedAttemptId !== null && onExpandedChange) {
+      onExpandedChange(null);
+    }
+  }, [hasContent, expandedAttemptId, onExpandedChange]);
+
+  // Prevent text selection using native selectstart event
+  useEffect(() => {
+    const element = timelineRef.current;
+    if (!element) return;
+
+    const handleSelectStart = (e: Event) => {
+      e.preventDefault();
+      return false;
+    };
+
+    element.addEventListener('selectstart', handleSelectStart);
+    return () => {
+      element.removeEventListener('selectstart', handleSelectStart);
+    };
+  }, []);
 
   if (!attempts || attempts.length === 0) return null;
 
@@ -154,8 +178,34 @@ export default function AttemptsTimeline({
     setAttemptToDelete(null);
   };
 
+  // Prevent copying text from the timeline
+  const handleCopy = (e: React.ClipboardEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    return false;
+  };
+
+  const handleCut = (e: React.ClipboardEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    return false;
+  };
+
+  const handleContextMenu = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    return false;
+  };
+
   return (
-    <div className="mt-12">
+    <div 
+      ref={timelineRef}
+      className="mt-12 select-none"
+      onCopy={handleCopy}
+      onCut={handleCut}
+      onContextMenu={handleContextMenu}
+      style={{ userSelect: 'none', WebkitUserSelect: 'none', MozUserSelect: 'none', msUserSelect: 'none' }}
+    >
       {hasContent && (
         <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
           <p className="text-sm text-yellow-800">
@@ -166,11 +216,14 @@ export default function AttemptsTimeline({
       )}
       <div className={hasContent ? "pointer-events-none opacity-50" : ""}>
         <Accordion
+          key={hasContent ? "closed" : `open-${expandedAttemptId}`}
           type="single"
           collapsible
           className="w-full"
-          value={expandedAttemptId ? `attempt-${expandedAttemptId}` : undefined}
+          value={hasContent ? undefined : (expandedAttemptId ? `attempt-${expandedAttemptId}` : undefined)}
           onValueChange={(value) => {
+            // Prevent changes when hasContent is true (user is typing)
+            if (hasContent) return;
             if (onExpandedChange) {
               // Extract the ID from the value string (e.g., "attempt-123" -> 123)
               const id = value ? parseInt(value.replace("attempt-", "")) : null;
@@ -219,7 +272,13 @@ export default function AttemptsTimeline({
                 </div>
               </AccordionTrigger>
               <AccordionContent>
-                <div className="pt-2 pb-4">
+                <div 
+                  className="pt-2 pb-4 select-none"
+                  onCopy={handleCopy}
+                  onCut={handleCut}
+                  onContextMenu={handleContextMenu}
+                  style={{ userSelect: 'none', WebkitUserSelect: 'none', MozUserSelect: 'none', msUserSelect: 'none' }}
+                >
                   {attempt.correction_full_json ? (
                     (() => {
                       try {

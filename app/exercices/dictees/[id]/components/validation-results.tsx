@@ -195,6 +195,8 @@ export default function ValidationResults({
   analysis: DicteeAnalysis;
   userAnswer?: string;
 }) {
+  const containerRef = useRef<HTMLDivElement>(null);
+
   // Build error map when data is available
   const errorTooltipMap = useMemo(() => {
     if (analysis.errors && analysis.errors.length > 0) {
@@ -203,8 +205,50 @@ export default function ValidationResults({
     return new Map<string, string>();
   }, [analysis.errors]);
 
+  // Prevent copying text from validation results
+  const handleCopy = (e: React.ClipboardEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    return false;
+  };
+
+  const handleCut = (e: React.ClipboardEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    return false;
+  };
+
+  const handleContextMenu = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    return false;
+  };
+
+  // Prevent text selection using native selectstart event
+  useEffect(() => {
+    const element = containerRef.current;
+    if (!element) return;
+
+    const handleSelectStart = (e: Event) => {
+      e.preventDefault();
+      return false;
+    };
+
+    element.addEventListener('selectstart', handleSelectStart);
+    return () => {
+      element.removeEventListener('selectstart', handleSelectStart);
+    };
+  }, []);
+
   return (
-    <div className="mt-8 py-6 px-3 md:p-6 bg-gray-50 rounded-lg ">
+    <div 
+      ref={containerRef}
+      className="mt-8 py-6 px-3 md:p-6 bg-gray-50 rounded-lg select-none"
+      onCopy={handleCopy}
+      onCut={handleCut}
+      onContextMenu={handleContextMenu}
+      style={{ userSelect: 'none', WebkitUserSelect: 'none', MozUserSelect: 'none', msUserSelect: 'none' }}
+    >
       {/* User's answer and correct text side by side */}
       {(userAnswer || analysis.originalText) && (
         <div className="mb-6 grid grid-cols-1 md:grid-cols-2 gap-4">

@@ -166,16 +166,19 @@ export default function DicteeSentencesAudio({
     <div className="mb-8 space-y-4 md:space-y-6">
       {/* Global Controls */}
       <div className="bg-gray-50 rounded-lg p-4 md:p-6">
-        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 md:gap-6">
+        <div className="flex flex-col md:flex-row items-start md:items-center justify-between md:gap-24">
           {/* Loop Control */}
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2">
             <Switch
               id="global-loop"
               checked={globalLoopEnabled}
               onCheckedChange={setGlobalLoopEnabled}
             />
-            <Label htmlFor="global-loop" className="text-sm font-medium">
-              Activer l&apos;audio loop
+            <Label
+              htmlFor="global-loop"
+              className="text-sm font-medium shrink-0"
+            >
+              Audio loop
             </Label>
           </div>
 
