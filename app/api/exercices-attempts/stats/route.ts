@@ -87,6 +87,11 @@ export async function GET(request: NextRequest) {
       },
     });
 
+    // Check if date range spans multiple years
+    const startYear = startDate.getFullYear();
+    const endYear = now.getFullYear();
+    const spansMultipleYears = startYear !== endYear;
+
     // Helper function to format period key
     const formatPeriodKey = (date: Date): string => {
       switch (dimension) {
@@ -95,7 +100,12 @@ export async function GET(request: NextRequest) {
           const dayAbbrev = dayAbbrevs[date.getDay()];
           const day = String(date.getDate()).padStart(2, '0');
           const month = String(date.getMonth() + 1).padStart(2, '0');
-          // Format: "LU|25/10" for easy parsing
+          // Include year if date range spans multiple years to avoid duplicate keys
+          if (spansMultipleYears) {
+            const year = date.getFullYear();
+            return `${dayAbbrev}|${day}/${month}/${year}`;
+          }
+          // Format: "LU|25/10" for easy parsing (single year)
           return `${dayAbbrev}|${day}/${month}`;
         }
         case "week": {
@@ -142,7 +152,8 @@ export async function GET(request: NextRequest) {
     });
 
     // Generate all periods in the range and fill missing ones with 0
-    const allPeriods = new Map<string, number>();
+    // Store both period key and date for proper sorting
+    const allPeriods: Array<{ period: string; attempts: number; date: Date }> = [];
     const currentDate = new Date(startDate);
     currentDate.setHours(0, 0, 0, 0);
     const endDate = new Date(now);
@@ -153,8 +164,13 @@ export async function GET(request: NextRequest) {
       const dateIterator = new Date(currentDate);
       
       while (dateIterator <= endDate) {
-        const key = formatPeriodKey(new Date(dateIterator));
-        allPeriods.set(key, groupedData.get(key) || 0);
+        const date = new Date(dateIterator);
+        const key = formatPeriodKey(date);
+        allPeriods.push({
+          period: key,
+          attempts: groupedData.get(key) || 0,
+          date: date,
+        });
         dateIterator.setDate(dateIterator.getDate() + 1);
       }
     } else if (dimension === "week") {
@@ -164,8 +180,13 @@ export async function GET(request: NextRequest) {
       dateIterator.setDate(dateIterator.getDate() - dateIterator.getDay());
       
       while (dateIterator <= endDate) {
-        const key = formatPeriodKey(new Date(dateIterator));
-        allPeriods.set(key, groupedData.get(key) || 0);
+        const date = new Date(dateIterator);
+        const key = formatPeriodKey(date);
+        allPeriods.push({
+          period: key,
+          attempts: groupedData.get(key) || 0,
+          date: date,
+        });
         dateIterator.setDate(dateIterator.getDate() + 7);
       }
     } else if (dimension === "month") {
@@ -174,66 +195,27 @@ export async function GET(request: NextRequest) {
       dateIterator.setDate(1); // Start of month
       
       while (dateIterator <= endDate) {
-        const key = formatPeriodKey(new Date(dateIterator));
-        allPeriods.set(key, groupedData.get(key) || 0);
+        const date = new Date(dateIterator);
+        const key = formatPeriodKey(date);
+        allPeriods.push({
+          period: key,
+          attempts: groupedData.get(key) || 0,
+          date: date,
+        });
         dateIterator.setMonth(dateIterator.getMonth() + 1);
       }
     }
 
-    // Convert to array format for chart
-    const chartData = Array.from(allPeriods.entries())
-      .map(([period, attempts]) => ({
+    // Convert to array format for chart and sort by date
+    const chartData = allPeriods
+      .sort((a, b) => {
+        // Sort by actual date for proper chronological order including year
+        return a.date.getTime() - b.date.getTime();
+      })
+      .map(({ period, attempts }) => ({
         period,
         attempts,
-      }))
-      .sort((a, b) => {
-        // Sort by date for proper chronological order
-        // For day: parse the date from the string
-        // For week: parse start date
-        // For month: use month index
-        if (dimension === "day") {
-          // Parse "LU|25/10" format
-          const partsA = a.period.split('|');
-          const partsB = b.period.split('|');
-          if (partsA.length === 2 && partsB.length === 2) {
-            const dateA = new Date(partsA[1].split('/').reverse().join('-'));
-            const dateB = new Date(partsB[1].split('/').reverse().join('-'));
-            return dateA.getTime() - dateB.getTime();
-          }
-          return 0;
-        } else if (dimension === "week") {
-          // Parse week start date from "Semaine DD/MM - DD/MM YYYY" or "Semaine DD/MM/YYYY - DD/MM/YYYY"
-          const matchA = a.period.match(/Semaine (\d{2})\/(\d{2})(?:\/(\d{4}))?/);
-          const matchB = b.period.match(/Semaine (\d{2})\/(\d{2})(?:\/(\d{4}))?/);
-          if (matchA && matchB) {
-            const yearA = matchA[3] || new Date().getFullYear();
-            const yearB = matchB[3] || new Date().getFullYear();
-            const dateA = new Date(`${yearA}-${matchA[2]}-${matchA[1]}`);
-            const dateB = new Date(`${yearB}-${matchB[2]}-${matchB[1]}`);
-            return dateA.getTime() - dateB.getTime();
-          }
-          return 0;
-        } else {
-          // Parse "MonthName YYYY" format
-          const monthNames = [
-            "Janvier", "Février", "Mars", "Avril", "Mai", "Juin",
-            "Juillet", "Août", "Septembre", "Octobre", "Novembre", "Décembre"
-          ];
-          const matchA = a.period.match(/^(\w+)\s+(\d{4})$/);
-          const matchB = b.period.match(/^(\w+)\s+(\d{4})$/);
-          if (matchA && matchB) {
-            const yearA = parseInt(matchA[2]);
-            const yearB = parseInt(matchB[2]);
-            if (yearA !== yearB) {
-              return yearA - yearB;
-            }
-            const indexA = monthNames.indexOf(matchA[1]);
-            const indexB = monthNames.indexOf(matchB[1]);
-            return indexA - indexB;
-          }
-          return 0;
-        }
-      });
+      }));
 
     return NextResponse.json(chartData, {
       headers: {
