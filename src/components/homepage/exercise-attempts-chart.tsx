@@ -114,11 +114,11 @@ export function ExerciseAttemptsChart() {
 
   return (
     <div className="flex flex-col h-full space-y-6">
-      <div className="flex justify-center items-center relative">
+      <div className="flex justify-between items-center w-full">
         <h2 className="text-4xl font-bold">
           Stats {profile?.first_name || ""}
         </h2>
-        <div className="flex gap-4 items-center absolute right-0">
+        <div className="flex gap-4 items-center">
           <Select value={period} onValueChange={setPeriod}>
             <SelectTrigger className="w-[180px]">
               <SelectValue />

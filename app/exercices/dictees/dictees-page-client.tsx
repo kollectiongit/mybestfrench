@@ -8,6 +8,8 @@ import DictationCard from "../../../src/components/commons/DictationCard";
 import { addFavoriteDictation, removeFavoriteDictation } from "./actions";
 import CategoryFilters from "./components/CategoryFilters";
 import Header from "./components/Header";
+import LevelFilter from "./components/LevelFilter";
+import MaxWordsFilter from "./components/MaxWordsFilter";
 import SearchBar from "./components/SearchBar";
 import SentenceCountFilter from "./components/SentenceCountFilter";
 import StatusFilters from "./components/StatusFilters";
@@ -38,6 +40,23 @@ interface Dictation {
   is_favorite: boolean;
 }
 
+// Mapping des niveaux pour le tri (ordre croissant)
+const levelRank: Record<string, number> = {
+  CE1: 1,
+  CE2: 2,
+  CM1: 3,
+  CM2: 4,
+};
+
+// Fonction pour obtenir le rang minimum d'une dictation (basé sur son niveau le plus bas)
+const getMinLevelRank = (levels: string[]): number => {
+  if (levels.length === 0) return 999; // Les dictations sans niveau vont à la fin
+  const ranks = levels
+    .map((level) => levelRank[level] ?? 999)
+    .filter((rank) => rank !== 999);
+  return ranks.length > 0 ? Math.min(...ranks) : 999;
+};
+
 // Props pour les données pré-chargées
 interface DicteesPageClientProps {
   initialDictations?: Dictation[];
@@ -59,6 +78,8 @@ export default function DicteesPageClient({
   const [selectedSentenceCount, setSelectedSentenceCount] = useState<
     number | null
   >(null);
+  const [selectedLevels, setSelectedLevels] = useState<string[]>([]);
+  const [maxWords, setMaxWords] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(false); // Plus de loading initial
   const [pendingFavoriteIds, setPendingFavoriteIds] = useState<Set<number>>(
     () => new Set()
@@ -91,6 +112,18 @@ export default function DicteesPageClient({
       if (a.topic.id !== b.topic.id) {
         return a.topic.id - b.topic.id;
       }
+      // Tri par niveau croissant
+      const rankA = getMinLevelRank(a.levels);
+      const rankB = getMinLevelRank(b.levels);
+      if (rankA !== rankB) {
+        return rankA - rankB;
+      }
+      // Tri par nombre de mots croissant
+      const wordsA = a.count_words ?? 999999;
+      const wordsB = b.count_words ?? 999999;
+      if (wordsA !== wordsB) {
+        return wordsA - wordsB;
+      }
       return a.title.localeCompare(b.title);
     });
   }, []);
@@ -121,9 +154,9 @@ export default function DicteesPageClient({
     }
   }, [sortDictations]);
 
-  // Helper function to get filtered dictations without sentence count filter
-  // This is used to calculate the counts in the sentence count filter
-  const getFilteredWithoutSentenceCount = useCallback(
+  // Helper function to get filtered dictations without levels and maxWords filters
+  // This is used to calculate the counts in LevelFilter and MaxWordsFilter components
+  const getFilteredWithoutLevelsAndMaxWords = useCallback(
     (source?: Dictation[]) => {
       let filtered = source ?? dictations;
       const normalizedSearchTerm = searchTerm.trim().toLowerCase();
@@ -177,6 +210,30 @@ export default function DicteesPageClient({
       showAttemptedOnly,
       showNotAttemptedOnly,
     ]
+  );
+
+  // Helper function to get filtered dictations without sentence count filter
+  // This is used to calculate the counts in the sentence count filter
+  const getFilteredWithoutSentenceCount = useCallback(
+    (source?: Dictation[]) => {
+      let filtered = getFilteredWithoutLevelsAndMaxWords(source);
+
+      // Filter by selected levels (OR logic: if dictation has at least one selected level)
+      if (selectedLevels.length > 0) {
+        filtered = filtered.filter((dictation) =>
+          dictation.levels.some((level) => selectedLevels.includes(level))
+        );
+      }
+      // Filter by maximum words
+      if (maxWords !== null) {
+        filtered = filtered.filter((dictation) => {
+          if (dictation.count_words === null) return false;
+          return dictation.count_words <= maxWords;
+        });
+      }
+      return filtered;
+    },
+    [getFilteredWithoutLevelsAndMaxWords, selectedLevels, maxWords]
   );
 
   const filterDictations = useCallback(
@@ -408,12 +465,19 @@ export default function DicteesPageClient({
           showNotAttemptedOnly={showNotAttemptedOnly}
           setShowNotAttemptedOnly={setShowNotAttemptedOnly}
         />
+        <LevelFilter
+          dictations={dictations}
+          selectedLevels={selectedLevels}
+          setSelectedLevels={setSelectedLevels}
+          filteredDictations={getFilteredWithoutLevelsAndMaxWords()}
+        />
         <SentenceCountFilter
           dictations={dictations}
           selectedSentenceCount={selectedSentenceCount}
           setSelectedSentenceCount={setSelectedSentenceCount}
           filteredDictations={getFilteredWithoutSentenceCount()}
         />
+        <MaxWordsFilter maxWords={maxWords} setMaxWords={setMaxWords} />
         {/* Thèmes button (md+) */}
         <div className="hidden md:block">
           <TopicDialog
@@ -426,7 +490,9 @@ export default function DicteesPageClient({
         {(selectedTopics.length > 0 ||
           showAttemptedOnly ||
           showNotAttemptedOnly ||
-          selectedSentenceCount !== null) && (
+          selectedSentenceCount !== null ||
+          selectedLevels.length > 0 ||
+          maxWords !== null) && (
           <div
             className="group relative inline-flex items-center gap-2 px-2 md:px-3 py-1.5 rounded-lg transition-all duration-200 cursor-pointer h-10 bg-red-500 text-red-50 hover:bg-red-600 hover:scale-105"
             onClick={() => {
@@ -434,6 +500,8 @@ export default function DicteesPageClient({
               setShowAttemptedOnly(false);
               setShowNotAttemptedOnly(false);
               setSelectedSentenceCount(null);
+              setSelectedLevels([]);
+              setMaxWords(null);
             }}
           >
             <Trash2 className="h-4 w-4" />
