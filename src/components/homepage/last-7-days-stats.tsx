@@ -15,7 +15,12 @@ interface ApiResponse {
   total: number;
 }
 
-export function Last7DaysStats() {
+interface WeekStatsProps {
+  week?: "current" | "previous";
+  title?: string;
+}
+
+export function WeekStats({ week = "current", title }: WeekStatsProps) {
   const { profile, isLoading: profileLoading } = useCurrentProfile();
   const [daysData, setDaysData] = useState<DayData[]>([]);
   const [total, setTotal] = useState(0);
@@ -35,6 +40,7 @@ export function Last7DaysStats() {
       try {
         const params = new URLSearchParams({
           profile_id: profile.id,
+          week: week,
         });
 
         const response = await fetch(
@@ -49,7 +55,7 @@ export function Last7DaysStats() {
         setDaysData(data.days);
         setTotal(data.total);
       } catch (err) {
-        console.error("Error fetching last 7 days data:", err);
+        console.error("Error fetching week data:", err);
         setError("Erreur lors du chargement des données");
         setDaysData([]);
         setTotal(0);
@@ -59,7 +65,7 @@ export function Last7DaysStats() {
     };
 
     fetchData();
-  }, [profile?.id]);
+  }, [profile?.id, week]);
 
   if (profileLoading || isLoading) {
     return (
@@ -85,6 +91,11 @@ export function Last7DaysStats() {
 
   return (
     <div className="py-12">
+      {title && (
+        <div className="text-lg pb-4 text-left font-semibold px-6 mb-2">
+          {title}
+        </div>
+      )}
       <div className="space-y-1 text-left px-6">
         {daysData.map((day, index) => (
           <div key={`${day.day}-${day.date}-${index}`} className="text-base">
@@ -104,4 +115,9 @@ export function Last7DaysStats() {
       </div>
     </div>
   );
+}
+
+// Legacy export for backward compatibility
+export function Last7DaysStats() {
+  return <WeekStats week="current" />;
 }

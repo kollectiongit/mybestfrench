@@ -2,7 +2,7 @@
 
 import { ExerciseAttemptsChart } from "@/components/homepage/exercise-attempts-chart";
 import { FavoriteDictationsSection } from "@/components/homepage/favorite-dictations-section";
-import { Last7DaysStats } from "@/components/homepage/last-7-days-stats";
+import { WeekStats } from "@/components/homepage/last-7-days-stats";
 /* import { SplashCursor } from "@/components/ui/splash-cursor"; */
 
 const BackgroundSnippet = () => {
@@ -20,9 +20,12 @@ export default function Home() {
         <BackgroundSnippet />
         {/* <SplashCursor /> */}
         <div className="w-full mx-auto px-6 relative z-10 flex flex-col xl:flex-row xl:items-center xl:justify-center gap-6 pt-0 lg:pt-72 xl:pt-0">
-          <div className="xl:w-fit w-full text-center mx-0">
-            <div className="bg-white/50 backdrop-blur-xl border-2 border-white/80 rounded-2xl shadow-2xl h-fit xl:h-[calc(100vh-12rem)] w-full xl:w-fit min-w-64">
-              <Last7DaysStats />
+          <div className="xl:w-fit w-full text-center mx-0 gap-4 flex flex-col">
+            <div className="bg-white/50 backdrop-blur-xl border-2 border-white/80 rounded-2xl shadow-2xl h-fit xl:h-[calc(100vh-12rem)] w-full xl:w-fit min-w-64 px-4">
+              <WeekStats week="current" title="Semaine actuelle" />
+            </div>
+            <div className="bg-white/50 backdrop-blur-xl border-2 border-white/80 rounded-2xl shadow-2xl h-fit xl:h-[calc(100vh-12rem)] w-full xl:w-fit min-w-64 px-4">
+              <WeekStats week="previous" title="Semaine précédente" />
             </div>
           </div>
           <div className="w-full mx-auto text-center hidden md:block">

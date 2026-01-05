@@ -21,6 +21,7 @@ export async function GET(request: NextRequest) {
     // Get query parameters
     const { searchParams } = new URL(request.url);
     const profileId = searchParams.get("profile_id");
+    const week = searchParams.get("week") || "current"; // "current" or "previous"
 
     // Resolve current profile: prefer query param, then header, then cookie
     const headerProfileId = request.headers.get('x-current-profile-id');
@@ -43,22 +44,34 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Profile not found" }, { status: 404 });
     }
 
-    // Calculate date range: last 7 days including today
+    // Calculate date range: current week (Monday to Sunday) or previous week
     const now = new Date();
-    const startDate = new Date(now);
-    startDate.setDate(startDate.getDate() - 6); // 7 days total (6 days back + today)
-    startDate.setHours(0, 0, 0, 0);
+    const weekStart = new Date(now);
     
-    const endDate = new Date(now);
-    endDate.setHours(23, 59, 59, 999);
+    // Get Monday of current week
+    // getDay() returns 0 (Sunday) to 6 (Saturday)
+    // We want Monday (1) to be day 0, so we adjust: (day + 6) % 7 gives us days from Monday
+    const dayOfWeek = now.getDay();
+    const daysFromMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1; // Sunday (0) becomes 6, Monday (1) becomes 0
+    weekStart.setDate(now.getDate() - daysFromMonday);
+    weekStart.setHours(0, 0, 0, 0);
+    
+    if (week === "previous") {
+      // Move back 7 days to get previous week's Monday
+      weekStart.setDate(weekStart.getDate() - 7);
+    }
+    
+    const weekEnd = new Date(weekStart);
+    weekEnd.setDate(weekStart.getDate() + 6); // Sunday (6 days after Monday)
+    weekEnd.setHours(23, 59, 59, 999);
 
     // Fetch ALL exercise attempts (not just dictations) for the profile
     const attempts = await prisma.exercices_attempts.findMany({
       where: {
         profile_id: currentProfileId,
         created_at: {
-          gte: startDate,
-          lte: endDate,
+          gte: weekStart,
+          lte: weekEnd,
         },
       },
       select: {
@@ -81,13 +94,13 @@ export async function GET(request: NextRequest) {
       dayCounts.set(dateKey, (dayCounts.get(dateKey) || 0) + 1);
     });
 
-    // Generate the 7 last days (including today) with counts
+    // Generate the 7 days of the week (Monday to Sunday) with counts
     const dayAbbrevs = ["DI", "LU", "MA", "ME", "JE", "VE", "SA"];
     const result: Array<{ day: string; date: string; count: number }> = [];
     
-    for (let i = 6; i >= 0; i--) {
-      const date = new Date(now);
-      date.setDate(date.getDate() - i);
+    for (let i = 0; i < 7; i++) {
+      const date = new Date(weekStart);
+      date.setDate(weekStart.getDate() + i);
       date.setHours(0, 0, 0, 0);
       
       const dateKey = date.toISOString().split('T')[0];
