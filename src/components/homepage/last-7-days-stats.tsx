@@ -90,15 +90,18 @@ export function WeekStats({ week = "current", title }: WeekStatsProps) {
   };
 
   return (
-    <div className="py-12">
+    <div className="py-4 md:py-12">
       {title && (
-        <div className="text-lg pb-4 text-left font-semibold px-6 mb-2">
+        <div className="text-sm md:text-lg md:pb-4 text-left font-semibold px-2 md:px-6 mb-4">
           {title}
         </div>
       )}
-      <div className="space-y-1 text-left px-6">
+      <div className="space-y-2 text-left px-2 md:px-6">
         {daysData.map((day, index) => (
-          <div key={`${day.day}-${day.date}-${index}`} className="text-base">
+          <div
+            key={`${day.day}-${day.date}-${index}`}
+            className="text-sm md:text-base"
+          >
             <span className="w-20  inline-block">
               {day.day} {day.date}
             </span>
@@ -109,7 +112,7 @@ export function WeekStats({ week = "current", title }: WeekStatsProps) {
             </span>
           </div>
         ))}
-        <div className="text-base font-semibold pt-2">
+        <div className="text-sm md:text-lg font-semibold pt-2">
           Total : <span className="font-bold">{total}</span>
         </div>
       </div>

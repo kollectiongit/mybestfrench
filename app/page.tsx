@@ -16,19 +16,19 @@ const BackgroundSnippet = () => {
 export default function Home() {
   return (
     <>
-      <div className="h-fit py-12 lg:py-0 lg:h-[calc(100vh-4rem)] flex items-center justify-center relative">
+      <div className="h-fit py-12 xl:py-0 xl:h-[calc(100vh-4rem)] flex items-center justify-center relative">
         <BackgroundSnippet />
         {/* <SplashCursor /> */}
-        <div className="w-full mx-auto px-6 relative z-10 flex flex-col xl:flex-row xl:items-center xl:justify-center gap-6 pt-0 lg:pt-72 xl:pt-0">
-          <div className="xl:w-fit w-full text-center mx-0 gap-4 flex flex-col">
-            <div className="bg-white/50 backdrop-blur-xl border-2 border-white/80 rounded-2xl shadow-2xl h-fit xl:h-[calc(100vh-12rem)] w-full xl:w-fit min-w-64 px-4">
+        <div className="w-full mx-auto px-6 relative z-10 flex flex-col xl:flex-row xl:items-center xl:justify-center gap-6">
+          <div className="xl:w-fit xl:h-[calc(100vh-12rem)] w-full text-center mx-0 gap-4 flex flex-row xl:flex-col">
+            <div className="bg-white/50 backdrop-blur-xl border-2 border-white/80 rounded-2xl shadow-2xl h-fit xl:h-1/2 w-full xl:w-fit md:px-4">
               <WeekStats week="current" title="Semaine actuelle" />
             </div>
-            <div className="bg-white/50 backdrop-blur-xl border-2 border-white/80 rounded-2xl shadow-2xl h-fit xl:h-[calc(100vh-12rem)] w-full xl:w-fit min-w-64 px-4">
-              <WeekStats week="previous" title="Semaine précédente" />
+            <div className="bg-white/50 backdrop-blur-xl border-2 border-white/80 rounded-2xl shadow-2xl h-fit xl:h-1/2 w-full xl:w-fit md:px-4">
+              <WeekStats week="previous" title="Semaine dernière" />
             </div>
           </div>
-          <div className="w-full mx-auto text-center hidden md:block">
+          <div className="xl:w-full w-full mx-auto text-center hidden md:block">
             <div className="bg-white/50 backdrop-blur-xl border-2 border-white/80 rounded-2xl p-16 shadow-2xl space-y-6 h-[calc(100vh-12rem)]">
               <ExerciseAttemptsChart />
             </div>
