@@ -44,7 +44,7 @@ export function WeekStats({ week = "current", title }: WeekStatsProps) {
         });
 
         const response = await fetch(
-          `/api/exercices-attempts/last-7-days?${params}`
+          `/api/exercices-attempts/last-7-days?${params}`,
         );
 
         if (!response.ok) {
@@ -90,13 +90,13 @@ export function WeekStats({ week = "current", title }: WeekStatsProps) {
   };
 
   return (
-    <div className="py-4 md:py-12">
+    <div className="py-2 md:py-4 px-3">
       {title && (
-        <div className="text-sm md:text-lg md:pb-4 text-left font-semibold px-2 md:px-6 mb-4">
+        <div className="text-sm md:text-lg text-left font-semibold  inline-block whitespace-nowrap pb-2">
           {title}
         </div>
       )}
-      <div className="space-y-2 text-left px-2 md:px-6">
+      <div className="space-y-2 text-left">
         {daysData.map((day, index) => (
           <div
             key={`${day.day}-${day.date}-${index}`}
