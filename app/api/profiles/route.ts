@@ -1,12 +1,12 @@
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { getProfilesFromCacheCookie, setProfilesCacheCookie } from "@/lib/profile-cookies";
 import { NextRequest, NextResponse } from "next/server";
 
 // Force dynamic rendering due to request.headers usage
 export const dynamic = 'force-dynamic';
 
-// GET /api/profiles - Fetch user's profiles
+// GET /api/profiles - Always hit the DB (no caching). The previous cookie
+// cache stripped fields and caused stale reads after profile edits.
 export async function GET(request: NextRequest) {
   try {
     const session = await auth.api.getSession({
@@ -17,16 +17,6 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    // Try to get cached profiles first
-    const cachedProfiles = await getProfilesFromCacheCookie(request);
-    if (cachedProfiles) {
-      return NextResponse.json({
-        profiles: cachedProfiles,
-        fromCache: true,
-      });
-    }
-
-    // If no cache, fetch from database
     const profiles = await prisma.profiles.findMany({
       where: {
         user_id: session.user.id,
@@ -58,16 +48,15 @@ export async function GET(request: NextRequest) {
       avatar_url: profile.avatar_url,
       age: profile.age,
       description: profile.description,
+      weekly_pages_goal: profile.weekly_pages_goal ?? null,
       created_at: profile.created_at?.toISOString() || null,
       updated_at: profile.updated_at?.toISOString() || null,
       profile_levels: profile.profile_levels || [],
     }));
 
-    // Cache the response
-    const response = NextResponse.json(formattedProfiles);
-    await setProfilesCacheCookie(response, formattedProfiles);
-
-    return response;
+    return NextResponse.json(formattedProfiles, {
+      headers: { "Cache-Control": "private, no-store" },
+    });
   } catch (error) {
     console.error("Error fetching profiles:", error);
     return NextResponse.json(

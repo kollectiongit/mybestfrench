@@ -37,6 +37,7 @@ export default function ProfilesPageClient() {
     last_name: "",
     age: "",
     description: "",
+    weekly_pages_goal: "",
   });
   const [avatarFilename, setAvatarFilename] = useState<string>("");
   const [isUploading, setIsUploading] = useState(false);
@@ -87,6 +88,7 @@ export default function ProfilesPageClient() {
           last_name: "",
           age: "",
           description: "",
+          weekly_pages_goal: "",
         });
         setAvatarFilename("");
         setSelectedLevelIds([]);
@@ -110,7 +112,13 @@ export default function ProfilesPageClient() {
   };
 
   const handleCreateProfileClick = () => {
-    setFormData({ first_name: "", last_name: "", age: "", description: "" });
+    setFormData({
+      first_name: "",
+      last_name: "",
+      age: "",
+      description: "",
+      weekly_pages_goal: "",
+    });
     setAvatarFilename("");
     setSelectedLevelIds([]);
     setIsDialogOpen(true);
@@ -123,6 +131,11 @@ export default function ProfilesPageClient() {
       last_name: profile.last_name || "",
       age: profile.age?.toString() || "",
       description: profile.description || "",
+      weekly_pages_goal:
+        profile.weekly_pages_goal !== null &&
+        profile.weekly_pages_goal !== undefined
+          ? String(profile.weekly_pages_goal)
+          : "",
     });
     setAvatarFilename(profile.avatar_url || "");
     console.log(
@@ -176,6 +189,7 @@ export default function ProfilesPageClient() {
           last_name: "",
           age: "",
           description: "",
+          weekly_pages_goal: "",
         });
         setAvatarFilename("");
         setSelectedLevelIds([]);
@@ -243,6 +257,7 @@ export default function ProfilesPageClient() {
                 last_name: "",
                 age: "",
                 description: "",
+                weekly_pages_goal: "",
               });
               setAvatarFilename("");
               setSelectedLevelIds([]);

@@ -21,7 +21,14 @@ export async function PUT(
 
     const { id } = await params;
     const body = await request.json();
-    const { first_name, last_name, avatar_url, age, description } = body;
+    const {
+      first_name,
+      last_name,
+      avatar_url,
+      age,
+      description,
+      weekly_pages_goal,
+    } = body;
 
     console.log("Profile update API: Received data:", {
       id,
@@ -52,6 +59,21 @@ export async function PUT(
       return NextResponse.json({ error: "Profile not found" }, { status: 404 });
     }
 
+    let goalValue: number | null | undefined = undefined;
+    if (weekly_pages_goal === null || weekly_pages_goal === "") {
+      goalValue = null;
+    } else if (weekly_pages_goal !== undefined) {
+      const n = Number(weekly_pages_goal);
+      if (Number.isFinite(n) && n >= 0) {
+        goalValue = Math.trunc(n);
+      } else {
+        return NextResponse.json(
+          { error: "weekly_pages_goal must be a positive integer" },
+          { status: 400 }
+        );
+      }
+    }
+
     const profile = await prisma.profiles.update({
       where: { id },
       data: {
@@ -60,6 +82,7 @@ export async function PUT(
         avatar_url,
         age: age ? parseInt(age) : null,
         description,
+        ...(goalValue !== undefined ? { weekly_pages_goal: goalValue } : {}),
         updated_at: new Date(),
       },
       include: {

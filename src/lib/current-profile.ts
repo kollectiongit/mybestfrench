@@ -23,6 +23,7 @@ export interface CurrentProfile {
   avatar_url: string | null;
   age: number | null;
   description: string | null;
+  weekly_pages_goal: number | null;
   created_at: string | null;
   updated_at: string | null;
   profile_levels?: ProfileLevel[];
@@ -110,6 +111,7 @@ export async function getCurrentProfile(): Promise<CurrentProfile | null> {
       avatar_url: profile.avatar_url,
       age: profile.age,
       description: profile.description,
+      weekly_pages_goal: profile.weekly_pages_goal ?? null,
       created_at: profile.created_at?.toISOString() || null,
       updated_at: profile.updated_at?.toISOString() || null,
       profile_levels: profile.profile_levels || [],
@@ -164,6 +166,7 @@ export async function getUserProfiles(): Promise<CurrentProfile[]> {
       avatar_url: profile.avatar_url,
       age: profile.age,
       description: profile.description,
+      weekly_pages_goal: profile.weekly_pages_goal ?? null,
       created_at: profile.created_at?.toISOString() || null,
       updated_at: profile.updated_at?.toISOString() || null,
       profile_levels: profile.profile_levels || [],

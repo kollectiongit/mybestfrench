@@ -17,6 +17,7 @@ export interface AddProfileFormData {
   last_name: string;
   age: string;
   description: string;
+  weekly_pages_goal: string;
 }
 
 export default function AddProfileDialog({

@@ -3,6 +3,8 @@
 import { ExerciseAttemptsChart } from "@/components/homepage/exercise-attempts-chart";
 import { FavoriteDictationsSection } from "@/components/homepage/favorite-dictations-section";
 import { WeekStats } from "@/components/homepage/last-7-days-stats";
+import { PagesReadChart } from "@/components/homepage/pages-read-chart";
+import { ReadingGoalWidget } from "@/components/homepage/reading-goal-widget";
 /* import { SplashCursor } from "@/components/ui/splash-cursor"; */
 
 const BackgroundSnippet = () => {
@@ -32,6 +34,16 @@ export default function Home() {
             <div className="bg-white/50 backdrop-blur-xl border-2 border-white/80 rounded-2xl p-16 shadow-2xl space-y-6 h-[calc(100vh-12rem)]">
               <ExerciseAttemptsChart />
             </div>
+          </div>
+        </div>
+      </div>
+      <div className="w-full px-6 py-4 flex justify-center">
+        <ReadingGoalWidget />
+      </div>
+      <div className="w-full px-6 py-8">
+        <div className="hidden md:block">
+          <div className="bg-white/50 backdrop-blur-xl border-2 border-white/80 rounded-2xl p-16 shadow-2xl space-y-6 h-[calc(100vh-12rem)]">
+            <PagesReadChart />
           </div>
         </div>
       </div>

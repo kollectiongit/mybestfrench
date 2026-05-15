@@ -12,6 +12,7 @@ import { Label } from "@/components/ui/label";
 import { CurrentProfile } from "@/lib/current-profile";
 import { TrashIcon } from "lucide-react";
 import { ImageUpload } from "./image-upload";
+import ProfileBooksManager from "./profile-books-manager";
 import ProfileLevelsSelector from "./profile-levels-selector";
 
 export interface EditProfileFormData {
@@ -19,6 +20,7 @@ export interface EditProfileFormData {
   last_name: string;
   age: string;
   description: string;
+  weekly_pages_goal: string;
 }
 
 export default function EditProfileDialog({
@@ -52,7 +54,7 @@ export default function EditProfileDialog({
 }) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-[480px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Modifier le profil</DialogTitle>
         </DialogHeader>
@@ -100,6 +102,23 @@ export default function EditProfileDialog({
             />
           </div>
           <div className="space-y-2">
+            <Label htmlFor="edit_weekly_pages_goal">
+              Objectif de lecture hebdo (pages)
+            </Label>
+            <Input
+              id="edit_weekly_pages_goal"
+              name="weekly_pages_goal"
+              type="number"
+              min={0}
+              value={formData.weekly_pages_goal}
+              onChange={onChange}
+              placeholder="Ex. 50"
+            />
+            <p className="text-xs text-gray-500">
+              Laisse vide pour ne pas définir d&apos;objectif.
+            </p>
+          </div>
+          <div className="space-y-2">
             <ImageUpload
               onUpload={setAvatarFilename}
               onUploadStateChange={onUploadStateChange}
@@ -112,6 +131,11 @@ export default function EditProfileDialog({
               onLevelsChange={setSelectedLevelIds}
             />
           </div>
+          {editingProfile?.id && (
+            <div className="space-y-2 pt-2 border-t">
+              <ProfileBooksManager profileId={editingProfile.id} />
+            </div>
+          )}
           <div className="flex justify-between pt-4">
             <Button
               type="button"
