@@ -1,4 +1,5 @@
 import { auth } from "@/lib/auth";
+import { isValidCurrency } from "@/lib/currencies";
 import { prisma } from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -30,13 +31,41 @@ export async function PATCH(
     }
 
     const body = await request.json();
-    const data: { title?: string; start_page?: number } = {};
+    const data: {
+      title?: string;
+      start_page?: number;
+      remuneration_per_page?: number | null;
+      currency?: string | null;
+    } = {};
     if (typeof body.title === "string" && body.title.trim().length > 0) {
       data.title = body.title.trim();
     }
     if (body.start_page !== undefined) {
       const sp = Number(body.start_page);
       if (Number.isFinite(sp)) data.start_page = Math.max(0, Math.trunc(sp));
+    }
+    if (body.remuneration_per_page !== undefined) {
+      if (body.remuneration_per_page === null || body.remuneration_per_page === "") {
+        data.remuneration_per_page = null;
+      } else {
+        const r = Number(body.remuneration_per_page);
+        if (!Number.isFinite(r) || r < 0) {
+          return NextResponse.json(
+            { error: "La rémunération doit être un nombre positif." },
+            { status: 400 }
+          );
+        }
+        data.remuneration_per_page = Math.round(r * 100) / 100;
+      }
+    }
+    if (body.currency !== undefined) {
+      if (body.currency === null || body.currency === "") {
+        data.currency = null;
+      } else if (isValidCurrency(body.currency)) {
+        data.currency = body.currency;
+      } else {
+        return NextResponse.json({ error: "Devise invalide." }, { status: 400 });
+      }
     }
 
     if (Object.keys(data).length === 0) {

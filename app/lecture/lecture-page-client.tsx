@@ -2,6 +2,8 @@
 
 import { ReadingProgressRing } from "@/components/lecture/reading-progress-ring";
 import { Button } from "@/components/ui/button";
+import ProfileEarningsHeader from "./profile-earnings-header";
+import WeeklyPaymentsTable from "./weekly-payments-table";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -10,7 +12,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { formatMoneyInteger } from "@/lib/currencies";
 import { ChevronLeft, ChevronRight, Plus } from "lucide-react";
+import Image from "next/image";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 
@@ -18,6 +22,8 @@ interface BookSummary {
   id: number;
   title: string;
   start_page: number;
+  remuneration_per_page: number | null;
+  currency: string | null;
 }
 
 interface ActiveBook extends BookSummary {
@@ -44,6 +50,8 @@ interface DisplayBook {
   id: number;
   title: string;
   start_page: number;
+  remuneration_per_page: number | null;
+  currency: string | null;
   isActive: boolean;
   activeSlot?: 1 | 2;
 }
@@ -89,6 +97,7 @@ export default function LecturePageClient() {
   const [profiles, setProfiles] = useState<LectureProfile[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [draftValues, setDraftValues] = useState<Record<string, string>>({});
+  const [earningsToken, setEarningsToken] = useState(0);
   // Books the user added manually as a column for the *current* week view.
   // Cleared when navigating to another week.
   const [extraBookIds, setExtraBookIds] = useState<
@@ -158,6 +167,8 @@ export default function LecturePageClient() {
           id: ab.id,
           title: ab.title,
           start_page: ab.start_page,
+          remuneration_per_page: ab.remuneration_per_page,
+          currency: ab.currency,
           isActive: true,
           activeSlot: ab.slot,
         });
@@ -182,6 +193,8 @@ export default function LecturePageClient() {
             id: meta.id,
             title: meta.title,
             start_page: meta.start_page,
+            remuneration_per_page: meta.remuneration_per_page,
+            currency: meta.currency,
             isActive: false,
           });
         }
@@ -196,6 +209,8 @@ export default function LecturePageClient() {
             id: meta.id,
             title: meta.title,
             start_page: meta.start_page,
+            remuneration_per_page: meta.remuneration_per_page,
+            currency: meta.currency,
             isActive: false,
           });
         }
@@ -225,6 +240,29 @@ export default function LecturePageClient() {
     return log ? String(log.page_number) : "";
   };
 
+  // Immutably update a single profile's logs without re-fetching the whole week
+  // (avoids the scroll-to-top / focus-loss / reorder caused by fetchWeek()).
+  const applyLogUpdate = (
+    profileId: string,
+    mutate: (
+      logs: Record<string, Record<string, LectureLog>>
+    ) => Record<string, Record<string, LectureLog>>
+  ) => {
+    setProfiles((prev) =>
+      prev.map((p) =>
+        p.id === profileId ? { ...p, logs: mutate(p.logs || {}) } : p
+      )
+    );
+  };
+
+  const clearDraft = (key: string) => {
+    setDraftValues((prev) => {
+      const c = { ...prev };
+      delete c[key];
+      return c;
+    });
+  };
+
   const saveEntry = async (
     profile: LectureProfile,
     book: DisplayBook,
@@ -247,21 +285,24 @@ export default function LecturePageClient() {
         if (!res.ok) {
           const data = await res.json().catch(() => ({}));
           toast.error(data.error || "Suppression impossible");
-          setDraftValues((prev) => {
-            const c = { ...prev };
-            delete c[key];
-            return c;
-          });
+          clearDraft(key);
           return;
         }
-        toast.success("Entrée supprimée");
-        await fetchWeek();
-      } else {
-        setDraftValues((prev) => {
-          const c = { ...prev };
-          delete c[key];
-          return c;
+        applyLogUpdate(profile.id, (logs) => {
+          const next = { ...logs };
+          if (next[iso]) {
+            const day = { ...next[iso] };
+            delete day[String(book.id)];
+            if (Object.keys(day).length === 0) delete next[iso];
+            else next[iso] = day;
+          }
+          return next;
         });
+        clearDraft(key);
+        toast.success("Entrée supprimée");
+        setEarningsToken((t) => t + 1);
+      } else {
+        clearDraft(key);
       }
       return;
     }
@@ -273,11 +314,7 @@ export default function LecturePageClient() {
     }
 
     if (currentLog && currentLog.page_number === Math.trunc(pageNumber)) {
-      setDraftValues((prev) => {
-        const c = { ...prev };
-        delete c[key];
-        return c;
-      });
+      clearDraft(key);
       return;
     }
 
@@ -294,13 +331,48 @@ export default function LecturePageClient() {
     const data = await res.json().catch(() => ({}));
     if (!res.ok) {
       toast.error(data.error || "Erreur lors de la sauvegarde");
-      setDraftValues((prev) => {
-        const c = { ...prev };
-        delete c[key];
-        return c;
-      });
+      clearDraft(key);
       return;
     }
+
+    const entry = data.entry as {
+      id: number;
+      book_id: number;
+      read_date: string;
+      page_number: number;
+      pages_read_count: number;
+    } | null;
+    const nextAffected = data.next as {
+      book_id: number;
+      read_date: string;
+      pages_read_count: number;
+    } | null;
+
+    if (entry) {
+      applyLogUpdate(profile.id, (logs) => {
+        const updated = { ...logs };
+        const day = { ...(updated[entry.read_date] || {}) };
+        day[String(entry.book_id)] = {
+          id: entry.id,
+          page_number: entry.page_number,
+          pages_read_count: entry.pages_read_count,
+        };
+        updated[entry.read_date] = day;
+        if (nextAffected) {
+          const nextDay = { ...(updated[nextAffected.read_date] || {}) };
+          const prevNext = nextDay[String(nextAffected.book_id)];
+          if (prevNext) {
+            nextDay[String(nextAffected.book_id)] = {
+              ...prevNext,
+              pages_read_count: nextAffected.pages_read_count,
+            };
+            updated[nextAffected.read_date] = nextDay;
+          }
+        }
+        return updated;
+      });
+    }
+    clearDraft(key);
 
     if (data.toast) {
       const fn = data.toast.level === "success" ? toast.success : toast;
@@ -308,7 +380,7 @@ export default function LecturePageClient() {
     } else {
       toast.success("Enregistré");
     }
-    await fetchWeek();
+    setEarningsToken((t) => t + 1);
   };
 
   const addExtraBook = (profileId: string, bookId: number) => {
@@ -330,6 +402,8 @@ export default function LecturePageClient() {
           dans la fiche du profil.
         </p>
       </div>
+
+      <ProfileEarningsHeader reloadToken={earningsToken} />
 
       <div className="flex items-center justify-center gap-4 mb-8">
         <Button
@@ -378,6 +452,10 @@ export default function LecturePageClient() {
           ))}
         </div>
       )}
+
+      <div className="mt-12">
+        <WeeklyPaymentsTable />
+      </div>
     </div>
   );
 }
@@ -436,10 +514,39 @@ function ProfileLectureTable({
     bookTotals[String(b.id)] = sum;
   }
 
+  const profileCurrency =
+    displayBooks.find((b) => b.currency)?.currency ?? null;
+  const hasRemuneration = displayBooks.some(
+    (b) => b.remuneration_per_page != null
+  );
+  const dayGains = weekDays.map((d) => {
+    let gain = 0;
+    for (const b of displayBooks) {
+      if (b.remuneration_per_page == null) continue;
+      const log = profile.logs?.[d.iso]?.[String(b.id)];
+      if (log) gain += log.pages_read_count * b.remuneration_per_page;
+    }
+    return Math.round(gain * 100) / 100;
+  });
+  const weekGain =
+    Math.round(dayGains.reduce((a, b) => a + b, 0) * 100) / 100;
+
   return (
-    <div className="bg-white rounded-2xl shadow border border-gray-100 overflow-hidden">
+    <div
+      id={`lecture-profile-${profile.id}`}
+      className="bg-white rounded-2xl shadow border border-gray-100 overflow-hidden scroll-mt-24"
+    >
       <div className="flex items-center justify-between gap-4 px-6 py-4 border-b bg-gray-50/50">
         <div className="flex items-center gap-4">
+          {profile.avatar_url && (
+            <Image
+              src={`/api/avatars/${profile.avatar_url}`}
+              alt={profile.first_name}
+              width={40}
+              height={40}
+              className="h-10 w-10 rounded-full object-cover shrink-0"
+            />
+          )}
           <h2 className="text-xl font-semibold text-gray-900">
             {profile.first_name}
           </h2>
@@ -506,6 +613,11 @@ function ProfileLectureTable({
               <th className="px-3 py-2 text-right text-xs font-semibold uppercase text-gray-500 min-w-[90px] border-l border-gray-200 bg-gray-50">
                 Total
               </th>
+              {hasRemuneration && (
+                <th className="px-3 py-2 text-right text-xs font-semibold uppercase text-gray-500 min-w-[90px] border-l border-gray-200 bg-gray-50">
+                  Gains
+                </th>
+              )}
             </tr>
           </thead>
           <tbody>
@@ -564,6 +676,13 @@ function ProfileLectureTable({
                   <td className="px-3 py-2 text-right text-sm font-semibold text-gray-700 border-l border-gray-200 bg-gray-50/60">
                     {dailyTotal > 0 ? `${dailyTotal} p` : ""}
                   </td>
+                  {hasRemuneration && (
+                    <td className="px-3 py-2 text-right text-sm font-semibold text-emerald-700 border-l border-gray-200 bg-gray-50/60">
+                      {dayGains[idx] > 0
+                        ? formatMoneyInteger(dayGains[idx], profileCurrency)
+                        : ""}
+                    </td>
+                  )}
                 </tr>
               );
             })}
@@ -587,6 +706,13 @@ function ProfileLectureTable({
               <td className="px-3 py-2 text-right text-base font-bold text-gray-900 border-l border-gray-200">
                 {weekTotal > 0 ? `${weekTotal} p` : ""}
               </td>
+              {hasRemuneration && (
+                <td className="px-3 py-2 text-right text-base font-bold text-emerald-700 border-l border-gray-200">
+                  {weekGain > 0
+                    ? formatMoneyInteger(weekGain, profileCurrency)
+                    : ""}
+                </td>
+              )}
             </tr>
           </tbody>
         </table>

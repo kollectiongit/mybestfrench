@@ -73,13 +73,25 @@ export async function GET(request: NextRequest) {
         };
       }
 
-      const activeBooks: { slot: 1 | 2; id: number; title: string; start_page: number }[] = [];
+      const activeBooks: {
+        slot: 1 | 2;
+        id: number;
+        title: string;
+        start_page: number;
+        remuneration_per_page: number | null;
+        currency: string | null;
+      }[] = [];
       if (p.active_book) {
         activeBooks.push({
           slot: 1,
           id: p.active_book.id,
           title: p.active_book.title,
           start_page: p.active_book.start_page,
+          remuneration_per_page:
+            p.active_book.remuneration_per_page != null
+              ? Number(p.active_book.remuneration_per_page)
+              : null,
+          currency: p.active_book.currency,
         });
       }
       if (p.active_book_2) {
@@ -88,6 +100,11 @@ export async function GET(request: NextRequest) {
           id: p.active_book_2.id,
           title: p.active_book_2.title,
           start_page: p.active_book_2.start_page,
+          remuneration_per_page:
+            p.active_book_2.remuneration_per_page != null
+              ? Number(p.active_book_2.remuneration_per_page)
+              : null,
+          currency: p.active_book_2.currency,
         });
       }
 
@@ -101,6 +118,11 @@ export async function GET(request: NextRequest) {
           id: b.id,
           title: b.title,
           start_page: b.start_page,
+          remuneration_per_page:
+            b.remuneration_per_page != null
+              ? Number(b.remuneration_per_page)
+              : null,
+          currency: b.currency,
           created_at: b.created_at.toISOString(),
         })),
         logs: logsByDate,

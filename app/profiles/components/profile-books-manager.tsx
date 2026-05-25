@@ -3,14 +3,26 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { CURRENCIES, formatMoney } from "@/lib/currencies";
 import { Pencil, Plus, Trash2, X } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
+
+const NO_CURRENCY = "__none__";
 
 interface Book {
   id: number;
   title: string;
   start_page: number;
+  remuneration_per_page: number | null;
+  currency: string | null;
   created_at: string;
   logs_count: number;
 }
@@ -45,8 +57,12 @@ export default function ProfileBooksManager({
   const [isAdding, setIsAdding] = useState(false);
   const [newTitle, setNewTitle] = useState("");
   const [newStartPage, setNewStartPage] = useState("0");
+  const [newRemuneration, setNewRemuneration] = useState("");
+  const [newCurrency, setNewCurrency] = useState<string>(NO_CURRENCY);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editTitle, setEditTitle] = useState("");
+  const [editRemuneration, setEditRemuneration] = useState("");
+  const [editCurrency, setEditCurrency] = useState<string>(NO_CURRENCY);
 
   const fetchData = useCallback(async () => {
     if (!profileId) return;
@@ -91,6 +107,20 @@ export default function ProfileBooksManager({
       toast.error("La page de départ doit être un nombre positif");
       return;
     }
+    let remuneration: number | null = null;
+    if (newRemuneration.trim() !== "") {
+      const r = Number(newRemuneration);
+      if (!Number.isFinite(r) || r < 0) {
+        toast.error("La rémunération doit être un nombre positif");
+        return;
+      }
+      remuneration = r;
+    }
+    const currency = newCurrency === NO_CURRENCY ? null : newCurrency;
+    if (remuneration !== null && !currency) {
+      toast.error("Sélectionne une devise pour la rémunération");
+      return;
+    }
     const res = await fetch("/api/lecture/books", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -98,6 +128,8 @@ export default function ProfileBooksManager({
         profile_id: profileId,
         title,
         start_page: Math.trunc(startPage),
+        remuneration_per_page: remuneration,
+        currency,
       }),
     });
     if (!res.ok) {
@@ -108,6 +140,8 @@ export default function ProfileBooksManager({
     toast.success("Livre ajouté");
     setNewTitle("");
     setNewStartPage("0");
+    setNewRemuneration("");
+    setNewCurrency(NO_CURRENCY);
     setIsAdding(false);
     await fetchData();
   };
@@ -115,11 +149,17 @@ export default function ProfileBooksManager({
   const startEdit = (book: Book) => {
     setEditingId(book.id);
     setEditTitle(book.title);
+    setEditRemuneration(
+      book.remuneration_per_page != null ? String(book.remuneration_per_page) : ""
+    );
+    setEditCurrency(book.currency ?? NO_CURRENCY);
   };
 
   const cancelEdit = () => {
     setEditingId(null);
     setEditTitle("");
+    setEditRemuneration("");
+    setEditCurrency(NO_CURRENCY);
   };
 
   const handleDelete = async (book: Book) => {
@@ -155,10 +195,28 @@ export default function ProfileBooksManager({
       toast.error("Le titre ne peut pas être vide");
       return;
     }
+    let remuneration: number | null = null;
+    if (editRemuneration.trim() !== "") {
+      const r = Number(editRemuneration);
+      if (!Number.isFinite(r) || r < 0) {
+        toast.error("La rémunération doit être un nombre positif");
+        return;
+      }
+      remuneration = r;
+    }
+    const currency = editCurrency === NO_CURRENCY ? null : editCurrency;
+    if (remuneration !== null && !currency) {
+      toast.error("Sélectionne une devise pour la rémunération");
+      return;
+    }
     const res = await fetch(`/api/lecture/books/${editingId}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ title }),
+      body: JSON.stringify({
+        title,
+        remuneration_per_page: remuneration,
+        currency,
+      }),
     });
     if (!res.ok) {
       const data = await res.json().catch(() => ({}));
@@ -166,8 +224,7 @@ export default function ProfileBooksManager({
       return;
     }
     toast.success("Livre mis à jour");
-    setEditingId(null);
-    setEditTitle("");
+    cancelEdit();
     await fetchData();
   };
 
@@ -263,6 +320,38 @@ export default function ProfileBooksManager({
               ou 1).
             </p>
           </div>
+          <div className="grid grid-cols-2 gap-2">
+            <div className="space-y-1">
+              <Label htmlFor="new-book-remuneration" className="text-xs">
+                Rémunération / page
+              </Label>
+              <Input
+                id="new-book-remuneration"
+                type="number"
+                min={0}
+                step="0.1"
+                value={newRemuneration}
+                onChange={(e) => setNewRemuneration(e.target.value)}
+                placeholder="0.5"
+              />
+            </div>
+            <div className="space-y-1">
+              <Label className="text-xs">Devise</Label>
+              <Select value={newCurrency} onValueChange={setNewCurrency}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Devise" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={NO_CURRENCY}>Aucune</SelectItem>
+                  {CURRENCIES.map((c) => (
+                    <SelectItem key={c.code} value={c.code}>
+                      {c.code} — {c.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
           <div className="flex justify-end gap-2">
             <Button
               type="button"
@@ -297,42 +386,75 @@ export default function ProfileBooksManager({
                 className="px-3 py-2 flex items-center gap-2 text-sm"
               >
                 {editingId === book.id ? (
-                  <>
+                  <div className="flex-1 flex flex-col gap-2">
                     <Input
                       value={editTitle}
                       onChange={(e) => setEditTitle(e.target.value)}
-                      className="h-8 flex-1"
+                      className="h-8"
                       autoFocus
+                      placeholder="Titre du livre"
                       onKeyDown={(e) => {
                         if (e.key === "Enter") saveEdit();
                         if (e.key === "Escape") cancelEdit();
                       }}
                     />
-                    <Button
-                      type="button"
-                      size="sm"
-                      onClick={saveEdit}
-                      className="h-8"
-                    >
-                      OK
-                    </Button>
-                    <Button
-                      type="button"
-                      size="icon"
-                      variant="ghost"
-                      onClick={cancelEdit}
-                      className="h-8 w-8"
-                    >
-                      <X className="h-3.5 w-3.5" />
-                    </Button>
-                  </>
+                    <div className="grid grid-cols-2 gap-2">
+                      <Input
+                        type="number"
+                        min={0}
+                        step="0.1"
+                        value={editRemuneration}
+                        onChange={(e) => setEditRemuneration(e.target.value)}
+                        placeholder="Rémunération / page"
+                        className="h-8"
+                      />
+                      <Select
+                        value={editCurrency}
+                        onValueChange={setEditCurrency}
+                      >
+                        <SelectTrigger className="h-8 w-full">
+                          <SelectValue placeholder="Devise" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value={NO_CURRENCY}>Aucune</SelectItem>
+                          {CURRENCIES.map((c) => (
+                            <SelectItem key={c.code} value={c.code}>
+                              {c.code} — {c.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="flex justify-end gap-2">
+                      <Button
+                        type="button"
+                        size="sm"
+                        onClick={saveEdit}
+                        className="h-8"
+                      >
+                        OK
+                      </Button>
+                      <Button
+                        type="button"
+                        size="icon"
+                        variant="ghost"
+                        onClick={cancelEdit}
+                        className="h-8 w-8"
+                      >
+                        <X className="h-3.5 w-3.5" />
+                      </Button>
+                    </div>
+                  </div>
                 ) : (
                   <>
                     <div className="flex-1 flex flex-col">
                       <span className="font-medium">{book.title}</span>
                       <span className="text-[10px] text-gray-500">
-                        Page de départ : {book.start_page} · Ajouté le{" "}
-                        {formatDate(book.created_at)}
+                        Page de départ : {book.start_page}
+                        {book.remuneration_per_page != null && book.currency
+                          ? ` · ${formatMoney(book.remuneration_per_page, book.currency)}/page`
+                          : ""}{" "}
+                        · Ajouté le {formatDate(book.created_at)}
                       </span>
                     </div>
                     <div className="flex items-center gap-1">

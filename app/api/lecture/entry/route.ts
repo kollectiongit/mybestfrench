@@ -155,29 +155,42 @@ export async function POST(request: NextRequest) {
         });
       }
 
+      let nextUpdated: { read_date: Date; pages_read_count: number } | null =
+        null;
       if (nextSameBook) {
-        await tx.reading_logs.update({
+        const updatedNext = await tx.reading_logs.update({
           where: { id: nextSameBook.id },
           data: {
             pages_read_count: nextSameBook.page_number - pageInt,
           },
         });
+        nextUpdated = {
+          read_date: updatedNext.read_date,
+          pages_read_count: updatedNext.pages_read_count,
+        };
       }
 
-      return saved;
+      return { saved, nextUpdated };
     });
 
     const toast = buildToastMessage(pagesReadCount);
 
     return NextResponse.json({
       entry: {
-        id: result.id,
-        profile_id: result.profile_id,
-        book_id: result.book_id,
-        read_date: result.read_date.toISOString().slice(0, 10),
-        page_number: result.page_number,
-        pages_read_count: result.pages_read_count,
+        id: result.saved.id,
+        profile_id: result.saved.profile_id,
+        book_id: result.saved.book_id,
+        read_date: result.saved.read_date.toISOString().slice(0, 10),
+        page_number: result.saved.page_number,
+        pages_read_count: result.saved.pages_read_count,
       },
+      next: result.nextUpdated
+        ? {
+            book_id: result.saved.book_id,
+            read_date: result.nextUpdated.read_date.toISOString().slice(0, 10),
+            pages_read_count: result.nextUpdated.pages_read_count,
+          }
+        : null,
       toast,
     });
   } catch (error) {

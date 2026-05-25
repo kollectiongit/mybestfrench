@@ -1,8 +1,21 @@
 import { auth } from "@/lib/auth";
+import { isValidCurrency } from "@/lib/currencies";
 import { prisma } from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
+
+// Parses a remuneration value from a request body. Returns:
+// - number (>= 0) when a valid value is provided
+// - null when explicitly cleared (null / "")
+// - undefined when invalid or absent
+function parseRemuneration(raw: unknown): number | null | undefined {
+  if (raw === null || raw === "") return null;
+  if (raw === undefined) return undefined;
+  const n = Number(raw);
+  if (!Number.isFinite(n) || n < 0) return undefined;
+  return Math.round(n * 100) / 100;
+}
 
 // GET /api/lecture/books?profile_id=...
 export async function GET(request: NextRequest) {
@@ -38,6 +51,9 @@ export async function GET(request: NextRequest) {
       id: b.id,
       title: b.title,
       start_page: b.start_page,
+      remuneration_per_page:
+        b.remuneration_per_page != null ? Number(b.remuneration_per_page) : null,
+      currency: b.currency,
       created_at: b.created_at,
       logs_count: b._count.reading_logs,
     }));
@@ -75,6 +91,23 @@ export async function POST(request: NextRequest) {
       ? Math.max(0, Math.trunc(Number(startPageRaw)))
       : 0;
 
+    const remuneration = parseRemuneration(body.remuneration_per_page);
+    if (remuneration === undefined && body.remuneration_per_page !== undefined) {
+      return NextResponse.json(
+        { error: "La rémunération doit être un nombre positif." },
+        { status: 400 }
+      );
+    }
+    const currency: string | null =
+      body.currency == null || body.currency === ""
+        ? null
+        : isValidCurrency(body.currency)
+          ? body.currency
+          : "__invalid__";
+    if (currency === "__invalid__") {
+      return NextResponse.json({ error: "Devise invalide." }, { status: 400 });
+    }
+
     const profile = await prisma.profiles.findFirst({
       where: { id: profileId, user_id: session.user.id },
     });
@@ -87,6 +120,8 @@ export async function POST(request: NextRequest) {
         profile_id: profileId,
         title,
         start_page: startPage,
+        remuneration_per_page: remuneration ?? null,
+        currency,
       },
     });
 
