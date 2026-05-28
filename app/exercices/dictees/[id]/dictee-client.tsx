@@ -73,6 +73,8 @@ interface Dictation {
   exercices_attempts_min_errors: number | null;
   exercices_attempts_max_errors: number | null;
   is_favorite: boolean;
+  today_attempts_count: number;
+  has_perfect_score: boolean;
 }
 
 export default function DicteeClient({ dictationId }: { dictationId: number }) {
@@ -313,12 +315,19 @@ export default function DicteeClient({ dictationId }: { dictationId: number }) {
                       data.attempt.original_text_errors_highlighted,
                   };
 
+                  const isPerfect =
+                    newAttempt.correction_success_percentage === 100;
+
                   setDictation({
                     ...dictation,
                     exercicesAttempts: [
                       newAttempt,
                       ...dictation.exercicesAttempts,
                     ],
+                    today_attempts_count:
+                      dictation.today_attempts_count + 1,
+                    has_perfect_score:
+                      dictation.has_perfect_score || isPerfect,
                   });
 
                   // Set the new attempt as expanded
@@ -446,7 +455,16 @@ export default function DicteeClient({ dictationId }: { dictationId: number }) {
         topicName={dictation.topic.name}
         dictationText={dictationText}
         setDictationText={setDictationText}
-        disabled={false}
+        disabled={
+          dictation.has_perfect_score || dictation.today_attempts_count >= 3
+        }
+        lockReason={
+          dictation.has_perfect_score
+            ? "perfect_score"
+            : dictation.today_attempts_count >= 3
+              ? "daily_cap"
+              : null
+        }
         isValidating={isValidating}
         validationMessage={validationMessages[validationMessageIndex]}
         onValidate={handleValidate}

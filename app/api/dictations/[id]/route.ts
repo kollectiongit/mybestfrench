@@ -150,6 +150,31 @@ export async function GET(
     const { favorite_profiles, ...dictationData } = dictation;
     const isFavorite = Array.isArray(favorite_profiles) && favorite_profiles.length > 0;
 
+    const startOfToday = new Date();
+    startOfToday.setHours(0, 0, 0, 0);
+    const endOfToday = new Date(startOfToday);
+    endOfToday.setDate(endOfToday.getDate() + 1);
+
+    const [todayAttemptsCount, perfectAttempt] = currentProfileId
+      ? await Promise.all([
+          prisma.exercices_attempts.count({
+            where: {
+              profile_id: currentProfileId,
+              dictation_id: dictationId,
+              created_at: { gte: startOfToday, lt: endOfToday },
+            },
+          }),
+          prisma.exercices_attempts.findFirst({
+            where: {
+              profile_id: currentProfileId,
+              dictation_id: dictationId,
+              correction_success_percentage: 100,
+            },
+            select: { id: true },
+          }),
+        ])
+      : [0, null];
+
     return NextResponse.json({
       ...dictationData,
       exercicesAttempts,
@@ -159,6 +184,8 @@ export async function GET(
       exercices_attempts_min_errors: minErrors,
       exercices_attempts_max_errors: maxErrors,
       is_favorite: isFavorite,
+      today_attempts_count: todayAttemptsCount,
+      has_perfect_score: !!perfectAttempt,
     }, {
       headers: {
         // Per-user data: avoid public caching to prevent cross-user/profile leakage

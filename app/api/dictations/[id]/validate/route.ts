@@ -183,6 +183,39 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const perfect = await prisma.exercices_attempts.findFirst({
+      where: {
+        profile_id: currentProfileId,
+        dictation_id: dictationId,
+        correction_success_percentage: 100,
+      },
+      select: { id: true },
+    });
+    if (perfect) {
+      return NextResponse.json(
+        { error: "Cette dictée a déjà obtenu 10/10 et ne peut plus être re-soumise." },
+        { status: 403 }
+      );
+    }
+
+    const startOfToday = new Date();
+    startOfToday.setHours(0, 0, 0, 0);
+    const endOfToday = new Date(startOfToday);
+    endOfToday.setDate(endOfToday.getDate() + 1);
+    const todayCount = await prisma.exercices_attempts.count({
+      where: {
+        profile_id: currentProfileId,
+        dictation_id: dictationId,
+        created_at: { gte: startOfToday, lt: endOfToday },
+      },
+    });
+    if (todayCount >= 3) {
+      return NextResponse.json(
+        { error: "Cette dictée a déjà été effectuée 3 fois aujourd'hui." },
+        { status: 403 }
+      );
+    }
+
     // System prompt with dynamic profile information
     const systemPrompt = `Tu es un professeur d'école élémentaire (niveaux : ${profileLevels || 'école élémentaire'}).  
 Ton rôle est d'aider ton élève à progresser en orthographe, grammaire et conjugaison à travers la correction et l'analyse de ses dictées.  
@@ -265,7 +298,7 @@ Ton rôle est d'aider ton élève à progresser en orthographe, grammaire et con
 
     // Create streaming response
     const stream = client.responses.stream({
-      model: "gpt-4.1-mini", // Supported model for Structured Outputs
+      model: "gpt-5.4-nano", // Supported model for Structured Outputs
       input: [
         { role: "system", content: systemPrompt },
         { role: "user", content: userPrompt },
