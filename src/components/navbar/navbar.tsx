@@ -15,7 +15,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { useSession } from "@/contexts/session-context";
-import { BookOpen, Contact, GraduationCap, Home } from "lucide-react";
+import { BookOpen, Contact, GraduationCap, Home, Pencil } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
@@ -24,6 +24,7 @@ const navigationLinks = [
   { href: "/", label: "Accueil", icon: Home },
   { href: "/profiles", label: "Profils", icon: Contact },
   { href: "/exercices/dictees", label: "Dictées", icon: GraduationCap },
+  { href: "/exercices/conjugaisons", label: "Conjugaison", icon: Pencil },
   { href: "/lecture", label: "Lecture", icon: BookOpen },
 ];
 

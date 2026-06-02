@@ -87,6 +87,7 @@ model exercices_attempts {
   profile_id                                String               @db.Uuid
   exercise_id                               Int?
   dictation_id                              Int?
+  conjugaison_id                            Int?
   generated_question_id                     Int?
   question_type                             String
   question_text                             String
@@ -107,6 +108,7 @@ model exercices_attempts {
   correction_conclusion_message             String?
   correction_full_json                      String?
   dictation                                 dictation?           @relation(fields: [dictation_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  conjugaison                               conjugaison?         @relation(fields: [conjugaison_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
   exercices_errors                          exercices_errors[]
   generated_questions                       generated_questions? @relation(fields: [generated_question_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
   exercises                                 exercises?           @relation(fields: [exercise_id], references: [id], onUpdate: NoAction, map: "training_attempts_exercise_id_fkey")
@@ -119,6 +121,25 @@ model exercices_attempts {
   @@index([dictation_id, profile_id])
   @@index([dictation_id, created_at])
   @@index([profile_id, dictation_id, created_at])
+  @@index([conjugaison_id, profile_id])
+  @@index([profile_id, conjugaison_id, created_at])
+}
+
+model conjugaison {
+  id             Int      @id @default(autoincrement())
+  infinitif      String
+  groupe         Int
+  personne       String
+  temps          String
+  verbe_conjugue String
+  radical        String
+  terminaison    String
+  created_at     DateTime @default(now()) @db.Timestamptz(6)
+
+  exercices_attempts exercices_attempts[]
+
+  @@unique([infinitif, temps, personne])
+  @@index([infinitif])
 }
 
 

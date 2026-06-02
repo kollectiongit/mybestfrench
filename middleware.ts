@@ -1,11 +1,25 @@
 import { getCurrentProfileFromCookie } from "@/lib/profile-cookies";
-import { getSessionCookie } from "better-auth/cookies";
+import type { auth } from "@/lib/auth";
+import { betterFetch } from "@better-fetch/fetch";
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "./src/utils/spabase/middleware";
 
+type Session = typeof auth.$Infer.Session;
+
 export async function middleware(request: NextRequest) {
   const { response } = createClient(request);
-  const sessionCookie = getSessionCookie(request);
+
+  // Validate the actual session (DB-backed), not just the cookie's presence.
+  // A stale/expired cookie must be treated as "not authenticated", otherwise
+  // logged-out users get bounced away from /login and onto protected pages.
+  const { data: session } = await betterFetch<Session>(
+    "/api/auth/get-session",
+    {
+      baseURL: request.nextUrl.origin,
+      headers: { cookie: request.headers.get("cookie") || "" },
+    }
+  );
+
   const { pathname, search } = request.nextUrl;
   const isApiRoute = pathname.startsWith("/api");
   const isAuthPage = pathname === "/login" || pathname === "/signup" || pathname === "/reset-password";
@@ -19,22 +33,22 @@ export async function middleware(request: NextRequest) {
   const isProtectedRoute = protectedRoutes.some((route) => pathname === route || pathname.startsWith(route + "/"));
   
   // If user is authenticated and trying to access auth pages, redirect to dashboard
-  if (sessionCookie) {
+  if (session) {
     if (isAuthPage) {
       return NextResponse.redirect(new URL("/profiles", request.url));
     }
   }
-  
+
   // If user is not authenticated and trying to access protected routes, redirect to login
-  if (!sessionCookie) {
+  if (!session) {
     if (!isApiRoute && isProtectedRoute && !isAuthPage) {
       const nextParam = encodeURIComponent(pathname + (search || ""));
       return NextResponse.redirect(new URL(`/login?next=${nextParam}` as string, request.url));
     }
   }
-  
+
   // For authenticated users, add current profile ID to headers for SSR access
-  if (sessionCookie) {
+  if (session) {
     const currentProfileId = await getCurrentProfileFromCookie(request);
     
     // Add current profile ID to request headers so it's available in SSR
