@@ -65,7 +65,7 @@ export async function GET(request: NextRequest) {
     weekEnd.setDate(weekStart.getDate() + 6); // Sunday (6 days after Monday)
     weekEnd.setHours(23, 59, 59, 999);
 
-    // Fetch ALL exercise attempts (not just dictations) for the profile
+    // Fetch ALL exercise attempts (dictations + conjugaisons) for the profile
     const attempts = await prisma.exercices_attempts.findMany({
       where: {
         profile_id: currentProfileId,
@@ -76,22 +76,25 @@ export async function GET(request: NextRequest) {
       },
       select: {
         created_at: true,
+        conjugaison_id: true,
       },
       orderBy: {
         created_at: 'asc',
       },
     });
 
-    // Group attempts by day
+    // Group attempts by day.
+    // Each day's count weights a dictation as 1 and a conjugaison as 1/5.
     const dayCounts = new Map<string, number>();
-    
+
     attempts.forEach((attempt) => {
       if (!attempt.created_at) return;
       const date = new Date(attempt.created_at);
       // Normalize to start of day for grouping
       date.setHours(0, 0, 0, 0);
       const dateKey = date.toISOString().split('T')[0]; // Format: YYYY-MM-DD
-      dayCounts.set(dateKey, (dayCounts.get(dateKey) || 0) + 1);
+      const weight = attempt.conjugaison_id ? 1 / 5 : 1;
+      dayCounts.set(dateKey, (dayCounts.get(dateKey) || 0) + weight);
     });
 
     // Generate the 7 days of the week (Monday to Sunday) with counts
@@ -108,15 +111,19 @@ export async function GET(request: NextRequest) {
       const day = String(date.getDate()).padStart(2, '0');
       const month = String(date.getMonth() + 1).padStart(2, '0');
       
+      // Round to 1 decimal to avoid floating-point artifacts (e.g. 1/5 + 1/5)
+      const count = Math.round((dayCounts.get(dateKey) || 0) * 10) / 10;
+
       result.push({
         day: dayAbbrev,
         date: `${day}/${month}`,
-        count: dayCounts.get(dateKey) || 0,
+        count,
       });
     }
 
-    // Calculate total
-    const total = result.reduce((sum, day) => sum + day.count, 0);
+    // Calculate total (round again to keep a clean decimal)
+    const total =
+      Math.round(result.reduce((sum, day) => sum + day.count, 0) * 10) / 10;
 
     return NextResponse.json(
       { days: result, total },

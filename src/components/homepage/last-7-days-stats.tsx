@@ -89,6 +89,11 @@ export function WeekStats({ week = "current", title }: WeekStatsProps) {
     return "bg-yellow-500 text-white border-yellow-500";
   };
 
+  // Display counts with French formatting (decimal comma), e.g. "3,2".
+  // Whole numbers stay without decimals.
+  const formatCount = (count: number): string =>
+    count.toLocaleString("fr-FR", { maximumFractionDigits: 1 });
+
   return (
     <div className="py-2 md:py-4 px-3">
       {title && (
@@ -107,13 +112,13 @@ export function WeekStats({ week = "current", title }: WeekStatsProps) {
             </span>
             <span className="font-bold">
               <Badge className={getBadgeColorClass(day.count)}>
-                {day.count}
+                {formatCount(day.count)}
               </Badge>
             </span>
           </div>
         ))}
         <div className="text-sm md:text-lg font-semibold pt-2">
-          Total : <span className="font-bold">{total}</span>
+          Total : <span className="font-bold">{formatCount(total)}</span>
         </div>
       </div>
     </div>
