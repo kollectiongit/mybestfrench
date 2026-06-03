@@ -9,7 +9,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { CheckCircle2, RotateCcw, XCircle } from "lucide-react";
+import { CheckCircle2, Dumbbell, RotateCcw, Table, Trash2, XCircle } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
@@ -117,6 +117,22 @@ export default function ConjugaisonsHistoryClient() {
     setFResultat(ALL);
   };
 
+  const handleDelete = async (id: number) => {
+    // Suppression optimiste : on retire la carte tout de suite
+    const previous = attempts;
+    setAttempts((prev) => prev.filter((a) => a.id !== id));
+    try {
+      const res = await fetch(`/api/conjugaisons/history/${id}`, {
+        method: "DELETE",
+      });
+      if (!res.ok) throw new Error("Erreur de suppression");
+    } catch (e) {
+      console.error(e);
+      setAttempts(previous);
+      toast.error("Impossible de supprimer cet essai.");
+    }
+  };
+
   const hasActiveFilter =
     fVerbe !== ALL ||
     fTemps !== ALL ||
@@ -133,9 +149,18 @@ export default function ConjugaisonsHistoryClient() {
             Toutes les conjugaisons que tu as réalisées.
           </p>
         </div>
-        <Button asChild variant="outline">
-          <Link href="/exercices/conjugaisons">S&apos;entraîner</Link>
-        </Button>
+        <div className="flex flex-wrap items-center gap-2">
+          <Button asChild variant="outline" className="gap-2">
+            <Link href="/exercices/conjugaisons">
+              <Dumbbell className="size-4" /> S&apos;entraîner
+            </Link>
+          </Button>
+          <Button asChild variant="outline" className="gap-2">
+            <Link href="/exercices/conjugaisons/tableau">
+              <Table className="size-4" /> Tableau de résultats
+            </Link>
+          </Button>
+        </div>
       </div>
 
       {/* Stats */}
@@ -245,7 +270,7 @@ export default function ConjugaisonsHistoryClient() {
           {filtered.map((a) => (
             <div
               key={a.id}
-              className={`flex items-center gap-3 rounded-lg border p-3 ${
+              className={`group flex items-center gap-3 rounded-lg border p-3 ${
                 a.is_correct ? "" : "bg-red-50 border-red-300"
               }`}
             >
@@ -280,6 +305,15 @@ export default function ConjugaisonsHistoryClient() {
               <div className="text-xs text-muted-foreground shrink-0 text-right">
                 {formatDate(a.created_at)}
               </div>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => handleDelete(a.id)}
+                aria-label="Supprimer cet essai"
+                className="size-8 shrink-0 text-muted-foreground opacity-0 transition-opacity hover:text-red-600 group-hover:opacity-100 focus-visible:opacity-100"
+              >
+                <Trash2 className="size-4" />
+              </Button>
             </div>
           ))}
         </div>

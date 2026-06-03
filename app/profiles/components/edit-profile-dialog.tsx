@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { CurrentProfile } from "@/lib/current-profile";
 import { TrashIcon } from "lucide-react";
+import ConjugaisonSettings from "./conjugaison-settings";
 import { ImageUpload } from "./image-upload";
 import ProfileBooksManager from "./profile-books-manager";
 import ProfileLevelsSelector from "./profile-levels-selector";
@@ -21,6 +22,8 @@ export interface EditProfileFormData {
   age: string;
   description: string;
   weekly_pages_goal: string;
+  conjugaison_show_radical: boolean;
+  conjugaison_groupes: number[];
 }
 
 export default function EditProfileDialog({
@@ -36,6 +39,8 @@ export default function EditProfileDialog({
   editingProfile,
   onDelete,
   setSelectedLevelIds,
+  setShowRadical,
+  setGroupes,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -51,6 +56,8 @@ export default function EditProfileDialog({
   editingProfile: CurrentProfile | null;
   onDelete: () => void;
   setSelectedLevelIds: (v: number[]) => void;
+  setShowRadical: (v: boolean) => void;
+  setGroupes: (v: number[]) => void;
 }) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -131,6 +138,12 @@ export default function EditProfileDialog({
               onLevelsChange={setSelectedLevelIds}
             />
           </div>
+          <ConjugaisonSettings
+            showRadical={formData.conjugaison_show_radical}
+            onShowRadicalChange={setShowRadical}
+            groupes={formData.conjugaison_groupes}
+            onGroupesChange={setGroupes}
+          />
           {editingProfile?.id && (
             <div className="space-y-2 pt-2 border-t">
               <ProfileBooksManager profileId={editingProfile.id} />

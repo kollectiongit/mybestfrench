@@ -1,6 +1,5 @@
 "use client";
 
-import Logo from "@/components/navbar/components/logo";
 import ProfileSwitcher from "@/components/navbar/components/profile-switcher";
 import { Button } from "@/components/ui/button";
 import {
@@ -107,9 +106,6 @@ export default function Component() {
           </Popover>
           {/* Main nav */}
           <div className="flex items-center gap-6">
-            <Link href="/" className="text-primary hover:text-primary/90">
-              <Logo />
-            </Link>
             {/* Navigation menu */}
             <NavigationMenu className="max-md:hidden">
               <NavigationMenuList className="gap-2">

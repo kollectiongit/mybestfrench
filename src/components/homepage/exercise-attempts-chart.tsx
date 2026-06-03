@@ -18,15 +18,25 @@ import { useCurrentProfile } from "@/hooks/use-current-profile";
 import { useEffect, useState } from "react";
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts";
 
+// 5 conjugaisons "valent" la hauteur de 1 dictée
+const CONJUGAISON_HEIGHT_FACTOR = 5;
+
 interface ChartData {
   period: string;
   attempts: number;
+  conjugaisons: number;
+  // Valeur tracée pour la barre conjugaison (mise à l'échelle)
+  conjugaisonsScaled?: number;
 }
 
 const chartConfig = {
   attempts: {
-    label: "Tentatives",
+    label: "Dictées",
     color: "var(--chart-2)",
+  },
+  conjugaisonsScaled: {
+    label: "Conjugaisons",
+    color: "#2b7fff",
   },
 } satisfies ChartConfig;
 
@@ -82,8 +92,14 @@ export function ExerciseAttemptsChart() {
           throw new Error("Failed to fetch data");
         }
 
-        const data = await response.json();
-        setChartData(data);
+        const data: ChartData[] = await response.json();
+        // Met à l'échelle les conjugaisons : 5 conjugaisons = hauteur de 1 dictée
+        const scaled = data.map((d) => ({
+          ...d,
+          conjugaisons: d.conjugaisons ?? 0,
+          conjugaisonsScaled: (d.conjugaisons ?? 0) / CONJUGAISON_HEIGHT_FACTOR,
+        }));
+        setChartData(scaled);
       } catch (err) {
         console.error("Error fetching chart data:", err);
         setError("Erreur lors du chargement des données");
@@ -296,7 +312,6 @@ export function ExerciseAttemptsChart() {
                 content={
                   <ChartTooltipContent
                     hideLabel
-                    hideIndicator
                     formatter={(value, name, item, index, payload) => {
                       const chartData = payload as unknown as ChartData;
                       let formattedDate = chartData.period;
@@ -306,13 +321,33 @@ export function ExerciseAttemptsChart() {
                         formattedDate = chartData.period.replace("|", " ");
                       }
 
+                      const dataKey = (item as { dataKey?: string })?.dataKey;
+                      const isConjugaison = dataKey === "conjugaisonsScaled";
+                      // Afficher le vrai nombre, pas la valeur mise à l'échelle
+                      const realCount = isConjugaison
+                        ? chartData.conjugaisons ?? 0
+                        : chartData.attempts ?? 0;
+                      const label = isConjugaison
+                        ? `conjugaison${realCount !== 1 ? "s" : ""}`
+                        : `dictée${realCount !== 1 ? "s" : ""}`;
+
                       return (
-                        <span>
-                          <span className="text-muted-foreground">
-                            {formattedDate}
-                          </span>{" "}
+                        <span className="flex items-center gap-1.5">
+                          {index === 0 && (
+                            <span className="text-muted-foreground">
+                              {formattedDate}
+                            </span>
+                          )}
+                          <span
+                            className="inline-block size-2 rounded-[2px]"
+                            style={{
+                              backgroundColor: isConjugaison
+                                ? "#2b7fff"
+                                : "var(--color-attempts)",
+                            }}
+                          />
                           <span className="font-bold">
-                            {value} essai{value !== 1 ? "s" : ""}
+                            {realCount} {label}
                           </span>
                         </span>
                       );
@@ -388,6 +423,65 @@ export function ExerciseAttemptsChart() {
                       width={barProps.width}
                       height={barProps.height}
                       fill={fillColor}
+                      rx={8}
+                      style={{ transition: "fill 0.2s ease-in-out" }}
+                    />
+                  );
+                }}
+              />
+              <Bar
+                dataKey="conjugaisonsScaled"
+                fill="#2b7fff"
+                radius={8}
+                shape={(props: unknown) => {
+                  const barProps = props as {
+                    x?: number;
+                    y?: number;
+                    width?: number;
+                    height?: number;
+                    payload?: ChartData;
+                    index?: number;
+                  };
+
+                  if (
+                    !barProps.payload ||
+                    !barProps.x ||
+                    !barProps.y ||
+                    !barProps.width ||
+                    barProps.height === undefined ||
+                    barProps.index === undefined
+                  ) {
+                    return <rect />;
+                  }
+
+                  const isZero = (barProps.payload.conjugaisons ?? 0) === 0;
+
+                  // Largeur réduite de 50 %, barre recentrée dans son emplacement
+                  const narrowWidth = barProps.width / 2;
+                  const narrowX = barProps.x + barProps.width / 4;
+
+                  if (isZero) {
+                    // For zero conjugaisons: 5px height, light gray
+                    return (
+                      <rect
+                        x={narrowX}
+                        y={barProps.y + (barProps.height - 5)}
+                        width={narrowWidth}
+                        height={5}
+                        fill="#e5e7eb"
+                        rx={4}
+                        style={{ transition: "fill 0.2s ease-in-out" }}
+                      />
+                    );
+                  }
+
+                  return (
+                    <rect
+                      x={narrowX}
+                      y={barProps.y}
+                      width={narrowWidth}
+                      height={barProps.height}
+                      fill="#2b7fff"
                       rx={8}
                       style={{ transition: "fill 0.2s ease-in-out" }}
                     />

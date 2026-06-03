@@ -28,6 +28,8 @@ export async function PUT(
       age,
       description,
       weekly_pages_goal,
+      conjugaison_show_radical,
+      conjugaison_groupes,
     } = body;
 
     console.log("Profile update API: Received data:", {
@@ -74,6 +76,10 @@ export async function PUT(
       }
     }
 
+    const groupesValue = Array.isArray(conjugaison_groupes)
+      ? conjugaison_groupes.filter((g: unknown) => [1, 2, 3].includes(g as number))
+      : undefined;
+
     const profile = await prisma.profiles.update({
       where: { id },
       data: {
@@ -83,6 +89,12 @@ export async function PUT(
         age: age ? parseInt(age) : null,
         description,
         ...(goalValue !== undefined ? { weekly_pages_goal: goalValue } : {}),
+        ...(conjugaison_show_radical !== undefined
+          ? { conjugaison_show_radical: !!conjugaison_show_radical }
+          : {}),
+        ...(groupesValue !== undefined
+          ? { conjugaison_groupes: groupesValue }
+          : {}),
         updated_at: new Date(),
       },
       include: {

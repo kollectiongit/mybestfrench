@@ -9,7 +9,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { ArrowRight, CheckCircle2, History, XCircle } from "lucide-react";
+import { ArrowRight, CheckCircle2, History, Table, XCircle } from "lucide-react";
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
@@ -25,12 +25,20 @@ interface Conjugaison {
   infinitif: string;
   personne: string;
   temps: string;
+  groupe: number | null;
   radical: string;
   hasRadical: boolean;
 }
 
+// Couleur du badge selon le groupe : 1er=bleu, 2è=jaune, 3è=orange
+const GROUPE_STYLES: Record<number, { label: string; className: string }> = {
+  1: { label: "1er groupe", className: "bg-blue-100 text-blue-700 border-blue-300" },
+  2: { label: "2e groupe", className: "bg-yellow-100 text-yellow-800 border-yellow-300" },
+  3: { label: "3e groupe", className: "bg-orange-100 text-orange-700 border-orange-300" },
+};
+
 interface RandomResponse {
-  conjugaison: Conjugaison;
+  conjugaison: Conjugaison | null;
   previousAttempts: PreviousAttempt[];
 }
 
@@ -71,12 +79,13 @@ export default function ConjugaisonsPageClient() {
   const [submitting, setSubmitting] = useState(false);
   const [result, setResult] = useState<ValidateResponse | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  // Conjugaison préchargée en arrière-plan pour un passage instantané au suivant
+  const nextRef = useRef<RandomResponse | null>(null);
+  const prefetchingRef = useRef(false);
 
-  const loadConjugaison = useCallback(async (excludeId?: number) => {
-    setLoading(true);
-    setResult(null);
-    setAnswer("");
-    try {
+  // Récupère une conjugaison sans toucher à l'état d'affichage
+  const fetchConjugaison = useCallback(
+    async (excludeId?: number): Promise<RandomResponse> => {
       const url = excludeId
         ? `/api/conjugaisons/random?exclude=${excludeId}`
         : "/api/conjugaisons/random";
@@ -84,19 +93,88 @@ export default function ConjugaisonsPageClient() {
       if (!res.ok) {
         throw new Error("Erreur de chargement");
       }
-      const json: RandomResponse = await res.json();
-      setData(json);
-    } catch (e) {
-      console.error(e);
-      toast.error("Impossible de charger une conjugaison.");
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+      return (await res.json()) as RandomResponse;
+    },
+    []
+  );
 
+  // Précharge la conjugaison suivante en arrière-plan (en excluant celle affichée)
+  const prefetchNext = useCallback(
+    async (excludeId?: number) => {
+      if (prefetchingRef.current) return;
+      prefetchingRef.current = true;
+      try {
+        nextRef.current = await fetchConjugaison(excludeId);
+      } catch (e) {
+        console.error(e);
+        nextRef.current = null;
+      } finally {
+        prefetchingRef.current = false;
+      }
+    },
+    [fetchConjugaison]
+  );
+
+  // Affiche une conjugaison déjà chargée et relance le préchargement de la suivante
+  const showConjugaison = useCallback(
+    (json: RandomResponse) => {
+      setResult(null);
+      setAnswer("");
+      setData(json);
+      nextRef.current = null;
+      prefetchNext(json.conjugaison?.id);
+    },
+    [prefetchNext]
+  );
+
+  // Passe à la conjugaison suivante : instantané si elle est préchargée
+  const goToNext = useCallback(
+    async (currentId?: number) => {
+      const prefetched = nextRef.current;
+      if (prefetched && prefetched.conjugaison) {
+        showConjugaison(prefetched);
+        return;
+      }
+      // Pas de préchargement disponible : chargement classique
+      setLoading(true);
+      setResult(null);
+      setAnswer("");
+      try {
+        const json = await fetchConjugaison(currentId);
+        setData(json);
+        nextRef.current = null;
+        prefetchNext(json.conjugaison?.id);
+      } catch (e) {
+        console.error(e);
+        toast.error("Impossible de charger une conjugaison.");
+      } finally {
+        setLoading(false);
+      }
+    },
+    [fetchConjugaison, prefetchNext, showConjugaison]
+  );
+
+  // Chargement initial
   useEffect(() => {
-    loadConjugaison();
-  }, [loadConjugaison]);
+    let cancelled = false;
+    (async () => {
+      setLoading(true);
+      try {
+        const json = await fetchConjugaison();
+        if (cancelled) return;
+        setData(json);
+        prefetchNext(json.conjugaison?.id);
+      } catch (e) {
+        console.error(e);
+        if (!cancelled) toast.error("Impossible de charger une conjugaison.");
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [fetchConjugaison, prefetchNext]);
 
   // Focus sur le champ quand une nouvelle conjugaison apparaît
   useEffect(() => {
@@ -107,7 +185,7 @@ export default function ConjugaisonsPageClient() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!data || submitting || result) return;
+    if (!data || !data.conjugaison || submitting || result) return;
     if (answer.trim() === "") {
       toast.error("Écris ta réponse avant de valider.");
       return;
@@ -144,10 +222,15 @@ export default function ConjugaisonsPageClient() {
         <p className="text-muted-foreground mt-2">
           Conjugue le verbe à la bonne personne et au bon temps.
         </p>
-        <div className="mt-4 flex justify-center">
+        <div className="mt-4 flex justify-center gap-2 flex-wrap">
           <Button asChild variant="outline" size="sm" className="gap-2">
             <Link href="/exercices/conjugaisons/historique">
-              <History className="size-4" /> Voir mon historique
+              <History className="size-4" /> Mon historique
+            </Link>
+          </Button>
+          <Button asChild variant="outline" size="sm" className="gap-2">
+            <Link href="/exercices/conjugaisons/tableau">
+              <Table className="size-4" /> Tableau de résultats
             </Link>
           </Button>
         </div>
@@ -157,7 +240,7 @@ export default function ConjugaisonsPageClient() {
         <div className="text-center py-12">
           <p className="text-gray-500">Chargement…</p>
         </div>
-      ) : !data ? (
+      ) : !data || !data.conjugaison ? (
         <div className="text-center py-12">
           <p className="text-gray-500">Aucune conjugaison disponible.</p>
         </div>
@@ -171,16 +254,31 @@ export default function ConjugaisonsPageClient() {
               : "transition-colors"
           }
         >
-          <CardHeader>
-            <CardTitle className="flex flex-wrap items-center justify-center gap-2 text-center">
-              <Badge variant="secondary" className="text-sm">
+          <CardHeader className="text-center space-y-3 pb-2">
+            {data.conjugaison.groupe &&
+              GROUPE_STYLES[data.conjugaison.groupe] && (
+                <div className="flex justify-center">
+                  <Badge
+                    variant="outline"
+                    className={`text-xs font-medium ${
+                      GROUPE_STYLES[data.conjugaison.groupe].className
+                    }`}
+                  >
+                    {GROUPE_STYLES[data.conjugaison.groupe].label}
+                  </Badge>
+                </div>
+              )}
+            <CardTitle className="text-4xl font-extrabold tracking-tight">
+              {data.conjugaison.infinitif}
+            </CardTitle>
+            <div className="flex items-center justify-center gap-2">
+              <Badge variant="secondary" className="text-sm px-3 py-1">
                 {data.conjugaison.personne}
               </Badge>
-              <span className="text-xl font-bold">{data.conjugaison.infinitif}</span>
-              <Badge variant="outline" className="text-sm">
+              <Badge variant="outline" className="text-sm px-3 py-1">
                 {data.conjugaison.temps}
               </Badge>
-            </CardTitle>
+            </div>
           </CardHeader>
           <CardContent className="space-y-6">
             {/* Historique des essais précédents */}
@@ -209,40 +307,45 @@ export default function ConjugaisonsPageClient() {
 
             {/* Saisie */}
             <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="flex items-center justify-center gap-1 text-2xl font-semibold flex-wrap">
+              <div className="flex items-center justify-center gap-x-5 gap-y-2 text-2xl font-semibold flex-wrap">
+                <span className="text-muted-foreground">
+                  {data.conjugaison.hasRadical
+                    ? data.conjugaison.personne
+                    : pronomAffiche(data.conjugaison.personne, answer).trim()}
+                </span>
                 {data.conjugaison.hasRadical ? (
-                  <>
-                    <span>{data.conjugaison.personne}</span>
-                    <span className="text-primary">{data.conjugaison.radical}</span>
-                    <Input
+                  <label
+                    className={`flex items-center h-12 w-56 rounded-md border border-input bg-transparent px-3 text-2xl shadow-xs transition-[color,box-shadow] focus-within:border-ring focus-within:ring-ring/50 focus-within:ring-[3px] ${
+                      !!result || submitting ? "opacity-50" : "cursor-text"
+                    }`}
+                  >
+                    <span className="text-gray-400 select-none">
+                      {data.conjugaison.radical}
+                    </span>
+                    <input
                       ref={inputRef}
                       value={answer}
                       onChange={(e) => setAnswer(e.target.value)}
                       disabled={!!result || submitting}
-                      placeholder="terminaison"
-                      className="w-40 text-2xl h-12"
+                      className="flex-1 min-w-0 border-0 bg-transparent p-0 text-gray-800 outline-none disabled:cursor-not-allowed"
                       autoComplete="off"
                       autoCorrect="off"
                       autoCapitalize="off"
                       spellCheck={false}
                     />
-                  </>
+                  </label>
                 ) : (
-                  <>
-                    <span>{pronomAffiche(data.conjugaison.personne, answer)}</span>
-                    <Input
-                      ref={inputRef}
-                      value={answer}
-                      onChange={(e) => setAnswer(e.target.value)}
-                      disabled={!!result || submitting}
-                      placeholder="forme conjuguée"
-                      className="w-56 text-2xl h-12"
-                      autoComplete="off"
-                      autoCorrect="off"
-                      autoCapitalize="off"
-                      spellCheck={false}
-                    />
-                  </>
+                  <Input
+                    ref={inputRef}
+                    value={answer}
+                    onChange={(e) => setAnswer(e.target.value)}
+                    disabled={!!result || submitting}
+                    className="w-56 text-2xl h-12"
+                    autoComplete="off"
+                    autoCorrect="off"
+                    autoCapitalize="off"
+                    spellCheck={false}
+                  />
                 )}
               </div>
 
@@ -291,7 +394,7 @@ export default function ConjugaisonsPageClient() {
             {result && (
               <div className="flex justify-center">
                 <Button
-                  onClick={() => loadConjugaison(data.conjugaison.id)}
+                  onClick={() => goToNext(data.conjugaison?.id)}
                   size="lg"
                   variant="default"
                   className="gap-2"

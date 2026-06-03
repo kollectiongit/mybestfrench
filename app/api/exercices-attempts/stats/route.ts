@@ -87,6 +87,24 @@ export async function GET(request: NextRequest) {
       },
     });
 
+    // Fetch conjugaison attempts (only conjugaison attempts)
+    const conjugaisonAttempts = await prisma.exercices_attempts.findMany({
+      where: {
+        profile_id: currentProfileId,
+        conjugaison_id: { not: null }, // Only conjugaison attempts
+        created_at: {
+          gte: startDate,
+          lte: now,
+        },
+      },
+      select: {
+        created_at: true,
+      },
+      orderBy: {
+        created_at: 'asc',
+      },
+    });
+
     // Check if date range spans multiple years
     const startYear = startDate.getFullYear();
     const endYear = now.getFullYear();
@@ -151,9 +169,19 @@ export async function GET(request: NextRequest) {
       groupedData.set(key, (groupedData.get(key) || 0) + 1);
     });
 
+    // Group and aggregate conjugaison attempts the same way
+    const groupedConjugaisons = new Map<string, number>();
+
+    conjugaisonAttempts.forEach((attempt) => {
+      if (!attempt.created_at) return;
+      const date = new Date(attempt.created_at);
+      const key = formatPeriodKey(date);
+      groupedConjugaisons.set(key, (groupedConjugaisons.get(key) || 0) + 1);
+    });
+
     // Generate all periods in the range and fill missing ones with 0
     // Store both period key and date for proper sorting
-    const allPeriods: Array<{ period: string; attempts: number; date: Date }> = [];
+    const allPeriods: Array<{ period: string; attempts: number; conjugaisons: number; date: Date }> = [];
     const currentDate = new Date(startDate);
     currentDate.setHours(0, 0, 0, 0);
     const endDate = new Date(now);
@@ -169,6 +197,7 @@ export async function GET(request: NextRequest) {
         allPeriods.push({
           period: key,
           attempts: groupedData.get(key) || 0,
+          conjugaisons: groupedConjugaisons.get(key) || 0,
           date: date,
         });
         dateIterator.setDate(dateIterator.getDate() + 1);
@@ -185,6 +214,7 @@ export async function GET(request: NextRequest) {
         allPeriods.push({
           period: key,
           attempts: groupedData.get(key) || 0,
+          conjugaisons: groupedConjugaisons.get(key) || 0,
           date: date,
         });
         dateIterator.setDate(dateIterator.getDate() + 7);
@@ -200,6 +230,7 @@ export async function GET(request: NextRequest) {
         allPeriods.push({
           period: key,
           attempts: groupedData.get(key) || 0,
+          conjugaisons: groupedConjugaisons.get(key) || 0,
           date: date,
         });
         dateIterator.setMonth(dateIterator.getMonth() + 1);
@@ -212,9 +243,10 @@ export async function GET(request: NextRequest) {
         // Sort by actual date for proper chronological order including year
         return a.date.getTime() - b.date.getTime();
       })
-      .map(({ period, attempts }) => ({
+      .map(({ period, attempts, conjugaisons }) => ({
         period,
         attempts,
+        conjugaisons,
       }));
 
     return NextResponse.json(chartData, {

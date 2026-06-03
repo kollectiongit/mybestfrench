@@ -245,6 +245,8 @@ model profiles {
   active_book_id      Int?
   active_book_id_2    Int?
   weekly_pages_goal   Int?
+  conjugaison_show_radical Boolean @default(true)
+  conjugaison_groupes      Int[]   @default([1, 2, 3])
   exercices_attempts  exercices_attempts[]
   exercices_errors    exercices_errors[]
   generated_questions generated_questions[]

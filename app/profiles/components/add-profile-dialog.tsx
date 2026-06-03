@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import ConjugaisonSettings from "./conjugaison-settings";
 import { ImageUpload } from "./image-upload";
 import ProfileLevelsSelector from "./profile-levels-selector";
 
@@ -18,6 +19,8 @@ export interface AddProfileFormData {
   age: string;
   description: string;
   weekly_pages_goal: string;
+  conjugaison_show_radical: boolean;
+  conjugaison_groupes: number[];
 }
 
 export default function AddProfileDialog({
@@ -29,6 +32,8 @@ export default function AddProfileDialog({
   avatarFilename,
   setAvatarFilename,
   setSelectedLevelIds,
+  setShowRadical,
+  setGroupes,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -40,6 +45,8 @@ export default function AddProfileDialog({
   avatarFilename: string;
   setAvatarFilename: (v: string) => void;
   setSelectedLevelIds: (v: number[]) => void;
+  setShowRadical: (v: boolean) => void;
+  setGroupes: (v: number[]) => void;
 }) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -99,6 +106,12 @@ export default function AddProfileDialog({
           <div className="space-y-2">
             <ProfileLevelsSelector onLevelsChange={setSelectedLevelIds} />
           </div>
+          <ConjugaisonSettings
+            showRadical={formData.conjugaison_show_radical}
+            onShowRadicalChange={setShowRadical}
+            groupes={formData.conjugaison_groupes}
+            onGroupesChange={setGroupes}
+          />
           <div className="flex justify-end space-x-2 pt-4">
             <Button
               type="button"

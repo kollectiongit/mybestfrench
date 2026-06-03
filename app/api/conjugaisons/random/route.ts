@@ -27,13 +27,22 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Profile not found" }, { status: 404 });
     }
 
-    // Tirage aléatoire parmi tous les ids (table petite ~192 lignes)
+    // Tirage aléatoire parmi les ids des groupes choisis pour ce profil
     const excludeParam = request.nextUrl.searchParams.get("exclude");
     const excludeId = excludeParam ? parseInt(excludeParam, 10) : null;
 
-    const allIds = await prisma.conjugaison.findMany({ select: { id: true } });
+    const groupes = profile.conjugaison_groupes ?? [1, 2, 3];
+    if (groupes.length === 0) {
+      // Aucun groupe sélectionné → rien à proposer
+      return NextResponse.json({ conjugaison: null, previousAttempts: [] });
+    }
+
+    const allIds = await prisma.conjugaison.findMany({
+      where: { groupe: { in: groupes } },
+      select: { id: true },
+    });
     if (allIds.length === 0) {
-      return NextResponse.json({ error: "No conjugaison available" }, { status: 404 });
+      return NextResponse.json({ conjugaison: null, previousAttempts: [] });
     }
 
     let candidates = allIds.map((c) => c.id);
@@ -56,6 +65,10 @@ export async function GET(request: NextRequest) {
       select: { is_correct: true, user_answer: true, created_at: true },
     });
 
+    // Réglage profil : afficher le radical ou non
+    const showRadical = profile.conjugaison_show_radical ?? true;
+    const effectiveHasRadical = showRadical && conjugaison.radical !== "";
+
     // Ne pas divulguer verbe_conjugue / terminaison au client
     return NextResponse.json({
       conjugaison: {
@@ -63,8 +76,9 @@ export async function GET(request: NextRequest) {
         infinitif: conjugaison.infinitif,
         personne: conjugaison.personne,
         temps: conjugaison.temps,
-        radical: conjugaison.radical,
-        hasRadical: conjugaison.radical !== "",
+        groupe: conjugaison.groupe,
+        radical: effectiveHasRadical ? conjugaison.radical : "",
+        hasRadical: effectiveHasRadical,
       },
       previousAttempts: previousAttempts.map((a) => ({
         is_correct: a.is_correct,

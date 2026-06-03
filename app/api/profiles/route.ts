@@ -78,7 +78,15 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { first_name, last_name, avatar_url, age, description } = body;
+    const {
+      first_name,
+      last_name,
+      avatar_url,
+      age,
+      description,
+      conjugaison_show_radical,
+      conjugaison_groupes,
+    } = body;
 
     // Validate required fields
     if (!first_name) {
@@ -88,6 +96,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const groupesValue = Array.isArray(conjugaison_groupes)
+      ? conjugaison_groupes.filter((g: unknown) => [1, 2, 3].includes(g as number))
+      : [1, 2, 3];
+
     const profile = await prisma.profiles.create({
       data: {
         user_id: session.user.id,
@@ -96,6 +108,11 @@ export async function POST(request: NextRequest) {
         avatar_url,
         age: age ? parseInt(age) : null,
         description,
+        conjugaison_show_radical:
+          conjugaison_show_radical === undefined
+            ? true
+            : !!conjugaison_show_radical,
+        conjugaison_groupes: groupesValue,
       },
     });
 

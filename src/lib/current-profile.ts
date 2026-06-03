@@ -24,6 +24,8 @@ export interface CurrentProfile {
   age: number | null;
   description: string | null;
   weekly_pages_goal: number | null;
+  conjugaison_show_radical: boolean;
+  conjugaison_groupes: number[];
   created_at: string | null;
   updated_at: string | null;
   profile_levels?: ProfileLevel[];
@@ -112,6 +114,8 @@ export async function getCurrentProfile(): Promise<CurrentProfile | null> {
       age: profile.age,
       description: profile.description,
       weekly_pages_goal: profile.weekly_pages_goal ?? null,
+      conjugaison_show_radical: profile.conjugaison_show_radical ?? true,
+      conjugaison_groupes: profile.conjugaison_groupes ?? [1, 2, 3],
       created_at: profile.created_at?.toISOString() || null,
       updated_at: profile.updated_at?.toISOString() || null,
       profile_levels: profile.profile_levels || [],
@@ -167,6 +171,8 @@ export async function getUserProfiles(): Promise<CurrentProfile[]> {
       age: profile.age,
       description: profile.description,
       weekly_pages_goal: profile.weekly_pages_goal ?? null,
+      conjugaison_show_radical: profile.conjugaison_show_radical ?? true,
+      conjugaison_groupes: profile.conjugaison_groupes ?? [1, 2, 3],
       created_at: profile.created_at?.toISOString() || null,
       updated_at: profile.updated_at?.toISOString() || null,
       profile_levels: profile.profile_levels || [],

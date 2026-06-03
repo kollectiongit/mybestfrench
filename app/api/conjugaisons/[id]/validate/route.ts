@@ -49,9 +49,13 @@ export async function POST(
       return NextResponse.json({ error: "Conjugaison not found" }, { status: 404 });
     }
 
-    // Si un radical est affiché, on n'attend que la terminaison ; sinon la forme entière.
-    const expected =
-      conjugaison.radical === "" ? conjugaison.verbe_conjugue : conjugaison.terminaison;
+    // Le radical n'est affiché que si le profil l'autorise ET que la conjugaison en a un.
+    // Dans ce cas on n'attend que la terminaison ; sinon on attend la forme entière.
+    const showRadical = profile.conjugaison_show_radical ?? true;
+    const effectiveHasRadical = showRadical && conjugaison.radical !== "";
+    const expected = effectiveHasRadical
+      ? conjugaison.terminaison
+      : conjugaison.verbe_conjugue;
     const isCorrect = normalize(userAnswer) === normalize(expected);
 
     await prisma.exercices_attempts.create({

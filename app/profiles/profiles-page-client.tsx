@@ -38,6 +38,8 @@ export default function ProfilesPageClient() {
     age: "",
     description: "",
     weekly_pages_goal: "",
+    conjugaison_show_radical: true,
+    conjugaison_groupes: [1, 2, 3] as number[],
   });
   const [avatarFilename, setAvatarFilename] = useState<string>("");
   const [isUploading, setIsUploading] = useState(false);
@@ -89,6 +91,8 @@ export default function ProfilesPageClient() {
           age: "",
           description: "",
           weekly_pages_goal: "",
+          conjugaison_show_radical: true,
+          conjugaison_groupes: [1, 2, 3],
         });
         setAvatarFilename("");
         setSelectedLevelIds([]);
@@ -111,6 +115,11 @@ export default function ProfilesPageClient() {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
+  const setShowRadical = (v: boolean) =>
+    setFormData((prev) => ({ ...prev, conjugaison_show_radical: v }));
+  const setGroupes = (v: number[]) =>
+    setFormData((prev) => ({ ...prev, conjugaison_groupes: v }));
+
   const handleCreateProfileClick = () => {
     setFormData({
       first_name: "",
@@ -118,6 +127,8 @@ export default function ProfilesPageClient() {
       age: "",
       description: "",
       weekly_pages_goal: "",
+      conjugaison_show_radical: true,
+      conjugaison_groupes: [1, 2, 3],
     });
     setAvatarFilename("");
     setSelectedLevelIds([]);
@@ -136,6 +147,8 @@ export default function ProfilesPageClient() {
         profile.weekly_pages_goal !== undefined
           ? String(profile.weekly_pages_goal)
           : "",
+      conjugaison_show_radical: profile.conjugaison_show_radical ?? true,
+      conjugaison_groupes: profile.conjugaison_groupes ?? [1, 2, 3],
     });
     setAvatarFilename(profile.avatar_url || "");
     console.log(
@@ -190,6 +203,8 @@ export default function ProfilesPageClient() {
           age: "",
           description: "",
           weekly_pages_goal: "",
+          conjugaison_show_radical: true,
+          conjugaison_groupes: [1, 2, 3],
         });
         setAvatarFilename("");
         setSelectedLevelIds([]);
@@ -258,6 +273,8 @@ export default function ProfilesPageClient() {
                 age: "",
                 description: "",
                 weekly_pages_goal: "",
+                conjugaison_show_radical: true,
+                conjugaison_groupes: [1, 2, 3],
               });
               setAvatarFilename("");
               setSelectedLevelIds([]);
@@ -269,6 +286,8 @@ export default function ProfilesPageClient() {
           avatarFilename={avatarFilename}
           setAvatarFilename={setAvatarFilename}
           setSelectedLevelIds={setSelectedLevelIds}
+          setShowRadical={setShowRadical}
+          setGroupes={setGroupes}
         />
 
         <NewProfileCard onClick={handleCreateProfileClick} />
@@ -300,6 +319,8 @@ export default function ProfilesPageClient() {
           if (editingProfile) handleDeleteClick(editingProfile);
         }}
         setSelectedLevelIds={setSelectedLevelIds}
+        setShowRadical={setShowRadical}
+        setGroupes={setGroupes}
       />
 
       <DeleteConfirmationDialog
