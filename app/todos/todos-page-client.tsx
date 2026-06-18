@@ -27,6 +27,8 @@ import {
 import { CSS } from "@dnd-kit/utilities";
 import {
   Angry,
+  ChevronLeft,
+  ChevronRight,
   Clock,
   GripVertical,
   Hourglass,
@@ -370,22 +372,36 @@ export default function TodosPageClient() {
   const [error, setError] = useState<string | null>(null);
   const [celebration, setCelebration] = useState<{ url: string } | null>(null);
   const [chronoTodo, setChronoTodo] = useState<TodoItem | null>(null);
+  const [selectedDate, setSelectedDate] = useState(todayString());
 
-  const today = todayString();
+  const today = selectedDate;
+  const todayStr = todayString();
+  const isToday = selectedDate === todayStr;
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 6 } })
   );
 
   const dateLabel = useMemo(() => {
-    const label = new Date().toLocaleDateString("fr-FR", {
-      weekday: "long",
-      day: "numeric",
-      month: "long",
-      year: "numeric",
-    });
+    const label = new Date(`${selectedDate}T12:00:00`).toLocaleDateString(
+      "fr-FR",
+      { weekday: "long", day: "numeric", month: "long", year: "numeric" }
+    );
     return label.charAt(0).toUpperCase() + label.slice(1);
-  }, []);
+  }, [selectedDate]);
+
+  const shiftDate = useCallback(
+    (delta: number) => {
+      const d = new Date(`${selectedDate}T12:00:00`);
+      d.setDate(d.getDate() + delta);
+      const next = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(
+        d.getDate()
+      )}`;
+      if (next > todayString()) return; // no navigating into the future
+      setSelectedDate(next);
+    },
+    [selectedDate]
+  );
 
   const fetchData = useCallback(async () => {
     if (!profile?.id) {
@@ -542,9 +558,50 @@ export default function TodosPageClient() {
   return (
     <div className="container mx-auto px-4 py-24 md:py-28 max-w-2xl">
       <header className="mb-6">
-        <h1 className="text-2xl md:text-3xl font-bold text-gray-900 capitalize">
-          {dateLabel}
-        </h1>
+        <div className="flex items-center gap-2 flex-wrap">
+          <button
+            type="button"
+            onClick={() => shiftDate(-1)}
+            className="flex size-9 items-center justify-center rounded-full border text-gray-600 hover:bg-gray-100"
+            aria-label="Jour précédent"
+          >
+            <ChevronLeft className="h-5 w-5" />
+          </button>
+          <h1 className="text-2xl md:text-3xl font-bold text-gray-900 capitalize">
+            {dateLabel}
+          </h1>
+          <button
+            type="button"
+            onClick={() => shiftDate(1)}
+            disabled={isToday}
+            className="flex size-9 items-center justify-center rounded-full border text-gray-600 hover:bg-gray-100 disabled:opacity-40 disabled:hover:bg-transparent"
+            aria-label="Jour suivant"
+          >
+            <ChevronRight className="h-5 w-5" />
+          </button>
+
+          <div className="ml-auto flex items-center gap-2">
+            <Input
+              type="date"
+              value={selectedDate}
+              max={todayStr}
+              onChange={(e) => {
+                const v = e.target.value;
+                if (v && v <= todayStr) setSelectedDate(v);
+              }}
+              className="h-9 w-auto"
+            />
+            {!isToday && (
+              <button
+                type="button"
+                onClick={() => setSelectedDate(todayStr)}
+                className="rounded-full border px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-100"
+              >
+                Aujourd&apos;hui
+              </button>
+            )}
+          </div>
+        </div>
 
         {!profileLoading && profile && total > 0 && (
           <div className="mt-4 rounded-2xl border bg-white/70 p-5 shadow-sm">
@@ -560,7 +617,7 @@ export default function TodosPageClient() {
                 </div>
                 <p className="text-sm text-muted-foreground mt-1">
                   tâche{total > 1 ? "s" : ""} réalisée{doneCount > 1 ? "s" : ""}{" "}
-                  aujourd&apos;hui
+                  {isToday ? "aujourd'hui" : "ce jour-là"}
                 </p>
               </div>
               <div className="text-right">
@@ -604,8 +661,10 @@ export default function TodosPageClient() {
         <p className="text-destructive">{error}</p>
       ) : total === 0 ? (
         <p className="text-muted-foreground">
-          Aucune To-Do pour aujourd&apos;hui. Ajoute-en depuis l&apos;édition de
-          profil.
+          Aucune To-Do pour cette date.
+          {isToday
+            ? " Ajoute-en depuis l'édition de profil."
+            : ""}
         </p>
       ) : (
         <div className="space-y-2">
