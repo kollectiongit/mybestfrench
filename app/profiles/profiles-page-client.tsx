@@ -1,13 +1,11 @@
 "use client";
 
 import { useProfile } from "@/contexts/profile-context";
-import { CurrentProfile, ProfileLevel } from "@/lib/current-profile";
+import { CurrentProfile } from "@/lib/current-profile";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import AddProfileDialog from "./components/add-profile-dialog";
-import DeleteConfirmationDialog from "./components/delete-confirmation-dialog";
-import EditProfileDialog from "./components/edit-profile-dialog";
 import ExistingProfileCard from "./components/existing-profile-card";
 import NewProfileCard from "./components/new-profile-card";
 
@@ -24,14 +22,6 @@ export default function ProfilesPageClient() {
 
   const [profiles, setProfiles] = useState<CurrentProfile[]>(allProfiles);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const [editingProfile, setEditingProfile] = useState<CurrentProfile | null>(
-    null
-  );
-  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
-  const [profileToDelete, setProfileToDelete] = useState<CurrentProfile | null>(
-    null
-  );
   const [formData, setFormData] = useState({
     first_name: "",
     last_name: "",
@@ -42,7 +32,6 @@ export default function ProfilesPageClient() {
     conjugaison_groupes: [1, 2, 3] as number[],
   });
   const [avatarFilename, setAvatarFilename] = useState<string>("");
-  const [isUploading, setIsUploading] = useState(false);
   const [selectedLevelIds, setSelectedLevelIds] = useState<number[]>([]);
 
   useEffect(() => {
@@ -136,107 +125,7 @@ export default function ProfilesPageClient() {
   };
 
   const handleEditProfile = (profile: CurrentProfile) => {
-    setEditingProfile(profile);
-    setFormData({
-      first_name: profile.first_name,
-      last_name: profile.last_name || "",
-      age: profile.age?.toString() || "",
-      description: profile.description || "",
-      weekly_pages_goal:
-        profile.weekly_pages_goal !== null &&
-        profile.weekly_pages_goal !== undefined
-          ? String(profile.weekly_pages_goal)
-          : "",
-      conjugaison_show_radical: profile.conjugaison_show_radical ?? true,
-      conjugaison_groupes: profile.conjugaison_groupes ?? [1, 2, 3],
-    });
-    setAvatarFilename(profile.avatar_url || "");
-    console.log(
-      "Frontend: Setting avatar filename to:",
-      profile.avatar_url || ""
-    );
-    const initialLevelIds =
-      profile.profile_levels?.map((pl: ProfileLevel) => pl.level_id) || [];
-    setSelectedLevelIds(initialLevelIds);
-    setIsEditDialogOpen(true);
-  };
-
-  const handleUpdateProfile = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!editingProfile) return;
-
-    // If currently uploading, wait for it to complete
-    if (isUploading) {
-      console.log("Frontend: Waiting for image upload to complete...");
-      // Wait for upload to complete (poll every 100ms for up to 10 seconds)
-      let attempts = 0;
-      while (isUploading && attempts < 100) {
-        await new Promise((resolve) => setTimeout(resolve, 100));
-        attempts++;
-      }
-    }
-
-    try {
-      const updateData = { ...formData, avatar_url: avatarFilename };
-      console.log("Frontend: Updating profile with data:", updateData);
-
-      const response = await fetch(`/api/profiles/${editingProfile.id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(updateData),
-      });
-      if (response.ok) {
-        const updatedProfile = await response.json();
-        await fetch(`/api/profiles/${editingProfile.id}/levels`, {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ level_ids: selectedLevelIds }),
-        });
-        setProfiles(
-          profiles.map((p) => (p.id === updatedProfile.id ? updatedProfile : p))
-        );
-        setIsEditDialogOpen(false);
-        setEditingProfile(null);
-        setFormData({
-          first_name: "",
-          last_name: "",
-          age: "",
-          description: "",
-          weekly_pages_goal: "",
-          conjugaison_show_radical: true,
-          conjugaison_groupes: [1, 2, 3],
-        });
-        setAvatarFilename("");
-        setSelectedLevelIds([]);
-        await refreshProfiles();
-        router.refresh();
-        toast.success("Profil mis à jour");
-      } else {
-        toast.error("Erreur lors de la mise à jour du profil");
-      }
-    } catch {
-      toast.error("Erreur lors de la mise à jour du profil");
-    }
-  };
-
-  const handleDeleteClick = (profile: CurrentProfile) => {
-    setProfileToDelete(profile);
-    setDeleteConfirmOpen(true);
-  };
-
-  const handleDeleteProfile = async () => {
-    if (!profileToDelete) return;
-    try {
-      const response = await fetch(`/api/profiles/${profileToDelete.id}`, {
-        method: "DELETE",
-      });
-      if (response.ok) {
-        setProfiles(profiles.filter((p) => p.id !== profileToDelete.id));
-        setDeleteConfirmOpen(false);
-        setProfileToDelete(null);
-        await refreshProfiles();
-      }
-    } catch {}
+    router.push(`/profiles/${profile.id}/edit`);
   };
 
   if (isLoading) {
@@ -302,34 +191,6 @@ export default function ProfilesPageClient() {
           />
         ))}
       </div>
-
-      <EditProfileDialog
-        open={isEditDialogOpen}
-        onOpenChange={setIsEditDialogOpen}
-        formData={formData}
-        onChange={handleInputChange}
-        onSubmit={handleUpdateProfile}
-        avatarFilename={avatarFilename}
-        setAvatarFilename={setAvatarFilename}
-        onUploadStateChange={setIsUploading}
-        isUploading={isUploading}
-        editingProfile={editingProfile}
-        onDelete={() => {
-          setIsEditDialogOpen(false);
-          if (editingProfile) handleDeleteClick(editingProfile);
-        }}
-        setSelectedLevelIds={setSelectedLevelIds}
-        setShowRadical={setShowRadical}
-        setGroupes={setGroupes}
-      />
-
-      <DeleteConfirmationDialog
-        open={deleteConfirmOpen}
-        onOpenChange={setDeleteConfirmOpen}
-        profileToDelete={profileToDelete}
-        onCancel={() => setDeleteConfirmOpen(false)}
-        onConfirm={handleDeleteProfile}
-      />
     </div>
   );
 }

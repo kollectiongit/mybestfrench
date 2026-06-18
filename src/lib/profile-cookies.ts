@@ -29,7 +29,7 @@ async function signValue(value: string, secret: string): Promise<string> {
 /**
  * Verifies a signed value using Web Crypto API
  */
-async function verifySignedValue(signedValue: string, secret: string): Promise<string | null> {
+export async function verifySignedValue(signedValue: string, secret: string): Promise<string | null> {
   const lastDotIndex = signedValue.lastIndexOf('.');
   if (lastDotIndex === -1) return null;
   

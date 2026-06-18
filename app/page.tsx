@@ -5,6 +5,8 @@ import { FavoriteDictationsSection } from "@/components/homepage/favorite-dictat
 import { WeekStats } from "@/components/homepage/last-7-days-stats";
 import { PagesReadChart } from "@/components/homepage/pages-read-chart";
 import { ReadingGoalWidget } from "@/components/homepage/reading-goal-widget";
+import { TodosCompletionChart } from "@/components/homepage/todos-completion-chart";
+import { TodosWeekStats } from "@/components/homepage/todos-week-stats";
 /* import { SplashCursor } from "@/components/ui/splash-cursor"; */
 
 const BackgroundSnippet = () => {
@@ -44,6 +46,23 @@ export default function Home() {
         <div className="hidden md:block">
           <div className="bg-white/50 backdrop-blur-xl border-2 border-white/80 rounded-2xl p-16 shadow-2xl space-y-6 h-[calc(100vh-12rem)]">
             <PagesReadChart />
+          </div>
+        </div>
+      </div>
+      <div className="w-full px-6 py-8">
+        <div className="w-full mx-auto flex flex-col xl:flex-row xl:items-stretch gap-6">
+          <div className="w-full xl:w-fit text-center flex flex-row xl:flex-col gap-4">
+            <div className="bg-white/50 backdrop-blur-xl border-2 border-white/80 rounded-2xl shadow-2xl h-fit w-full xl:w-fit md:px-4">
+              <TodosWeekStats week="current" title="To-Do — semaine actuelle" />
+            </div>
+            <div className="bg-white/50 backdrop-blur-xl border-2 border-white/80 rounded-2xl shadow-2xl h-fit w-full xl:w-fit md:px-4">
+              <TodosWeekStats week="previous" title="To-Do — semaine dernière" />
+            </div>
+          </div>
+          <div className="flex-1 hidden md:block">
+            <div className="bg-white/50 backdrop-blur-xl border-2 border-white/80 rounded-2xl p-16 shadow-2xl space-y-6 h-[calc(100vh-12rem)]">
+              <TodosCompletionChart />
+            </div>
           </div>
         </div>
       </div>

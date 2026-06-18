@@ -26,6 +26,7 @@ model User {
   profiles            profiles[]
   sessions            Session[]
   reading_logs        reading_logs[]
+  todo_completions    todo_completions[]
 
   @@map("user")
 }
@@ -255,6 +256,9 @@ model profiles {
   books               books[]
   reading_logs        reading_logs[]
   weekly_payments     weekly_payments[]
+  todos               todos[]
+  todo_categories     todo_categories[]
+  todo_completions    todo_completions[]
   active_book         books?                @relation("active_book", fields: [active_book_id], references: [id], onDelete: SetNull, onUpdate: NoAction)
   active_book_2       books?                @relation("active_book_2", fields: [active_book_id_2], references: [id], onDelete: SetNull, onUpdate: NoAction)
   user                User                  @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
@@ -424,4 +428,59 @@ model reading_logs {
   @@unique([profile_id, book_id, read_date])
   @@index([profile_id, read_date])
   @@index([book_id])
+}
+
+model todo_categories {
+  id         Int      @id @default(autoincrement())
+  profile_id String   @db.Uuid
+  name       String   @db.VarChar(100)
+  icon       String?
+  created_at DateTime @default(now()) @db.Timestamptz(6)
+
+  profiles profiles @relation(fields: [profile_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  todos    todos[]
+
+  @@index([profile_id])
+}
+
+model todos {
+  id           Int       @id @default(autoincrement())
+  profile_id   String    @db.Uuid
+  category_id  Int?
+  name         String    @db.VarChar(200)
+  unit         String    @db.VarChar(50)
+  target_value Decimal   @db.Decimal(10, 2)
+  icon         String?
+  position     Int       @default(0)
+  start_date   DateTime? @db.Date
+  end_date     DateTime? @db.Date
+  archived     Boolean   @default(false)
+  created_at   DateTime  @default(now()) @db.Timestamptz(6)
+  updated_at   DateTime  @default(now()) @updatedAt @db.Timestamptz(6)
+
+  profiles    profiles          @relation(fields: [profile_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  category    todo_categories?  @relation(fields: [category_id], references: [id], onDelete: SetNull, onUpdate: NoAction)
+  completions todo_completions[]
+
+  @@index([profile_id, archived])
+}
+
+model todo_completions {
+  id              Int      @id @default(autoincrement())
+  todo_id         Int
+  profile_id      String   @db.Uuid
+  user_id         String
+  completion_date DateTime @db.Date
+  completed_at    DateTime @default(now()) @db.Timestamptz(6)
+  actual_value    Decimal? @db.Decimal(10, 2)
+  satisfaction    Int?
+  duration_seconds Int?
+  created_at      DateTime @default(now()) @db.Timestamptz(6)
+
+  todo     todos    @relation(fields: [todo_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  profiles profiles @relation(fields: [profile_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  user     User     @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@unique([todo_id, completion_date])
+  @@index([profile_id, completion_date])
 }

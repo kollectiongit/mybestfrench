@@ -14,7 +14,14 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { useSession } from "@/contexts/session-context";
-import { BookOpen, Contact, GraduationCap, Home, Pencil } from "lucide-react";
+import {
+  BookOpen,
+  Contact,
+  GraduationCap,
+  Home,
+  ListChecks,
+  Pencil,
+} from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
@@ -25,6 +32,7 @@ const navigationLinks = [
   { href: "/exercices/dictees", label: "Dictées", icon: GraduationCap },
   { href: "/exercices/conjugaisons", label: "Conjugaison", icon: Pencil },
   { href: "/lecture", label: "Lecture", icon: BookOpen },
+  { href: "/todos", label: "To-Do", icon: ListChecks },
 ];
 
 export default function Component() {

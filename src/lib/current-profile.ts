@@ -1,6 +1,29 @@
 import { auth } from "@/lib/auth";
-import { headers } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { prisma } from "./prisma";
+import { getCurrentProfileCookieName, verifySignedValue } from "./profile-cookies";
+
+/**
+ * Resolves the selected profile id for SSR.
+ *
+ * The middleware sets an `x-current-profile-id` header, but middleware only
+ * runs on matched routes and historically did not forward the header to the
+ * request, so SSR could silently fall back to the most recent profile. To be
+ * robust on every route we also read (and verify) the signed `current_profile`
+ * cookie directly.
+ */
+async function resolveSelectedProfileId(): Promise<string | null> {
+  const headersList = await headers();
+  const headerProfileId = headersList.get("x-current-profile-id");
+  if (headerProfileId) return headerProfileId;
+
+  const secret = process.env.BETTER_AUTH_SECRET;
+  if (!secret) return null;
+  const cookieStore = await cookies();
+  const signed = cookieStore.get(getCurrentProfileCookieName())?.value;
+  if (!signed) return null;
+  return verifySignedValue(signed, secret);
+}
 
 export interface Level {
   id: number;
@@ -46,10 +69,10 @@ export async function getCurrentProfile(): Promise<CurrentProfile | null> {
       return null;
     }
 
-    // Try to get profile ID from middleware headers
-    const headersList = await headers();
-    const currentProfileId = headersList.get('x-current-profile-id');
-    
+    // Resolve the selected profile id from the middleware header or, as a
+    // robust fallback that works on every route, the signed cookie.
+    const currentProfileId = await resolveSelectedProfileId();
+
     let profile = null;
 
     if (currentProfileId) {
