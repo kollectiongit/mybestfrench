@@ -35,3 +35,20 @@ export const DicteeAnalysisSchema = z.object({
 });
 
 export type DicteeAnalysis = z.infer<typeof DicteeAnalysisSchema>;
+
+// What the LLM produces: only the pedagogical text. Errors, score and
+// highlighting are computed in code (see dictation-diff.ts).
+export const DicteeExplanationsSchema = z.object({
+  message_general: z.string(),
+  explications: z.array(
+    z.object({
+      id: z.number().int(),
+      type: z.enum(["orthographe", "grammaire", "conjugaison"]),
+      explication: z.string(),
+      regle: z.string(),
+    })
+  ),
+  conclusion_positive: z.string(),
+});
+
+export type DicteeExplanations = z.infer<typeof DicteeExplanationsSchema>;

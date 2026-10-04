@@ -386,9 +386,9 @@ export default function ValidationResults({
       {analysis.message_general && (
         <div className="my-12">
           <div className="p-4 bg-blue-50 rounded border-l-4 border-blue-500">
-            <p className="text-gray-700 font-bold">
-              {analysis.message_general}
-            </p>
+            <div className="text-gray-700 font-bold">
+              <ReactMarkdown>{analysis.message_general}</ReactMarkdown>
+            </div>
           </div>
         </div>
       )}
@@ -549,7 +549,9 @@ export default function ValidationResults({
           <h3 className="text-lg font-semibold mb-2 text-green-800">
             Conclusion
           </h3>
-          <p className="text-green-700">{analysis.conclusion_positive}</p>
+          <div className="text-green-700">
+            <ReactMarkdown>{analysis.conclusion_positive}</ReactMarkdown>
+          </div>
         </div>
       )}
     </div>

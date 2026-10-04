@@ -381,9 +381,9 @@ export default function StreamingValidationResults({
           className={`my-12 transition-opacity duration-500 ${showMessage ? "opacity-100" : "opacity-0"}`}
         >
           <div className="p-4 bg-blue-50 rounded border-l-4 border-blue-500">
-            <p className="text-gray-700 font-bold">
-              {partialAnalysis.message_general}
-            </p>
+            <div className="text-gray-700 font-bold">
+              <ReactMarkdown>{partialAnalysis.message_general}</ReactMarkdown>
+            </div>
           </div>
         </div>
       ) : isStreaming && !error ? (
@@ -565,9 +565,9 @@ export default function StreamingValidationResults({
             <h3 className="text-lg font-semibold mb-2 text-green-800">
               Conclusion
             </h3>
-            <p className="text-green-700">
-              {partialAnalysis.conclusion_positive}
-            </p>
+            <div className="text-green-700">
+              <ReactMarkdown>{partialAnalysis.conclusion_positive}</ReactMarkdown>
+            </div>
           </div>
         </div>
       ) : isStreaming && !error ? (

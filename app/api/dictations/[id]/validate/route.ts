@@ -1,5 +1,11 @@
+import { OPENAI_MODEL } from "@/lib/ai-models";
 import { auth } from "@/lib/auth";
-import { DicteeAnalysisSchema } from "@/lib/dictation-schema";
+import { compareDictation, DictationComparison } from "@/lib/dictation-diff";
+import {
+  DicteeAnalysis,
+  DicteeExplanations,
+  DicteeExplanationsSchema,
+} from "@/lib/dictation-schema";
 import { prisma } from "@/lib/prisma";
 import { getCurrentProfileFromCookie } from "@/lib/profile-cookies";
 import { revalidateTag } from "next/cache";
@@ -14,114 +20,97 @@ const client = new OpenAI({
   apiKey: process.env["OPENAI_API_KEY"],
 });
 
-// Helper function to extract partial fields from incomplete JSON
-function extractPartialFields(jsonText: string): Partial<{
-  stats: {
-    total_fautes: number;
-    fautes_orthographe: number;
-    fautes_grammaire: number;
-    fautes_conjugaison: number;
-    pourcentage_reussite: number;
-  };
-  dictation_submitted_errors_highlighted: string | null;
-  original_text_errors_highlighted: string | null;
-  message_general: string;
-  errors: Array<{
-    order: number;
-    wrong: string;
-    right: string;
-    type: string;
-    explication: string;
-  }>;
-  fautes: Array<{
-    sentence_order_number: number;
-    texte_eleve: string;
-    correction: string;
-    explication: string;
-    regle: string;
-  }>;
-  conclusion_positive: string;
-}> {
-  const partial: Record<string, unknown> = {};
-  
+type ErrorType = "orthographe" | "grammaire" | "conjugaison";
+
+// Extracts a completed top-level string field from the JSON being streamed
+function extractStringField(jsonText: string, field: string): string | null {
+  const match = jsonText.match(
+    new RegExp(`"${field}":\\s*("(?:[^"\\\\]|\\\\.)*")`)
+  );
+  if (!match) return null;
   try {
-    // Try to extract stats object
-    const statsMatch = jsonText.match(/"stats":\s*\{[^}]*\}/);
-    if (statsMatch) {
-      const statsStr = statsMatch[0].replace(/"stats":\s*/, '');
-      try {
-        partial.stats = JSON.parse(statsStr);
-      } catch {}
-    }
-    
-    // Try to extract dictation_submitted_errors_highlighted
-    const submittedMatch = jsonText.match(/"dictation_submitted_errors_highlighted":\s*"([^"]*(?:\\.[^"]*)*)"/);
-    if (submittedMatch) {
-      partial.dictation_submitted_errors_highlighted = submittedMatch[1];
-    }
-    
-    // Try to extract original_text_errors_highlighted
-    const originalMatch = jsonText.match(/"original_text_errors_highlighted":\s*"([^"]*(?:\\.[^"]*)*)"/);
-    if (originalMatch) {
-      partial.original_text_errors_highlighted = originalMatch[1];
-    }
-    
-    // Try to extract message_general
-    const messageMatch = jsonText.match(/"message_general":\s*"([^"]*(?:\\.[^"]*)*)"/);
-    if (messageMatch) {
-      partial.message_general = messageMatch[1];
-    }
-    
-    // Try to extract conclusion_positive
-    const conclusionMatch = jsonText.match(/"conclusion_positive":\s*"([^"]*(?:\\.[^"]*)*)"/);
-    if (conclusionMatch) {
-      partial.conclusion_positive = conclusionMatch[1];
-    }
-    
-    // Try to extract errors array (simplified - just check if it exists)
-    const errorsMatch = jsonText.match(/"errors":\s*\[/);
-    if (errorsMatch) {
-      // Try to extract complete error objects
-      const errorObjects = [];
-      const errorRegex = /\{[^}]*"order"[^}]*\}/g;
-      let match;
-      while ((match = errorRegex.exec(jsonText)) !== null) {
-        try {
-          const error = JSON.parse(match[0]);
-          if (error.order && error.wrong && error.right && error.type) {
-            errorObjects.push(error);
-          }
-        } catch {}
-      }
-      if (errorObjects.length > 0) {
-        partial.errors = errorObjects;
-      }
-    }
-    
-    // Try to extract fautes array (simplified - just check if it exists)
-    const fautesMatch = jsonText.match(/"fautes":\s*\[/);
-    if (fautesMatch) {
-      // Try to extract complete faute objects
-      const fauteObjects = [];
-      const fauteRegex = /\{[^}]*"sentence_order_number"[^}]*\}/g;
-      let match;
-      while ((match = fauteRegex.exec(jsonText)) !== null) {
-        try {
-          const faute = JSON.parse(match[0]);
-          if (faute.sentence_order_number && faute.texte_eleve && faute.correction) {
-            fauteObjects.push(faute);
-          }
-        } catch {}
-      }
-      if (fauteObjects.length > 0) {
-        partial.fautes = fauteObjects;
-      }
-    }
+    return JSON.parse(match[1]);
   } catch {
-    // Ignore parsing errors
+    return null;
   }
-  
-  return partial;
+}
+
+function boldWords(text: string): string {
+  return text
+    .split(" ")
+    .map((word) => `**${word}**`)
+    .join(" ");
+}
+
+function defaultExplanation(error: { expected: string; written: string }) {
+  if (!error.written) return `Tu as oublié *${error.expected}*.`;
+  if (!error.expected) return `**${error.written}** est en trop.`;
+  return `Tu as écrit **${error.written}** au lieu de *${error.expected}*.`;
+}
+
+// Merges the deterministic comparison with the LLM explanations
+function buildAnalysis(
+  comparison: DictationComparison,
+  explanations: DicteeExplanations | null,
+  originalText: string
+): DicteeAnalysis {
+  const byId = new Map(explanations?.explications.map((e) => [e.id, e]));
+
+  const errors = comparison.errors.map((error) => {
+    const explanation = byId.get(error.id);
+    return {
+      order: error.id,
+      wrong: error.written ? boldWords(error.written) : "_(oublié)_",
+      right: error.expected ? `*${error.expected}*` : "_(en trop)_",
+      type: (explanation?.type ?? "orthographe") as ErrorType,
+      explication: explanation?.explication || defaultExplanation(error),
+    };
+  });
+
+  const asList = (items: string[]) =>
+    items.length === 1 ? items[0] : items.map((item) => `- ${item}`).join("\n");
+
+  const fautes = comparison.sentences.map((sentence) => {
+    const sentenceErrors = errors.filter((e) =>
+      sentence.errorIds.includes(e.order)
+    );
+    const rules = [
+      ...new Set(
+        sentenceErrors.map((e) => byId.get(e.order)?.regle).filter(Boolean)
+      ),
+    ] as string[];
+    return {
+      sentence_order_number: sentence.index + 1,
+      texte_eleve: sentence.studentHighlighted,
+      correction: sentence.originalHighlighted,
+      explication: asList(sentenceErrors.map((e) => e.explication)),
+      regle: rules.length > 0 ? asList(rules) : "Relis bien chaque mot et apprends son orthographe.",
+    };
+  });
+
+  const countType = (type: ErrorType) =>
+    errors.filter((e) => e.type === type).length;
+
+  return {
+    stats: {
+      total_fautes: errors.length,
+      fautes_orthographe: countType("orthographe"),
+      fautes_grammaire: countType("grammaire"),
+      fautes_conjugaison: countType("conjugaison"),
+      pourcentage_reussite: comparison.successPercentage,
+    },
+    dictation_submitted_errors_highlighted: comparison.studentHighlighted,
+    original_text_errors_highlighted: comparison.originalHighlighted,
+    message_general:
+      explanations?.message_general ||
+      (errors.length === 0 ? "Bravo, aucune faute !" : "Voici la correction de ta dictée."),
+    errors,
+    fautes,
+    conclusion_positive:
+      explanations?.conclusion_positive ||
+      "Continue tes efforts, tu progresses bien !",
+    originalText,
+  };
 }
 
 export async function POST(request: NextRequest) {
@@ -134,7 +123,7 @@ export async function POST(request: NextRequest) {
         { status: 500 }
       );
     }
-    
+
     // Get session from BetterAuth
     const session = await auth.api.getSession({
       headers: request.headers,
@@ -146,7 +135,7 @@ export async function POST(request: NextRequest) {
 
     // Get current profile ID from cookie
     const currentProfileId = await getCurrentProfileFromCookie(request);
-    
+
     if (!currentProfileId) {
       return NextResponse.json({ error: "No profile selected" }, { status: 400 });
     }
@@ -164,14 +153,14 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { 
-      dictationId: incomingDictationId, 
-      studentText, 
-      originalText, 
-      profileAge, 
-      profileFirstName, 
-      profileDescription, 
-      profileLevels 
+    const {
+      dictationId: incomingDictationId,
+      studentText,
+      originalText,
+      profileAge,
+      profileFirstName,
+      profileDescription,
+      profileLevels
     } = body;
 
     const dictationId = Number(incomingDictationId);
@@ -216,315 +205,208 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Errors, score and highlighting are computed in code, not by the LLM
+    const comparison = compareDictation(originalText, studentText);
+    const preliminaryAnalysis = buildAnalysis(comparison, null, originalText);
+
+    const studentName = profileFirstName || "ton élève";
+
     // System prompt with dynamic profile information
-    const systemPrompt = `Tu es un professeur d'école élémentaire (niveaux : ${profileLevels || 'école élémentaire'}).  
-Ton rôle est d'aider ton élève à progresser en orthographe, grammaire et conjugaison à travers la correction et l'analyse de ses dictées.  
+    const systemPrompt = `Tu es un professeur d'école élémentaire (niveaux : ${profileLevels || 'école élémentaire'}).
+Ton rôle est d'aider ton élève à progresser en orthographe, grammaire et conjugaison à travers la correction de ses dictées.
 
 # Règles générales
-- Tu corriges avec bienveillance et pédagogie.  
-- Tu gardes un ton **décontracté et proche de l'enfant**, avec toujours une petite blague ou comparaison amusante pour rendre l'apprentissage plus fun.  
-- Tu expliques chaque faute en **termes simples**, adaptés à un enfant de ${profileAge} ans.  
-- Tu donnes toujours la **règle associée** pour que l'élève comprenne et progresse.  
+- Tu corriges avec bienveillance et pédagogie.
+- Tu gardes un ton **décontracté et proche de l'enfant**, avec de temps en temps une petite blague ou comparaison amusante pour rendre l'apprentissage plus fun.
+- Tu expliques chaque faute en **termes simples**, adaptés à un enfant de ${profileAge} ans.
 - Tu t'adresses directement à l'élève, en utilisant son prénom ${profileFirstName || 'non renseigné'} et en le tutoyant.
 - Tu fais des réponses personnalisées en fonction de la présentation de l'élève et de son niveau.
-- Tu rédiges ta réponse en **Markdown**, structurée avec titres (#), sous-titres (##), listes à puce (- ), listes numériques (1.), gras (**bold**), italique (*italic*).  
-- Ta réponse doit toujours finir par une **conclusion positive et motivante**.  
 
 # Profil de l'élève
 - Prénom : ${profileFirstName || 'non renseigné'}
 - Âge : ${profileAge} ans
 - Niveaux : ${profileLevels || 'CE1 à CM2'}
 - Présentation : ${profileDescription || 'Élève motivé et curieux'}
-
-
-
-
 `;
 
+    const errorsList =
+      comparison.errors.length === 0
+        ? "Aucune erreur : la dictée est parfaite."
+        : comparison.errors
+            .map(
+              (error) =>
+                `- id ${error.id} : attendu « ${error.expected || "(rien, mot en trop)"} », ${studentName} a écrit « ${error.written || "(rien, mot oublié)"} »`
+            )
+            .join("\n");
+
     const userPrompt = `# Dictée donnée à l'élève (réponse correcte)
-    ${originalText}
+${originalText}
 
-    # Copie de l'élève
-    ${studentText}
+# Copie de l'élève
+${studentText}
 
-    # Important :
-    Les oublis ou erreurs de ponctuation, de majuscules ou d'apostrophes ne doivent pas être comptés et considérés comme des fautes.
+# Erreurs détectées
+La comparaison mot à mot a déjà été faite. Voici la liste EXACTE et COMPLÈTE des erreurs (${comparison.errors.length} erreur(s), ${comparison.correctWords} mot(s) correct(s) sur ${comparison.totalWords}) :
+${errorsList}
 
-    # Tâches
-    1. Analyse la copie de l'élève et la compare à la dictée correcte.
+Les erreurs de ponctuation, de majuscules et d'apostrophes ont déjà été ignorées.
+N'ajoute AUCUNE autre erreur, n'en retire aucune et ne recompte rien : tous les autres mots sont corrects.
 
-    2. Donne un **bilan global** :
-      - Nombre total de fautes (ne compte pas les erreurs de ponctuation, de majuscules ou d'apostrophes. Par exemple si la phrase ne commence pas par une majuscule ou ne termine pas par un signe de ponctuation, ne compte pas cette erreur)
-      - Répartition : fautes d'orthographe / de grammaire / de conjugaison  
-      - % de mots bien orthographiés
+# Tâches
+1. "message_general" : une phrase d'accueil courte et personnalisée pour ${studentName}, cohérente avec le nombre d'erreurs ci-dessus.
+2. "explications" : exactement un élément par erreur de la liste, avec le même "id" :
+   - "type" : "orthographe", "grammaire" (accords, homophones grammaticaux comme a/à, et/est…) ou "conjugaison"
+   - "explication" : explication courte et simple. Mets en **gras** ce que l'élève a écrit et en *italique* la bonne réponse (ex : Tu as écrit **bein** au lieu de *bains*.)
+   - "regle" : la règle expliquée simplement, avec en **gras** les mots ou lettres importants
+   Si la liste est vide, renvoie un tableau vide.
+3. "conclusion_positive" : 1 à 3 phrases encourageantes et motivantes pour ${studentName}. Tu peux utiliser **gras**, mais pas de titres ni de listes.`;
 
-    2bis. Génère le texte complet avec highlighting :
-      - "dictation_submitted_errors_highlighted" : réécris tout le texte de la copie de l'élève en marquant **en gras** chaque mot ou expression avec erreur. (ne compte pas les erreurs de ponctuation et de majuscules)
-      - "original_text_errors_highlighted" : réécris tout le texte original en marquant *en italique* chaque mot ou expression où l'élève a fait une erreur (pour montrer la version correcte)
-
-    2ter. Crée une liste d'erreurs individuelles ("errors") :
-      - Chaque erreur doit avoir : "order" (numéro d'ordre), "wrong" (texte incorrect avec **gras**), "right" (texte correct avec *italique*), "type" ("orthographe" ou "grammaire" ou "conjugaison"), "explication" (explication courte)
-      - Cette liste est séparée des fautes regroupées par phrase
-      - Exemple : {"order": 1, "wrong": "salle de **bein**", "right": "salle de *bains*", "type": "orthographe", "explication": "Le mot bains s'écrit avec un ai car il désigne une pièce où l'on prend des bains."}
-      - Ne compte pas les erreurs de ponctuation et de majuscules
-
-    3. Analyse **chaque faute** en regroupant par phrase :
-      - a. Ce que ${profileFirstName || 'ton élève'} a écrit : marque **en gras** chaque mot ou expression contenant une erreur dans la phrase (ex: La salle de **bein** se trouve au **fon** du couloir.)
-      - b. La bonne correction : marque *en italique* chaque mot ou expression corrigée dans la phrase (ex: La salle de *bains* se trouve au *fond* du couloir.)
-      - c. Pourquoi c'est une faute : utilise **gras** pour l'erreur et *italique* pour la correction (ex: Tu as écrit **bein** au lieu de *bains*)
-      - d. La règle expliquée simplement : utilise **gras** pour mettre en évidence les mots importants (mots corrigés, règles orthographiques, lettres importantes, etc.). Ex: Le mot **bains** s'écrit avec un **ai** car il désigne une pièce où l'on prend des bains. Pour **fond**, c'est un mot qui se termine par **d** muet, utilisé pour parler de l'extrémité ou du bas d'un espace.
-      - Ne compte pas les erreurs de ponctuation et de majuscules
-
-    4. Termine par une **conclusion encourageante** pour motiver ${profileFirstName || 'ton élève'}.
-    
-    **IMPORTANT :** Dans TOUS les champs de texte, tu DOIS utiliser le formatage Markdown :
-    - "dictation_submitted_errors_highlighted" : texte COMPLET de la copie avec **gras** sur toutes les erreurs (ex: La salle de **bein** se trouve au **fon** du couloir. Tu as très **bien** recopié ce passage.)
-    - "original_text_errors_highlighted" : texte COMPLET de l'original avec *italique* sur les corrections (ex: La salle de *bains* se trouve au *fond* du couloir. Tu as très bien recopié ce passage.)
-    - Pour "texte_eleve" : mets en **gras** (**mot**) chaque mot ou expression avec erreur
-    - Pour "correction" : mets en *italique* (*mot*) chaque mot ou expression corrigée
-    - Pour "explication" : utilise **gras** pour faire référence aux erreurs et *italique* pour les corrections
-    - Pour "regle" : utilise **gras** pour mettre en évidence les mots importants (mots corrigés, règles orthographiques, lettres importantes, terminaisons grammaticales, etc.)
-    - Pour "errors" : chaque "wrong" doit avoir **gras** sur l'erreur, chaque "right" doit avoir *italique* sur la correction
-    
-    Exemple :
-    - "dictation_submitted_errors_highlighted": "La salle de **bein** se trouve au **fon** du couloir. Tu as très **bien** recopié ce passage."
-    - "original_text_errors_highlighted": "La salle de *bains* se trouve au *fond* du couloir. Tu as très bien recopié ce passage."
-    - "errors": [{"order": 1, "wrong": "salle de **bein**", "right": "salle de *bains*", "type": "orthographe", "explication": "Le mot bains s'écrit avec un ai car il désigne une pièce où l'on prend des bains."}, {"order": 2, "wrong": "au **fon**", "right": "au *fond*", "type": "orthographe", "explication": "Le mot fond se termine par un d muet, utilisé pour parler de l'extrémité ou du bas d'un espace."}]
-    - "texte_eleve": "La salle de **bein** se trouve au **fon** du couloir."
-    - "correction": "La salle de *bains* se trouve au *fond* du couloir."
-    - "explication": "Tu as écrit **bein** au lieu de *bains*. Le mot **fon** devrait être *fond*."
-    
-    Analyse cette dictée selon les instructions données et réponds en JSON avec la structure exacte demandée.`;
-
-    // Create streaming response
-    const stream = client.responses.stream({
-      model: "gpt-5.4-nano", // Supported model for Structured Outputs
-      input: [
-        { role: "system", content: systemPrompt },
-        { role: "user", content: userPrompt },
-      ],
-      text: {
-        format: zodTextFormat(DicteeAnalysisSchema, "dictee_analysis"),
-      },
-    });
+    const encoder = new TextEncoder();
+    const send = (
+      controller: ReadableStreamDefaultController<Uint8Array>,
+      payload: unknown
+    ) => controller.enqueue(encoder.encode(`data: ${JSON.stringify(payload)}\n\n`));
 
     // Return SSE stream
     return new Response(
-      new ReadableStream({
+      new ReadableStream<Uint8Array>({
         async start(controller) {
-          let accumulatedText = "";
-          let validatedResult: {
-            stats: {
-              total_fautes: number;
-              fautes_orthographe: number;
-              fautes_grammaire: number;
-              fautes_conjugaison: number;
-              pourcentage_reussite: number;
-            };
-            dictation_submitted_errors_highlighted: string | null;
-            original_text_errors_highlighted: string | null;
-            message_general: string;
-            errors: Array<{
-              order: number;
-              wrong: string;
-              right: string;
-              type: string;
-              explication: string;
-            }>;
-            fautes: Array<{
-              sentence_order_number: number;
-              texte_eleve: string;
-              correction: string;
-              explication: string;
-              regle: string;
-            }>;
-            conclusion_positive: string;
-          } | null = null;
-          let exerciceAttempt: { id: number } | null = null;
-          
           try {
-            stream
-              .on("response.output_text.delta", (event) => {
+            // Score and highlighting are known before the LLM answers
+            send(controller, {
+              type: "delta",
+              partial: {
+                stats: preliminaryAnalysis.stats,
+                dictation_submitted_errors_highlighted:
+                  preliminaryAnalysis.dictation_submitted_errors_highlighted,
+                original_text_errors_highlighted:
+                  preliminaryAnalysis.original_text_errors_highlighted,
+                errors: preliminaryAnalysis.errors,
+              },
+            });
+
+            let explanations: DicteeExplanations | null = null;
+            try {
+              let accumulatedText = "";
+              const stream = client.responses.stream({
+                model: OPENAI_MODEL,
+                input: [
+                  { role: "system", content: systemPrompt },
+                  { role: "user", content: userPrompt },
+                ],
+                text: {
+                  format: zodTextFormat(DicteeExplanationsSchema, "dictee_explanations"),
+                },
+              });
+
+              stream.on("response.output_text.delta", (event) => {
                 accumulatedText += event.delta;
-                
-                // Try to parse partial JSON and extract available fields
-                try {
-                  const partial = JSON.parse(accumulatedText);
-                  // Send progressive update with parsed fields
-                  controller.enqueue(`data: ${JSON.stringify({ 
-                    type: "delta", 
-                    partial: partial
-                  })}\n\n`);
-                } catch {
-                  // If JSON is incomplete, try to extract partial fields manually
-                  const partialFields = extractPartialFields(accumulatedText);
-                  if (Object.keys(partialFields).length > 0) {
-                    controller.enqueue(`data: ${JSON.stringify({ 
-                      type: "delta", 
-                      partial: partialFields
-                    })}\n\n`);
-                  }
+                const partial: Record<string, string> = {};
+                for (const field of ["message_general", "conclusion_positive"]) {
+                  const value = extractStringField(accumulatedText, field);
+                  if (value) partial[field] = value;
                 }
-              })
-              .on("response.refusal.delta", (event) => {
-                controller.enqueue(`data: ${JSON.stringify({ 
-                  type: "refusal", 
-                  refusal: event.delta 
-                })}\n\n`);
-              })
-              .on("event", (event: { type: string; error?: unknown }) => {
-                if (event.type === "response.error") {
-                  console.error("Stream error:", event.error);
-                  controller.enqueue(`data: ${JSON.stringify({ 
-                    type: "error", 
-                    error: event.error 
-                  })}\n\n`);
-                  controller.close();
+                if (Object.keys(partial).length > 0) {
+                  send(controller, { type: "delta", partial });
                 }
               });
 
-            // Wait for the final response
-            const finalResponse = await stream.finalResponse();
-            
-            if (finalResponse.status === "completed") {
-              // Parse and validate the complete result
-              let parsedResult: unknown = null;
-              try {
-                parsedResult = JSON.parse(finalResponse.output_text);
-                validatedResult = DicteeAnalysisSchema.parse(parsedResult);
-              } catch (error) {
-                console.error("Zod validation error:", error);
-                
-                // Try to fix missing fields - ensure all required fields are present
-                const parsed = parsedResult as Record<string, unknown>;
-                const fixedResult = {
-                  stats: parsed?.stats || parsed?.bilan_global || {
-                    total_fautes: 0,
-                    fautes_orthographe: 0,
-                    fautes_grammaire: 0,
-                    fautes_conjugaison: 0,
-                    pourcentage_reussite: 100
-                  },
-                  message_general: parsed?.message_general || "Analyse terminée",
-                  fautes: (Array.isArray(parsed?.fautes) ? parsed.fautes : []).map((faute: Record<string, unknown>, index: number) => ({
-                    sentence_order_number: faute.sentence_order_number || index + 1,
-                    texte_eleve: faute.texte_eleve || faute.texte_noa || "Texte non disponible",
-                    correction: faute.correction || "Correction non disponible",
-                    explication: faute.explication || "Je n'ai pas d'explication à te fournir",
-                    regle: faute.regle || "Il n'y a pas de règle spécifique"
-                  })),
-                  conclusion_positive: parsed?.conclusion_positive || "Continue tes efforts, tu progresses bien !"
-                };
-                
-                try {
-                  validatedResult = DicteeAnalysisSchema.parse(fixedResult);
-                } catch (secondError) {
-                  console.error("Second validation error:", secondError);
-                  // If still failing, create a minimal valid result
-                  validatedResult = {
-                    stats: {
-                      total_fautes: 0,
-                      fautes_orthographe: 0,
-                      fautes_grammaire: 0,
-                      fautes_conjugaison: 0,
-                      pourcentage_reussite: 100
-                    },
-                    dictation_submitted_errors_highlighted: null,
-                    original_text_errors_highlighted: null,
-                    message_general: "Analyse terminée",
-                    errors: [],
-                    fautes: [],
-                    conclusion_positive: "Continue tes efforts, tu progresses bien !"
-                  };
+              const finalResponse = await stream.finalResponse();
+              if (finalResponse.status === "completed") {
+                const parsed = DicteeExplanationsSchema.safeParse(
+                  JSON.parse(finalResponse.output_text)
+                );
+                if (parsed.success) {
+                  explanations = parsed.data;
+                } else {
+                  console.error("Zod validation error:", parsed.error);
                 }
+              } else {
+                console.error("Incomplete LLM response:", finalResponse.status);
               }
-
-              // Save the analysis results to the database
-              try {
-                if (validatedResult) {
-                  exerciceAttempt = await prisma.exercices_attempts.create({
-                    data: {
-                      user_id: session.user.id,
-                      profile_id: currentProfileId,
-                      dictation_id: dictationId,
-                      question_type: "DICTEE",
-                      question_text: originalText,
-                      user_answer: studentText,
-                      is_correct: validatedResult.stats.total_fautes === 0,
-                      correction_total_errors: validatedResult.stats.total_fautes,
-                      correction_errors_spelling: validatedResult.stats.fautes_orthographe,
-                      correction_errors_grammar: validatedResult.stats.fautes_grammaire,
-                      correction_errors_conjugation: validatedResult.stats.fautes_conjugaison,
-                      correction_success_percentage: validatedResult.stats.pourcentage_reussite,
-                      correction_greeting_message: validatedResult.message_general,
-                      correction_errors_by_sentence_json: validatedResult.fautes,
-                      correction_conclusion_message: validatedResult.conclusion_positive,
-                      correction_full_json: JSON.stringify(validatedResult),
-                      correction_user_answer_errors_highlighted: validatedResult.dictation_submitted_errors_highlighted,
-                      original_text_errors_highlighted: validatedResult.original_text_errors_highlighted,
-                    },
-                  });
-                }
-
-                console.log("Exercise attempt saved to database:", exerciceAttempt?.id);
-                
-                // Save individual errors to database
-                if (validatedResult && validatedResult.errors && validatedResult.errors.length > 0 && exerciceAttempt?.id) {
-                  await prisma.exercices_errors.createMany({
-                    data: validatedResult.errors.map((error) => ({
-                      user_id: session.user.id,
-                      profile_id: currentProfileId,
-                      attempt_id: exerciceAttempt!.id,
-                      dictation_id: dictationId,
-                      wrong_text: error.wrong,
-                      right_text: error.right,
-                      error_type: error.type,
-                      explication: error.explication,
-                    })),
-                  });
-                  console.log(`Saved ${validatedResult.errors.length} errors to database`);
-                }
-                
-                // Invalidate cache for this dictation and profile
-                try {
-                  // Match tags used in GET /api/dictations/[id] and list endpoint
-                  revalidateTag('dictation');
-                  revalidateTag('dictations');
-                  revalidateTag(`dictation-${dictationId}`);
-                  if (currentProfileId) {
-                    revalidateTag(`profile-${currentProfileId}`);
-                  }
-                  console.log("Cache invalidated for dictation:", dictationId);
-                } catch (cacheError) {
-                  console.error("Error invalidating cache:", cacheError);
-                }
-              } catch (dbError) {
-                console.error("Error saving to database:", dbError);
-                // Continue with the response even if database save fails
-              }
-
-              // Send completion event with originalText included
-              controller.enqueue(`data: ${JSON.stringify({ 
-                type: "complete", 
-                analysis: {
-                  ...validatedResult,
-                  originalText: originalText
-                },
-                attempt: exerciceAttempt
-              })}\n\n`);
-            } else {
-              // Handle incomplete response
-              controller.enqueue(`data: ${JSON.stringify({ 
-                type: "error", 
-                error: "Response incomplete" 
-              })}\n\n`);
+            } catch (llmError) {
+              // The correction stays valid without the explanations
+              console.error("Error while generating explanations:", llmError);
             }
+
+            const analysis = buildAnalysis(comparison, explanations, originalText);
+            let exerciceAttempt: Awaited<
+              ReturnType<typeof prisma.exercices_attempts.create>
+            > | null = null;
+
+            // Save the analysis results to the database
+            try {
+              exerciceAttempt = await prisma.exercices_attempts.create({
+                data: {
+                  user_id: session.user.id,
+                  profile_id: currentProfileId,
+                  dictation_id: dictationId,
+                  question_type: "DICTEE",
+                  question_text: originalText,
+                  user_answer: studentText,
+                  is_correct: analysis.stats.total_fautes === 0,
+                  correction_total_errors: analysis.stats.total_fautes,
+                  correction_errors_spelling: analysis.stats.fautes_orthographe,
+                  correction_errors_grammar: analysis.stats.fautes_grammaire,
+                  correction_errors_conjugation: analysis.stats.fautes_conjugaison,
+                  correction_success_percentage: analysis.stats.pourcentage_reussite,
+                  correction_greeting_message: analysis.message_general,
+                  correction_errors_by_sentence_json: analysis.fautes,
+                  correction_conclusion_message: analysis.conclusion_positive,
+                  correction_full_json: JSON.stringify(analysis),
+                  correction_user_answer_errors_highlighted:
+                    analysis.dictation_submitted_errors_highlighted,
+                  original_text_errors_highlighted:
+                    analysis.original_text_errors_highlighted,
+                },
+              });
+
+              console.log("Exercise attempt saved to database:", exerciceAttempt.id);
+
+              // Save individual errors to database
+              if (analysis.errors.length > 0) {
+                await prisma.exercices_errors.createMany({
+                  data: analysis.errors.map((error) => ({
+                    user_id: session.user.id,
+                    profile_id: currentProfileId,
+                    attempt_id: exerciceAttempt!.id,
+                    dictation_id: dictationId,
+                    wrong_text: error.wrong,
+                    right_text: error.right,
+                    error_type: error.type,
+                    explication: error.explication,
+                  })),
+                });
+                console.log(`Saved ${analysis.errors.length} errors to database`);
+              }
+
+              // Invalidate cache for this dictation and profile
+              try {
+                // Match tags used in GET /api/dictations/[id] and list endpoint
+                revalidateTag('dictation');
+                revalidateTag('dictations');
+                revalidateTag(`dictation-${dictationId}`);
+                revalidateTag(`profile-${currentProfileId}`);
+                console.log("Cache invalidated for dictation:", dictationId);
+              } catch (cacheError) {
+                console.error("Error invalidating cache:", cacheError);
+              }
+            } catch (dbError) {
+              console.error("Error saving to database:", dbError);
+              // Continue with the response even if database save fails
+            }
+
+            send(controller, {
+              type: "complete",
+              analysis,
+              attempt: exerciceAttempt,
+            });
           } catch (error) {
             console.error("Error in streaming:", error);
-            controller.enqueue(`data: ${JSON.stringify({ 
-              type: "error", 
-              error: "Failed to analyze dictation" 
-            })}\n\n`);
+            send(controller, {
+              type: "error",
+              error: "Failed to analyze dictation",
+            });
           } finally {
             controller.close();
           }
