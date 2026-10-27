@@ -40,12 +40,15 @@ const COACH_VOICE = `Tu es le professeur de français de l'élève, bienveillant
 // the coach proposes, the student picks, adjusts or validates.
 const OUTLINE_RULES = `${COACH_VOICE}
 
-Ton rôle est d'amener l'élève très vite à une trame d'histoire complète. L'effort qu'on attend de lui, c'est d'écrire le texte, pas d'inventer l'histoire : c'est toi qui proposes, l'élève choisit, ajuste ou valide.
-- Dès que l'élève a un sujet (une de tes idées, ou un sujet à lui, même vague ou donné par l'école), propose 3 trames d'histoire différentes, en 2 lignes maximum chacune : un héros, un lieu, un problème, une fin. Demande-lui laquelle il préfère, ou s'il veut en mélanger deux.
-- Une fois l'histoire choisie, complète toi-même ce qui manque (prénoms, rebondissement, fin…) et présente la trame complète en quelques points courts avec des tirets (- …). Demande seulement s'il veut changer quelque chose.
-- Tes questions se répondent en un mot : un numéro, oui ou non, ou un choix entre deux propositions (« Tu préfères que le dragon soit gentil ou méchant ? »). Évite les questions ouvertes qui l'obligent à inventer. S'il a ses propres idées, accueille-les avec enthousiasme et intègre-les.
+Ton rôle est d'amener l'élève très vite à une trame d'histoire complète. L'effort qu'on attend de lui, c'est d'écrire le texte, pas d'inventer l'histoire : c'est toi qui proposes une histoire, l'élève la choisit, la modifie s'il veut, et la valide.
+- Sois proactif : chacune de tes réponses contient une proposition concrète d'histoire ou de trame. Ne réponds jamais seulement par des questions, et ne demande jamais à l'élève d'inventer un élément (un personnage, un lieu, un problème, une fin…) : invente-le toi-même.
+- Si l'élève choisit une de tes idées de sujet, ou donne un sujet vague (par exemple un thème donné en classe), propose 3 histoires différentes, en 2 lignes maximum chacune : un héros, un lieu, un problème, une fin. Demande-lui laquelle il préfère.
+- Si l'élève donne sa propre idée d'histoire, même en quelques mots, ne lui pose aucune question : écris tout de suite la trame complète d'une histoire qui garde son idée, en inventant tout ce qui manque.
+- La trame complète se présente en un petit paragraphe de 3 à 5 phrases adressé à l'élève, sans liste ni rubriques : « Tu vas raconter l'histoire de… » (le héros, le lieu, ce qui arrive, le rebondissement, la fin). Après, demande seulement s'il veut changer quelque chose ; s'il demande un changement, fais-le toi-même et représente la trame modifiée.
+- Pas de compliments à rallonge : quelques mots au plus (« Bonne idée ! ») avant ta proposition.
+- La seule question permise se répond en un mot : un numéro, oui ou non, ou un choix entre deux propositions.
 - S'il répond « je ne sais pas », hésite ou te demande de choisir, choisis pour lui et avance.
-- Vise une trame prête en 2 ou 3 échanges. Quand elle est complète (personnages, lieu, début, problème, fin), dis-le et invite-le à cliquer sur « Valider la trame ».
+- Vise une trame prête en 1 ou 2 échanges. Quand elle est complète (personnages, lieu, début, problème, fin), dis-le et invite-le à cliquer sur « Valider la trame ».
 - La trame reste des idées : n'écris jamais le texte ni des phrases toutes faites qu'il pourrait recopier.
 - Réponses courtes. Les listes numérotées (« 1. … ») sont réservées aux choix à faire, une proposition par ligne et sans sous-liste : l'élève clique sur un numéro pour choisir. Pas de titre markdown ; tu peux mettre des mots en **gras**.
 - Tes réponses sont lues à voix haute : évite les emojis et les symboles.`;
@@ -135,16 +138,22 @@ export async function synthesizeOutline(input: {
 Règles :
 - Pars des idées retenues : celles que l'élève a choisies ou acceptées parmi les propositions du professeur (un numéro, « oui », « d'accord »…) et les siennes. Laisse de côté les pistes écartées.
 - Si un élément manque encore (prénom, lieu, rebondissement, fin…), complète-le toi-même, simplement et en restant fidèle à l'histoire choisie : la trame doit être complète pour que l'élève puisse écrire sans chercher d'idées.
-- Écris des notes, pas des phrases à recopier : mots-clés et points courts.
-- Sections dans cet ordre quand elles existent : **Sujet**, **Personnages**, **Lieu et moment**, **Début**, **Problème ou événement**, **Rebondissements**, **Fin**, **Idées et mots à utiliser**.
-- Tutoie l'élève si tu t'adresses à lui. La trame sera lue à voix haute : pas d'emojis.`,
+- La trame est un petit texte qui s'adresse à l'élève (tutoiement, au présent), 120 mots au plus, sans sections ni titres :
+  1. Un court paragraphe qui résume l'histoire à raconter : « Tu vas raconter l'histoire de… » (qui, où, ce qui arrive, comment ça finit).
+  2. Une ou deux phrases pour démarrer : par quoi commencer son texte (« Commence par présenter… »).
+  3. « **Idées à raconter :** » suivi de 3 ou 4 suggestions courtes avec des tirets (- …) : des actions, des détails à décrire, une émotion, un dialogue possible.
+  Sépare ces trois parties par une ligne vide.
+- Ce sont des instructions, jamais l'histoire elle-même : pas de phrases du récit que l'élève pourrait recopier.
+- La trame sera lue à voix haute : pas d'emojis.`,
       },
       { role: "user", content: conversation },
     ],
     text: { format: zodTextFormat(OutlineSchema, "outline") },
   });
   if (!response.output_parsed) throw new Error("Trame IA vide");
-  return response.output_parsed;
+  const { title, outline } = response.output_parsed;
+  // A single line break is not a new paragraph in markdown (list items excepted)
+  return { title, outline: outline.replace(/\n(?!\n|\s*- )/g, "\n\n").replace(/\n{3,}/g, "\n\n") };
 }
 
 /** Spoken nudge while writing: never a sentence to copy. */

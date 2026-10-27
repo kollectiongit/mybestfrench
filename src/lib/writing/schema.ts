@@ -13,7 +13,7 @@ export const OutlineSchema = z.object({
   outline: z
     .string()
     .describe(
-      "La trame en markdown simple : des sections « **Titre** » suivies de points courts (- …). Les idées choisies avec l'élève, complétées si besoin."
+      "La trame en markdown simple : un court résumé de l'histoire adressé à l'élève, comment démarrer, puis « **Idées à raconter :** » et quelques suggestions avec des tirets. Les idées choisies avec l'élève, complétées si besoin."
     ),
 });
 export type OutlineGen = z.infer<typeof OutlineSchema>;
