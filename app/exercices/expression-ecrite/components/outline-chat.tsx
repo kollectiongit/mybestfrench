@@ -14,6 +14,14 @@ import { RichMd } from "./shared";
 
 const AUTO_READ_KEY = "writing-chat-auto-read";
 
+/** The numbered proposals of a coach message ("1. …"), to pick with one click. */
+function choicesOf(text: string) {
+  return [...text.matchAll(/^\s*(\d+)[.)]\s+(.+)$/gm)].map((m) => ({
+    number: m[1],
+    text: m[2].replace(/\*\*/g, "").trim(),
+  }));
+}
+
 /**
  * Step 1 — the student builds the subject and the outline by talking with the
  * coach (typed or dictated messages, answers read aloud), then validates it.
@@ -143,6 +151,11 @@ export function OutlineChat({
   };
 
   const hasStudentMessage = messages.some((m) => m.role === "user");
+  const last = messages[messages.length - 1];
+  const showQuickReplies = !streaming && !draft && last?.role === "assistant" && !!last.content.trim();
+  const choices = showQuickReplies ? choicesOf(last.content) : [];
+  // The coach says the outline is complete: validating is the next step
+  const outlineReady = showQuickReplies && !choices.length && last.content.includes("Valider la trame");
 
   return (
     <div className="space-y-4">
@@ -192,6 +205,38 @@ export function OutlineChat({
                 )}
               </div>
             )
+          )}
+
+          {showQuickReplies && (
+            <div className="flex flex-wrap gap-2">
+              {choices.map((c) => (
+                <Button
+                  key={c.number}
+                  size="sm"
+                  variant="outline"
+                  className="border-sky-300 bg-white text-sky-800 hover:bg-sky-100"
+                  title={c.text}
+                  onClick={() => send(`Je choisis la ${c.number} : ${c.text}`)}
+                >
+                  Je choisis la {c.number}
+                </Button>
+              ))}
+              {choices.length > 0 && (
+                <Button size="sm" variant="ghost" className="text-sky-700" onClick={() => send("Propose-moi d'autres idées.")}>
+                  Autre chose
+                </Button>
+              )}
+              {outlineReady ? (
+                <Button size="sm" onClick={prepareOutline} disabled={drafting}>
+                  {drafting ? <Loader2 className="size-4 animate-spin" /> : <CheckCircle2 className="size-4" />}
+                  Valider la trame
+                </Button>
+              ) : (
+                <Button size="sm" variant="ghost" className="text-sky-700" onClick={() => send("Je ne sais pas, choisis pour moi.")}>
+                  Choisis pour moi
+                </Button>
+              )}
+            </div>
           )}
 
           {draft && (
@@ -250,7 +295,7 @@ export function OutlineChat({
 
       <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl bg-white p-4 shadow-xs">
         <p className="text-sm text-muted-foreground">
-          Quand tu as ton sujet, tes personnages, le début, le problème et la fin, valide ta trame.
+          Dès qu&apos;une histoire te plaît, valide ta trame : le prof complétera ce qui manque.
         </p>
         <Button onClick={prepareOutline} disabled={!hasStudentMessage || streaming || drafting} variant="secondary">
           {drafting ? <Loader2 className="size-4 animate-spin" /> : <CheckCircle2 className="size-4" />}
