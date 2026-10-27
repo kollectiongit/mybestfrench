@@ -254,7 +254,7 @@ model profiles {
   conjugaison_show_radical Boolean @default(true)
   conjugaison_groupes      Int[]   @default([1, 2, 3])
   tts_voice_id        String?               @db.VarChar(64) // ElevenLabs voice, null = default voice
-  tts_voice_mode      String                @default("fixed") @db.VarChar(10) // fixed | rotate (one voice per training session)
+  tts_voice_mode      String                @default("fixed") @db.VarChar(10) // fixed | rotate (one voice per training session) | device (browser voice, free)
   tts_voice_ids       String[]              @default([]) // voices allowed in rotation, empty = all French voices
   exercices_attempts  exercices_attempts[]
   exercices_errors    exercices_errors[]

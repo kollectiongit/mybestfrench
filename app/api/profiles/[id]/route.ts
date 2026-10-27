@@ -106,7 +106,7 @@ export async function PUT(
                   : null,
             }
           : {}),
-        ...(tts_voice_mode === "fixed" || tts_voice_mode === "rotate"
+        ...(["fixed", "rotate", "device"].includes(tts_voice_mode)
           ? { tts_voice_mode }
           : {}),
         ...(Array.isArray(tts_voice_ids)

@@ -1,7 +1,9 @@
 import { prisma } from "@/lib/prisma";
-import { createClient } from "@/utils/spabase/server";
+import { createClient } from "@supabase/supabase-js";
 import { createHash } from "crypto";
-import { cookies } from "next/headers";
+import { cleanTextForSpeech } from "./speech-text";
+
+export { cleanTextForSpeech };
 
 // ElevenLabs text-to-speech. Audio is generated on demand only (first click on
 // ▶), then cached in the Supabase "audio" bucket so a text is paid once per voice.
@@ -10,6 +12,18 @@ export const TTS_MODEL_ID = "eleven_v4_turbo";
 export const TTS_MAX_CHARS = 1500;
 const API = "https://api.elevenlabs.io";
 const BUCKET = "audio";
+
+/** Storage only needs the service key (no user cookies): works in any context. */
+function storage() {
+  const key =
+    process.env.NODE_ENV === "production"
+      ? process.env.SUPABASE_SECRET_KEY
+      : process.env.NEXT_PUBLIC_SUPABASE_SERVICE_KEY;
+  if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !key) throw new Error("Supabase storage is not configured");
+  return createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, key, {
+    auth: { persistSession: false },
+  }).storage.from(BUCKET);
+}
 
 /** ElevenLabs refused for billing reasons (e.g. library voice on the free plan). */
 export class TtsPlanError extends Error {}
@@ -24,14 +38,6 @@ function apiKey() {
   return key;
 }
 
-/** Markdown and layout characters must not be read aloud. */
-export function cleanTextForSpeech(text: string) {
-  return text
-    .replace(/_{3,}/g, " … ") // blanks of a fill-in sentence
-    .replace(/\*\*|__|[*_`#>]/g, "")
-    .replace(/\s+/g, " ")
-    .trim();
-}
 
 // ---------------------------------------------------------------------------
 // Voices
@@ -139,7 +145,7 @@ export function drawVoice<T extends { voice_id: string }>(
 }
 
 /**
- * Voice reading a new training session. In "rotate" mode, a random voice among
+ * Voice reading a new training session (null in "device" mode). In "rotate" mode, a random voice among
  * the ones ticked in the profile (all French voices if none), never the one of
  * the previous session; in "fixed" mode, the profile's voice.
  */
@@ -147,6 +153,11 @@ export async function pickSessionVoice(
   profileId: string
 ): Promise<{ voice_id: string; name: string } | null> {
   if (!isTtsConfigured()) return null;
+  const mode = await prisma.profiles.findUnique({
+    where: { id: profileId },
+    select: { tts_voice_mode: true },
+  });
+  if (mode?.tts_voice_mode === "device") return null; // read by the browser
   const [profile, voices] = await Promise.all([
     prisma.profiles.findUnique({
       where: { id: profileId },
@@ -210,10 +221,10 @@ export async function speak(text: string, voiceId: string, profileId: string | n
   const audio = Buffer.from(await res.arrayBuffer());
 
   const filePath = `tts/${hash}.mp3`;
-  const supabase = await createClient(await cookies());
-  const { error } = await supabase.storage
-    .from(BUCKET)
-    .upload(filePath, audio, { contentType: "audio/mpeg", upsert: true });
+  const { error } = await storage().upload(filePath, audio, {
+    contentType: "audio/mpeg",
+    upsert: true,
+  });
   if (error) throw new Error(`Supabase upload: ${error.message}`);
 
   // Two clicks at the same time may both generate: the unique hash keeps one row
@@ -234,8 +245,7 @@ export async function speak(text: string, voiceId: string, profileId: string | n
 }
 
 export async function downloadAudio(hash: string) {
-  const supabase = await createClient(await cookies());
-  const { data, error } = await supabase.storage.from(BUCKET).download(`tts/${hash}.mp3`);
+  const { data, error } = await storage().download(`tts/${hash}.mp3`);
   if (error || !data) return null;
   return Buffer.from(await data.arrayBuffer());
 }

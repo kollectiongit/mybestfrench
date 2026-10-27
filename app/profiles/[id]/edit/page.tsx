@@ -2,6 +2,7 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
+import type { VoiceMode } from "../../components/voice-settings";
 import EditProfilePageClient from "./edit-profile-page-client";
 
 export const dynamic = "force-dynamic";
@@ -44,7 +45,9 @@ export default async function EditProfilePage({
     conjugaison_show_radical: profile.conjugaison_show_radical ?? true,
     conjugaison_groupes: profile.conjugaison_groupes ?? [1, 2, 3],
     tts_voice_id: profile.tts_voice_id ?? null,
-    tts_voice_mode: profile.tts_voice_mode === "rotate" ? ("rotate" as const) : ("fixed" as const),
+    tts_voice_mode: (["rotate", "device"].includes(profile.tts_voice_mode)
+      ? profile.tts_voice_mode
+      : "fixed") as VoiceMode,
     tts_voice_ids: profile.tts_voice_ids ?? [],
   };
 

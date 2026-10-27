@@ -1,7 +1,8 @@
 "use client";
 
+import { isDeviceSpeechSupported, pickDeviceVoice, speakOnDevice } from "@/components/speak-button";
 import { cn } from "@/lib/utils";
-import { Check, Loader2, Shuffle, Square, User, Volume2 } from "lucide-react";
+import { Check, Loader2, Shuffle, Smartphone, Square, User, Volume2 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
 interface Voice {
@@ -15,14 +16,15 @@ interface Voice {
   is_french: boolean;
 }
 
-export type VoiceMode = "fixed" | "rotate";
+export type VoiceMode = "fixed" | "rotate" | "device";
 
 const GENDERS: Record<string, string> = { female: "voix féminine", male: "voix masculine" };
 
 /**
- * Voice of the "prof" for this profile: one fixed voice, or a different voice
- * for each training session among the ticked ones. The samples come from
- * ElevenLabs' preview URLs, so listening to them costs no credit.
+ * Voice of the "prof" for this profile: one fixed ElevenLabs voice, a different
+ * one for each training session among the ticked ones, or the device's own
+ * voice (Web Speech API, free). The ElevenLabs samples come from their preview
+ * URLs, so listening to them costs no credit.
  */
 export default function VoiceSettings({
   voiceId,
@@ -87,25 +89,20 @@ export default function VoiceSettings({
     <fieldset className="space-y-3 border-t pt-4">
       <legend className="text-sm font-medium leading-none text-foreground">Voix du prof</legend>
       <p className="text-sm text-muted-foreground">
-        La voix qui lit les leçons, les consignes et les explications quand {"l'enfant"} clique sur 🔊. Voix générée par IA.
+        La voix qui lit les leçons, les consignes et les explications quand {"l'enfant"} clique sur 🔊 (voix de synthèse).
       </p>
 
       {!data ? (
         <p className="flex items-center gap-2 text-sm text-muted-foreground">
           <Loader2 className="size-4 animate-spin" /> Chargement des voix…
         </p>
-      ) : !data.configured ? (
-        <p className="rounded-md bg-amber-50 px-3 py-2 text-sm text-amber-900">
-          La lecture à voix haute {"n'est"} pas encore activée : il manque la clé ElevenLabs (<code>ELEVENLABS_API_KEY</code>).
-        </p>
-      ) : voices.length === 0 ? (
-        <p className="text-sm text-muted-foreground">{data.error ?? "Aucune voix française dans le compte ElevenLabs."}</p>
       ) : (
         <div className="space-y-3">
-          <div className="grid gap-2 sm:grid-cols-2">
+          <div className="grid gap-2 sm:grid-cols-3">
             {([
               ["rotate", "Une voix différente à chaque session", Shuffle],
               ["fixed", "Toujours la même voix", User],
+              ["device", "Voix de l'appareil (gratuite)", Smartphone],
             ] as const).map(([value, label, Icon]) => (
               <button
                 key={value}
@@ -121,7 +118,17 @@ export default function VoiceSettings({
             ))}
           </div>
 
-          {mode === "rotate" ? (
+          {mode === "device" ? (
+            <DeviceVoicePanel />
+          ) : !data.configured ? (
+            <p className="rounded-md bg-amber-50 px-3 py-2 text-sm text-amber-900">
+              Les voix ElevenLabs ne sont pas activées (clé <code>ELEVENLABS_API_KEY</code> manquante) : la voix de {"l'appareil"} sera utilisée.
+            </p>
+          ) : voices.length === 0 ? (
+            <p className="text-sm text-muted-foreground">
+              {data.error ?? "Aucune voix française dans le compte ElevenLabs."} La voix de {"l'appareil"} sera utilisée.
+            </p>
+          ) : mode === "rotate" ? (
             <>
               <p className="text-xs text-muted-foreground">
                 Coche les voix que {"l'enfant"} peut entendre. Une voix est tirée au hasard à chaque nouvelle session, jamais la même que la fois précédente.
@@ -165,6 +172,63 @@ export default function VoiceSettings({
         </div>
       )}
     </fieldset>
+  );
+}
+
+function DeviceVoicePanel() {
+  const [voiceName, setVoiceName] = useState<string | null | undefined>(undefined);
+  const [playing, setPlaying] = useState(false);
+  const stop = useRef<(() => void) | null>(null);
+  const supported = isDeviceSpeechSupported();
+
+  useEffect(() => {
+    if (!supported) return;
+    pickDeviceVoice().then((v) => setVoiceName(v ? `${v.name} (${v.lang})` : null));
+    return () => stop.current?.();
+  }, [supported]);
+
+  const test = async () => {
+    if (playing) {
+      stop.current?.();
+      return;
+    }
+    setPlaying(true);
+    stop.current = await speakOnDevice(
+      "Bonjour ! Je suis la voix de ton appareil. Souligne les verbes en rouge et les sujets en vert.",
+      () => setPlaying(false)
+    );
+  };
+
+  return (
+    <div className="space-y-2 rounded-lg border-2 border-sky-200 bg-sky-50/50 p-3 text-sm">
+      <p>
+        Gratuite et instantanée : {"c'est"} la voix intégrée au téléphone, à la tablette ou à {"l'ordinateur"}. Sa qualité dépend de {"l'appareil"} (très correcte sur iPhone, iPad et Mac).
+      </p>
+      {!supported ? (
+        <p className="text-amber-800">Ce navigateur ne propose pas de voix de synthèse.</p>
+      ) : (
+        <div className="flex flex-wrap items-center gap-3">
+          <button
+            type="button"
+            onClick={test}
+            className="inline-flex items-center gap-1.5 rounded-md border border-sky-300 bg-white px-3 py-1.5 font-medium text-sky-800 hover:bg-sky-100"
+          >
+            {playing ? <Square className="size-3.5 fill-current" /> : <Volume2 className="size-4" />}
+            {playing ? "Arrêter" : "Tester sur cet appareil"}
+          </button>
+          <span className="text-xs text-muted-foreground">
+            {voiceName === undefined
+              ? "Recherche d'une voix française…"
+              : voiceName
+                ? `Voix utilisée ici : ${voiceName}`
+                : "Aucune voix française sur cet appareil : la voix par défaut sera utilisée."}
+          </span>
+        </div>
+      )}
+      <p className="text-xs text-muted-foreground">
+        Elle sert aussi automatiquement de secours si ElevenLabs ne répond pas.
+      </p>
+    </div>
   );
 }
 

@@ -7,14 +7,20 @@ export const dynamic = "force-dynamic";
 export const maxDuration = 60;
 
 // POST /api/tts  { text, session_id? } - Audio URL of the text, read with the
-// training session's voice when given, else the current profile's voice
+// training session's voice when given, else the current profile's voice.
+// Returns { engine: "device" } when the browser's own voice must read it
+// (profile set to "Voix de l'appareil", or ElevenLabs not configured).
 export async function POST(request: NextRequest) {
   try {
     const resolved = await resolveProfileForRequest(request);
     if ("error" in resolved) return resolved.error;
 
-    if (!isTtsConfigured()) {
-      return NextResponse.json({ error: "La voix n'est pas encore configurée" }, { status: 503 });
+    const profile = await prisma.profiles.findUnique({
+      where: { id: resolved.profileId },
+      select: { tts_voice_mode: true },
+    });
+    if (!isTtsConfigured() || profile?.tts_voice_mode === "device") {
+      return NextResponse.json({ engine: "device" });
     }
 
     const body = await request.json();
@@ -42,7 +48,7 @@ export async function POST(request: NextRequest) {
     }
 
     const { url } = await speak(text, voiceId, resolved.profileId);
-    return NextResponse.json({ url });
+    return NextResponse.json({ engine: "elevenlabs", url });
   } catch (error) {
     console.error("Error generating speech:", error);
     if (error instanceof TtsPlanError) {
