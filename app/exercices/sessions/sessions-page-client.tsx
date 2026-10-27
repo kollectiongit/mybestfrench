@@ -3,12 +3,46 @@
 import { Button } from "@/components/ui/button";
 import { useCurrentProfile } from "@/hooks/use-current-profile";
 import { cn } from "@/lib/utils";
-import { Camera, FileText, FolderCog, Play, Plus } from "lucide-react";
+import { Calendar, Camera, FileText, FolderCog, Play, Plus } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { CategoriesManagerDialog, useCategories } from "./components/categories";
 import { formatScore, scoreClasses } from "./components/shared";
 import type { SheetSummary } from "./types";
+
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+/** "aujourd'hui à 18:42", "hier à 9:05", "il y a 3 jours", "le 12 oct.", "le 12 oct. 2025" */
+function formatWhen(iso: string) {
+  const date = new Date(iso);
+  const now = new Date();
+  const startOf = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+  const days = Math.round((startOf(now) - startOf(date)) / DAY_MS);
+  const time = date.toLocaleTimeString("fr-FR", { hour: "numeric", minute: "2-digit" });
+  if (days === 0) return `aujourd'hui à ${time}`;
+  if (days === 1) return `hier à ${time}`;
+  if (days < 7) return `il y a ${days} jours`;
+  return `le ${date.toLocaleDateString("fr-FR", {
+    day: "numeric",
+    month: "short",
+    ...(date.getFullYear() !== now.getFullYear() && { year: "numeric" }),
+  })}`;
+}
+
+function fullDate(iso: string) {
+  return new Date(iso).toLocaleString("fr-FR", { dateStyle: "full", timeStyle: "short" });
+}
+
+/** What the student did last with this sheet, and when. */
+function lastActivity(sheet: SheetSummary) {
+  if (sheet.last_completed_at) {
+    return { label: `Faite ${formatWhen(sheet.last_completed_at)}`, title: fullDate(sheet.last_completed_at) };
+  }
+  if (sheet.in_progress_started_at) {
+    return { label: `Commencée ${formatWhen(sheet.in_progress_started_at)}`, title: fullDate(sheet.in_progress_started_at) };
+  }
+  return { label: `Créée ${formatWhen(sheet.created_at)} · jamais faite`, title: fullDate(sheet.created_at) };
+}
 
 export default function SessionsPageClient() {
   const { profile } = useCurrentProfile();
@@ -32,12 +66,8 @@ export default function SessionsPageClient() {
     return [...map.entries()].sort((a, b) => a[1].localeCompare(b[1]));
   }, [sheets]);
 
-  const grouped = useMemo(() => {
-    const visible = (sheets ?? []).filter((s) => categoryFilter == null || s.category.id === categoryFilter);
-    const byCategory = new Map<string, SheetSummary[]>();
-    visible.forEach((s) => byCategory.set(s.category.name, [...(byCategory.get(s.category.name) ?? []), s]));
-    return [...byCategory.entries()].sort((a, b) => a[0].localeCompare(b[0]));
-  }, [sheets, categoryFilter]);
+  // Already sorted by the API: most recent activity first
+  const visible = (sheets ?? []).filter((s) => categoryFilter == null || s.category.id === categoryFilter);
 
   return (
     <div className="container mx-auto space-y-6 px-4 py-8">
@@ -93,51 +123,62 @@ export default function SessionsPageClient() {
           </Button>
         </div>
       ) : (
-        grouped.map(([category, items]) => (
-          <section key={category} className="space-y-3">
-            <h2 className="text-lg font-semibold text-gray-700">{category}</h2>
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {items.map((sheet) => (
-                <div key={sheet.id} className="flex flex-col overflow-hidden rounded-2xl border bg-white shadow-sm">
-                  <Link href={`/exercices/sessions/fiche/${sheet.id}`} className="flex flex-1 gap-3 p-4 hover:bg-gray-50">
-                    <div className="flex size-16 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-gray-100">
-                      {sheet.cover_image ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img src={`/api/images/${sheet.cover_image}`} alt="" className="size-full object-cover" />
-                      ) : sheet.source_type === "photo" ? (
-                        <Camera className="size-6 text-gray-400" />
-                      ) : (
-                        <FileText className="size-6 text-gray-400" />
-                      )}
-                    </div>
-                    <div className="min-w-0 flex-1 space-y-1">
-                      <div className="text-xs text-muted-foreground">{sheet.topic.name}</div>
-                      <div className="font-semibold leading-snug text-gray-900">{sheet.title}</div>
-                      <div className="text-xs text-muted-foreground">
-                        {sheet.sessions_count === 0
-                          ? "Jamais faite"
-                          : `${sheet.sessions_count} session${sheet.sessions_count > 1 ? "s" : ""}`}
-                      </div>
-                    </div>
-                    {sheet.last_score != null && (
-                      <span className={cn("h-fit rounded-full px-2.5 py-0.5 text-sm font-bold tabular-nums", scoreClasses(sheet.last_score))}>
-                        {formatScore(sheet.last_score)}/20
-                      </span>
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {visible.map((sheet) => {
+            const activity = lastActivity(sheet);
+            return (
+              <div key={sheet.id} className="flex flex-col overflow-hidden rounded-2xl border bg-white shadow-sm">
+                <Link href={`/exercices/sessions/fiche/${sheet.id}`} className="flex flex-1 gap-3 p-4 hover:bg-gray-50">
+                  <div className="flex size-16 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-gray-100">
+                    {sheet.cover_image ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={`/api/images/${sheet.cover_image}`} alt="" className="size-full object-cover" />
+                    ) : sheet.source_type === "photo" ? (
+                      <Camera className="size-6 text-gray-400" />
+                    ) : (
+                      <FileText className="size-6 text-gray-400" />
                     )}
-                  </Link>
-                  {sheet.in_progress_session_id && (
-                    <Link
-                      href={`/exercices/sessions/${sheet.in_progress_session_id}`}
-                      className="flex items-center justify-center gap-2 border-t bg-sky-50 py-2 text-sm font-semibold text-sky-800 hover:bg-sky-100"
+                  </div>
+                  <div className="min-w-0 flex-1 space-y-1">
+                    <div className="text-xs text-muted-foreground">
+                      {sheet.category.name} › {sheet.topic.name}
+                    </div>
+                    <div className="font-semibold leading-snug text-gray-900">{sheet.title}</div>
+                    <div
+                      title={activity.title}
+                      className={cn(
+                        "flex items-center gap-1 text-xs",
+                        sheet.last_completed_at ? "font-medium text-gray-700" : "text-muted-foreground"
+                      )}
                     >
-                      <Play className="size-4" /> Reprendre la session en cours
-                    </Link>
+                      <Calendar className="size-3.5 shrink-0" />
+                      {activity.label}
+                    </div>
+                    {sheet.sessions_count > 0 && (
+                      <div className="text-xs text-muted-foreground">
+                        {sheet.sessions_count} session{sheet.sessions_count > 1 ? "s" : ""}
+                        {sheet.best_score != null && sheet.sessions_count > 1 && ` · meilleure note ${formatScore(sheet.best_score)}/20`}
+                      </div>
+                    )}
+                  </div>
+                  {sheet.last_score != null && (
+                    <span className={cn("h-fit rounded-full px-2.5 py-0.5 text-sm font-bold tabular-nums", scoreClasses(sheet.last_score))}>
+                      {formatScore(sheet.last_score)}/20
+                    </span>
                   )}
-                </div>
-              ))}
-            </div>
-          </section>
-        ))
+                </Link>
+                {sheet.in_progress_session_id && (
+                  <Link
+                    href={`/exercices/sessions/${sheet.in_progress_session_id}`}
+                    className="flex items-center justify-center gap-2 border-t bg-sky-50 py-2 text-sm font-semibold text-sky-800 hover:bg-sky-100"
+                  >
+                    <Play className="size-4" /> Reprendre la session en cours
+                  </Link>
+                )}
+              </div>
+            );
+          })}
+        </div>
       )}
 
       <CategoriesManagerDialog

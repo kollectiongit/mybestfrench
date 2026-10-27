@@ -29,8 +29,11 @@ export interface SheetSummary {
   sessions_count: number;
   last_score: number | null;
   best_score: number | null;
-  last_session_at: string | null;
+  created_at: string;
+  last_completed_at: string | null;
+  last_activity_at: string;
   in_progress_session_id: string | null;
+  in_progress_started_at: string | null;
 }
 
 export interface AnswerEntry {

@@ -7,7 +7,9 @@ import { z } from "zod";
 
 export const dynamic = "force-dynamic";
 
-// GET /api/training/sheets - Sheets of the account with the current profile's last result
+// GET /api/training/sheets - Sheets of the account with the current profile's
+// last result, most recent activity first (last completed session, else the
+// session in progress, else the creation date)
 export async function GET(request: NextRequest) {
   try {
     const resolved = await resolveProfileForRequest(request);
@@ -15,38 +17,45 @@ export async function GET(request: NextRequest) {
 
     const sheets = await prisma.training_sheet.findMany({
       where: { user_id: resolved.session.user.id, archived: false },
-      orderBy: { updated_at: "desc" },
       include: {
         topic: { include: { category: true } },
         sessions: {
           where: { profile_id: resolved.profileId },
           orderBy: { started_at: "desc" },
-          select: { id: true, status: true, score_20: true, started_at: true },
+          select: { id: true, status: true, score_20: true, started_at: true, completed_at: true },
         },
       },
     });
 
-    return NextResponse.json({
-      sheets: sheets.map((s) => {
-        const completed = s.sessions.filter((x) => x.status === "completed");
-        const inProgress = s.sessions.find((x) => x.status === "in_progress");
-        return {
-          id: s.id,
-          title: s.title,
-          source_type: s.source_type,
-          cover_image: s.source_images[0] ?? null,
-          category: { id: s.topic.category.id, name: s.topic.category.name },
-          topic: { id: s.topic.id, name: s.topic.name },
-          sessions_count: completed.length,
-          last_score: completed[0]?.score_20 == null ? null : Number(completed[0].score_20),
-          best_score: completed.length
-            ? Math.max(...completed.map((x) => Number(x.score_20 ?? 0)))
-            : null,
-          last_session_at: s.sessions[0]?.started_at ?? null,
-          in_progress_session_id: inProgress?.id ?? null,
-        };
-      }),
+    const rows = sheets.map((s) => {
+      const completed = s.sessions
+        .filter((x) => x.status === "completed" && x.completed_at)
+        .sort((a, b) => b.completed_at!.getTime() - a.completed_at!.getTime());
+      const inProgress = s.sessions.find((x) => x.status === "in_progress");
+      const lastCompletedAt = completed[0]?.completed_at ?? null;
+      const lastActivityAt = lastCompletedAt ?? inProgress?.started_at ?? s.created_at;
+      return {
+        id: s.id,
+        title: s.title,
+        source_type: s.source_type,
+        cover_image: s.source_images[0] ?? null,
+        category: { id: s.topic.category.id, name: s.topic.category.name },
+        topic: { id: s.topic.id, name: s.topic.name },
+        sessions_count: completed.length,
+        last_score: completed[0]?.score_20 == null ? null : Number(completed[0].score_20),
+        best_score: completed.length
+          ? Math.max(...completed.map((x) => Number(x.score_20 ?? 0)))
+          : null,
+        created_at: s.created_at,
+        last_completed_at: lastCompletedAt,
+        last_activity_at: lastActivityAt,
+        in_progress_session_id: inProgress?.id ?? null,
+        in_progress_started_at: inProgress?.started_at ?? null,
+      };
     });
+    rows.sort((a, b) => b.last_activity_at.getTime() - a.last_activity_at.getTime());
+
+    return NextResponse.json({ sheets: rows });
   } catch (error) {
     console.error("Error listing training sheets:", error);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
