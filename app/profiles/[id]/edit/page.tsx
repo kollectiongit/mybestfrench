@@ -43,6 +43,7 @@ export default async function EditProfilePage({
     weekly_pages_goal: profile.weekly_pages_goal ?? null,
     conjugaison_show_radical: profile.conjugaison_show_radical ?? true,
     conjugaison_groupes: profile.conjugaison_groupes ?? [1, 2, 3],
+    tts_voice_id: profile.tts_voice_id ?? null,
   };
 
   return <EditProfilePageClient initialProfile={initialProfile} />;

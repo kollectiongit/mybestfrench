@@ -1,5 +1,6 @@
 "use client";
 
+import { SpeakButton } from "@/components/speak-button";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -27,6 +28,7 @@ import { Preparing, startSession } from "../components/preparing";
 import { SessionReportView } from "../components/session-report";
 import { formatDuration, Md } from "../components/shared";
 import { ExerciseWidget } from "../components/widgets";
+import { ExerciseIdContext } from "../components/why-chat";
 import type { ItemResult, SessionData, SessionExercise } from "../types";
 
 const HEARTBEAT_SECONDS = 15;
@@ -37,6 +39,8 @@ const TYPE_LABELS: Record<SessionExercise["type"], string> = {
   mark_words: "Souligne",
   classify: "Classement",
   label: "Étiquettes",
+  rewrite: "Réécriture",
+  short_answer: "Réponse courte",
 };
 
 function isDone(e: SessionExercise) {
@@ -305,8 +309,9 @@ export default function SessionClient({ sessionId }: { sessionId: string }) {
       ) : !started ? (
         <div className="space-y-5">
           {session.plan?.intro_message && (
-            <div className="rounded-2xl border border-sky-200 bg-sky-50 p-4 text-sky-950">
-              <Md>{session.plan.intro_message}</Md>
+            <div className="flex gap-2 rounded-2xl border border-sky-200 bg-sky-50 p-4 text-sky-950">
+              <Md className="flex-1">{session.plan.intro_message}</Md>
+              <SpeakButton text={session.plan.intro_message} />
             </div>
           )}
           <div>
@@ -396,15 +401,18 @@ function ExerciseCard({
             : `${answered}/${exercise.item_keys.length}`}
         </span>
       </div>
-      <p className="rounded-lg bg-gray-50 px-3 py-2 font-semibold text-gray-900">
-        <Md>{exercise.payload.instruction}</Md>
+      <p className="flex items-start gap-2 rounded-lg bg-gray-50 px-3 py-2 font-semibold text-gray-900">
+        <Md className="flex-1">{exercise.payload.instruction}</Md>
+        <SpeakButton text={exercise.payload.instruction} label="Écouter la consigne" className="-my-0.5" />
       </p>
-      <ExerciseWidget
-        payload={exercise.payload}
-        answers={exercise.answers}
-        readOnly={readOnly}
-        onAnswer={(itemKey, value) => onAnswer(exercise.id, itemKey, value)}
-      />
+      <ExerciseIdContext.Provider value={exercise.id}>
+        <ExerciseWidget
+          payload={exercise.payload}
+          answers={exercise.answers}
+          readOnly={readOnly}
+          onAnswer={(itemKey, value) => onAnswer(exercise.id, itemKey, value)}
+        />
+      </ExerciseIdContext.Provider>
     </div>
   );
 }

@@ -27,6 +27,8 @@ export const EXERCISE_TYPES = [
   "mark_words",
   "classify",
   "label",
+  "rewrite",
+  "short_answer",
 ] as const;
 
 export const ExerciseTypeSchema = z.enum(EXERCISE_TYPES);
@@ -156,12 +158,38 @@ const LabelGenSchema = z.object({
   ),
 });
 
+// Open answers: graded by exact match first, then by the AI (see ai.ts)
+const openItems = z.array(
+  z.object({
+    prompt: z.string(),
+    expected_answers: z.array(z.string()),
+    skill_id: z.string(),
+    explanation: z.string(),
+  })
+);
+
+const RewriteGenSchema = z.object({
+  type: z.literal("rewrite"),
+  title: z.string(),
+  instruction: z.string(),
+  items: openItems,
+});
+
+const ShortAnswerGenSchema = z.object({
+  type: z.literal("short_answer"),
+  title: z.string(),
+  instruction: z.string(),
+  items: openItems,
+});
+
 export const ExerciseGenSchema = z.discriminatedUnion("type", [
   ChoiceGenSchema,
   FillBlanksGenSchema,
   MarkWordsGenSchema,
   ClassifyGenSchema,
   LabelGenSchema,
+  RewriteGenSchema,
+  ShortAnswerGenSchema,
 ]);
 
 export const SessionGenSchema = z.object({
@@ -281,12 +309,26 @@ export interface LabelPayload {
   }[];
 }
 
+export interface OpenPayload {
+  type: "rewrite" | "short_answer";
+  title: string;
+  instruction: string;
+  items: {
+    id: string;
+    prompt: string;
+    answers: string[];
+    skill_id: string;
+    explanation: string;
+  }[];
+}
+
 export type ExercisePayload =
   | ChoicePayload
   | FillBlanksPayload
   | MarkWordsPayload
   | ClassifyPayload
-  | LabelPayload;
+  | LabelPayload
+  | OpenPayload;
 
 // ---------------------------------------------------------------------------
 // Grading results (training_answer.result), returned to the client as-is
@@ -342,7 +384,24 @@ export type ItemResult =
         explanation: string;
       }[];
       units: GradedUnit[];
+    }
+  | {
+      kind: "open";
+      given: string;
+      expected: string;
+      correct: boolean;
+      explanation: string;
+      /** AI comment when the answer differed from the expected ones */
+      feedback: string | null;
+      units: GradedUnit[];
     };
+
+export const OpenJudgementSchema = z.object({
+  correct: z.boolean(),
+  feedback: z.string(),
+});
+
+export type OpenJudgement = z.infer<typeof OpenJudgementSchema>;
 
 export interface SkillScore {
   correct: number;

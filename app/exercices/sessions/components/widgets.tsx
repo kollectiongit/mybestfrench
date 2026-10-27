@@ -6,6 +6,7 @@ import { Check, Loader2, Undo2 } from "lucide-react";
 import { useState } from "react";
 import type { AnswerEntry, AnswerHandler, ItemResult, PublicPayload } from "../types";
 import { Feedback, MARK_COLORS, Md } from "./shared";
+import { WhyChat } from "./why-chat";
 
 type Narrow<T extends PublicPayload["type"]> = Extract<PublicPayload, { type: T }>;
 
@@ -129,10 +130,15 @@ export function ChoiceWidget({ payload, answers, onAnswer, readOnly }: WidgetPro
               )}
             </div>
             {result && (
-              <Feedback correct={result.is_correct} title={result.is_correct ? "Bonne réponse !" : "Pas tout à fait."}>
+              <Feedback
+                correct={result.is_correct}
+                title={result.is_correct ? "Bonne réponse !" : "Pas tout à fait."}
+                speak={result.explanation}
+              >
                 <Md>{result.explanation}</Md>
               </Feedback>
             )}
+            {result && <WhyChat itemKey={q.id} />}
           </div>
         );
       })}
@@ -242,10 +248,12 @@ export function FillBlanksWidget({ payload, answers, onAnswer, readOnly }: Widge
                     key={b.id}
                     correct={b.correct}
                     title={b.correct ? `« ${b.expected} » : juste !` : `Il fallait écrire « ${b.expected} »`}
+                    speak={b.explanation}
                   >
                     <Md>{b.explanation}</Md>
                   </Feedback>
                 ))}
+                <WhyChat itemKey={sentence.id} />
               </div>
             )}
           </div>
@@ -387,6 +395,7 @@ export function MarkWordsWidget({ payload, answers, onAnswer, readOnly }: Widget
                         {!t.correct && " (non trouvé)"}
                       </>
                     }
+                    speak={t.explanation}
                   >
                     <Md>{t.explanation}</Md>
                   </Feedback>
@@ -397,6 +406,7 @@ export function MarkWordsWidget({ payload, answers, onAnswer, readOnly }: Widget
                     title={`Marqué en trop : ${result.extras.map((i) => sentence.tokens[i]?.text).join(", ")}`}
                   />
                 )}
+                <WhyChat itemKey={sentence.id} />
               </div>
             )}
           </div>
@@ -527,11 +537,13 @@ export function ClassifyWidget({ payload, answers, onAnswer, readOnly }: WidgetP
                   key={i.id}
                   correct={false}
                   title={`« ${payload.items.find((it) => it.id === i.id)?.text} » va dans « ${labelOf(i.expected)} »`}
+                  speak={i.explanation}
                 >
                   <Md>{i.explanation}</Md>
                 </Feedback>
               ))
           )}
+          <WhyChat itemKey="all" />
         </div>
       )}
     </div>
@@ -600,9 +612,85 @@ export function LabelWidget({ payload, answers, onAnswer, readOnly }: WidgetProp
               <Feedback
                 correct={graded.correct}
                 title={graded.correct ? "Juste !" : `C'est « ${graded.expected} » : ${labelOf(graded.expected)}`}
+                speak={graded.explanation}
               >
                 <Md>{graded.explanation}</Md>
               </Feedback>
+            )}
+            {graded && <WhyChat itemKey={item.id} />}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Réécriture / réponse courte (corrigées par l'IA si la réponse diffère)
+// ---------------------------------------------------------------------------
+
+export function OpenWidget({ payload, answers, onAnswer, readOnly }: WidgetProps<"rewrite" | "short_answer">) {
+  const { pending, submit } = useSubmit(onAnswer);
+  const [values, setValues] = useState<Record<string, string>>({});
+  const isRewrite = payload.type === "rewrite";
+
+  return (
+    <div className="space-y-4">
+      {payload.items.map((item, ii) => {
+        const result = answers[item.id]?.result as ResultOf<"open"> | undefined;
+        const value = values[item.id] ?? "";
+        const send = () => value.trim() && submit(item.id, value.trim());
+        return (
+          <div key={item.id} className="space-y-2">
+            <div className="font-medium text-gray-900">
+              <span className="mr-2 text-muted-foreground">{String.fromCharCode(97 + ii)}.</span>
+              <Md>{item.prompt}</Md>
+            </div>
+            {result ? (
+              <div className="space-y-1.5 pl-5">
+                <div
+                  className={cn(
+                    "rounded-md px-3 py-1.5 font-medium",
+                    result.correct ? "bg-emerald-50 text-emerald-900" : "bg-rose-50 text-rose-800 line-through decoration-rose-400"
+                  )}
+                >
+                  {result.given}
+                </div>
+                <Feedback
+                  correct={result.correct}
+                  title={result.correct ? "Juste !" : `Réponse attendue : « ${result.expected} »`}
+                  speak={[result.feedback, result.explanation].filter(Boolean).join(" ")}
+                >
+                  {result.feedback && (
+                    <div className="mb-1">
+                      <Md>{result.feedback}</Md>
+                    </div>
+                  )}
+                  <Md>{result.explanation}</Md>
+                </Feedback>
+                <WhyChat itemKey={item.id} />
+              </div>
+            ) : (
+              <div className="flex gap-2 pl-5">
+                <input
+                  value={value}
+                  onChange={(e) => setValues((v) => ({ ...v, [item.id]: e.target.value }))}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") send();
+                  }}
+                  disabled={readOnly || pending === item.id}
+                  placeholder={isRewrite ? "Réécris ici…" : "Ta réponse…"}
+                  autoComplete="off"
+                  spellCheck={false}
+                  className={cn(
+                    "h-9 rounded-md border-2 border-sky-200 bg-white px-3 text-base outline-none focus:border-sky-500",
+                    isRewrite ? "flex-1" : "w-full max-w-xs"
+                  )}
+                />
+                {!readOnly && (
+                  <ValidateButton onClick={send} disabled={!value.trim()} pending={pending === item.id} />
+                )}
+              </div>
             )}
           </div>
         );
@@ -629,5 +717,8 @@ export function ExerciseWidget(props: {
       return <ClassifyWidget payload={payload} {...rest} />;
     case "label":
       return <LabelWidget payload={payload} {...rest} />;
+    case "rewrite":
+    case "short_answer":
+      return <OpenWidget payload={payload} {...rest} />;
   }
 }

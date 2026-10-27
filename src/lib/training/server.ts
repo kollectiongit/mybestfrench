@@ -275,6 +275,8 @@ function answeredBaseUnits(payload: ExercisePayload, answeredKeys: string[]) {
     case "classify":
       return answered.has("all") ? payload.items.length : 0;
     case "label":
+    case "rewrite":
+    case "short_answer":
       return payload.items.filter((i) => answered.has(i.id)).length;
   }
 }
@@ -307,6 +309,14 @@ function describeMistake(payload: ExercisePayload, itemKey: string, result: Item
           const text = items.find((it) => it.id === i.id)?.text ?? i.id;
           return `« ${text} » : choisi ${i.given ?? "rien"} au lieu de ${i.expected}`;
         });
+    }
+    case "open": {
+      if (result.correct) return [];
+      const prompt =
+        payload.type === "rewrite" || payload.type === "short_answer"
+          ? payload.items.find((i) => i.id === itemKey)?.prompt
+          : undefined;
+      return [`${prompt ?? "Question"} — écrit « ${result.given} » au lieu de « ${result.expected} »`];
     }
   }
 }

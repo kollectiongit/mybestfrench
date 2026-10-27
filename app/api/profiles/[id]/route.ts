@@ -30,6 +30,7 @@ export async function PUT(
       weekly_pages_goal,
       conjugaison_show_radical,
       conjugaison_groupes,
+      tts_voice_id,
     } = body;
 
     console.log("Profile update API: Received data:", {
@@ -94,6 +95,14 @@ export async function PUT(
           : {}),
         ...(groupesValue !== undefined
           ? { conjugaison_groupes: groupesValue }
+          : {}),
+        ...(tts_voice_id !== undefined
+          ? {
+              tts_voice_id:
+                typeof tts_voice_id === "string" && /^[A-Za-z0-9]{1,64}$/.test(tts_voice_id)
+                  ? tts_voice_id
+                  : null,
+            }
           : {}),
         updated_at: new Date(),
       },

@@ -1,5 +1,6 @@
 "use client";
 
+import { SpeakButton } from "@/components/speak-button";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { Clock, RotateCcw, Sparkles, Target, ThumbsUp } from "lucide-react";
@@ -34,6 +35,11 @@ export function SessionReportView({
           {report?.message && (
             <p className="text-gray-700">
               <Md>{report.message}</Md>
+              <SpeakButton
+                className="ml-1"
+                text={[report.message, ...report.compris, ...report.a_revoir, report.conseil].join(". ")}
+                label="Écouter le bilan"
+              />
             </p>
           )}
           <div className="flex flex-wrap justify-center gap-4 text-sm text-muted-foreground sm:justify-start">

@@ -1,5 +1,6 @@
 "use client";
 
+import { SpeakButton } from "@/components/speak-button";
 import { cn } from "@/lib/utils";
 import type { Lesson } from "../types";
 import { Md } from "./shared";
@@ -34,7 +35,13 @@ function LessonBlock({
       <div className="space-y-4">
         {sections.map((section, i) => (
           <div key={i} className="space-y-1.5">
-            <h4 className="font-semibold text-gray-900">{section.heading}</h4>
+            <h4 className="flex items-center gap-1 font-semibold text-gray-900">
+              {section.heading}
+              <SpeakButton
+                label="Écouter la règle"
+                text={[section.heading, ...section.points, ...section.examples].join(". ")}
+              />
+            </h4>
             <ul className="space-y-1 pl-1">
               {section.points.map((point, j) => (
                 <li key={j} className="flex gap-2 text-sm text-gray-800">

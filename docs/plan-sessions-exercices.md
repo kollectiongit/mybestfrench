@@ -281,7 +281,7 @@ Tous les appels utilisent `zodTextFormat`, comme pour la validation des dictées
 
 ## 9. Découpage proposé
 
-**Phase 1 — le socle utilisable**
+**Phase 1 — le socle utilisable** ✅ livrée
 - Gestion des catégories et des thèmes (création directement dans le formulaire, plus un écran dédié).
 - Création de fiche à partir d'une photo ou d'un texte, avec extraction de la leçon et des compétences, et relecture.
 - Génération de session en une fois (plan de 4 à 6 exercices), avec 5 widgets : `choice`, `fill_blanks`, `mark_words`, `classify`, `label`.
@@ -290,11 +290,12 @@ Tous les appels utilisent `zodTextFormat`, comme pour la validation des dictées
 - Historique par fiche et global ; intégration dans les histogrammes.
 - La session suivante tient compte des rapports et des phrases déjà vues.
 
-**Phase 2 — la voix et les réponses ouvertes**
-- TTS ElevenLabs `eleven_v4_turbo`, généré au premier ▶ puis mis en cache (leçon, consignes, explications), et `mini_dictee`.
-- Choix de la voix dans le profil de l'enfant (voix françaises avec écoute de démonstration gratuite), avec une voix par défaut issue de la Voice Library.
-- `rewrite` et `short_answer` corrigés par le LLM.
-- Bouton « Pourquoi ? » (chat en streaming).
+**Phase 2 — la voix et les réponses ouvertes** ✅ livrée (sauf `mini_dictee`)
+- ✅ TTS ElevenLabs `eleven_v4_turbo`, généré au premier ▶ puis mis en cache (leçon, consignes, explications, intro, bilan, réponses du prof). Les ▶ restent masqués tant que `ELEVENLABS_API_KEY` n'est pas défini.
+- ✅ Choix de la voix dans le profil de l'enfant (voix françaises du compte ElevenLabs, extraits gratuits). Voix par défaut : `ELEVENLABS_DEFAULT_VOICE_ID`, sinon la première voix française du compte.
+- ✅ `rewrite` et `short_answer` : correspondance exacte d'abord, puis le LLM juge les réponses différentes (variantes valables acceptées, fautes refusées).
+- ✅ Bouton « Pourquoi ? » sous chaque correction (chat en streaming, 6 questions max, disponible uniquement après avoir répondu).
+- ⏳ `mini_dictee` (1 à 3 phrases dictées) : reportée.
 
 **Phase 3 — le vrai tuteur**
 - Pré-génération de l'exercice suivant et remédiation adaptative pendant la session.

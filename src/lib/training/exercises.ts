@@ -8,6 +8,7 @@ import type {
   ItemResult,
   LabelPayload,
   MarkWordsPayload,
+  OpenPayload,
   Token,
 } from "./schema";
 
@@ -182,6 +183,25 @@ export function normalizeExercise(
       };
     }
 
+    case "rewrite":
+    case "short_answer": {
+      const items = gen.items
+        .map((item, i) => {
+          const answers = item.expected_answers.map(clean).filter(Boolean);
+          if (!clean(item.prompt) || answers.length === 0) return null;
+          return {
+            id: `i${i + 1}`,
+            prompt: clean(item.prompt),
+            answers,
+            skill_id: skill(item.skill_id),
+            explanation: clean(item.explanation),
+          };
+        })
+        .filter((i) => i !== null);
+      if (items.length === 0) return null;
+      return { type: gen.type, title: gen.title, instruction: gen.instruction, items };
+    }
+
     case "classify":
     case "label": {
       const options = (gen.type === "classify" ? gen.categories : gen.options).filter(
@@ -238,6 +258,8 @@ export function itemKeys(payload: ExercisePayload): string[] {
     case "classify":
       return ["all"];
     case "label":
+    case "rewrite":
+    case "short_answer":
       return payload.items.map((i) => i.id);
   }
 }
@@ -253,6 +275,8 @@ export function unitCount(payload: ExercisePayload): number {
       return payload.sentences.reduce((n, s) => n + s.targets.length, 0);
     case "classify":
     case "label":
+    case "rewrite":
+    case "short_answer":
       return payload.items.length;
   }
 }
@@ -271,6 +295,8 @@ export function exerciseSkillIds(payload: ExercisePayload): string[] {
       break;
     case "classify":
     case "label":
+    case "rewrite":
+    case "short_answer":
       payload.items.forEach((i) => ids.add(i.skill_id));
       break;
   }
@@ -292,7 +318,8 @@ export type PublicPayload =
       sentences: { id: string; tokens: Token[] }[];
     })
   | (Omit<ClassifyPayload, "items"> & { items: { id: string; text: string }[] })
-  | (Omit<LabelPayload, "items"> & { items: { id: string; text: string }[] });
+  | (Omit<LabelPayload, "items"> & { items: { id: string; text: string }[] })
+  | (Omit<OpenPayload, "items"> & { items: { id: string; prompt: string }[] });
 
 export function toPublicPayload(payload: ExercisePayload): PublicPayload {
   switch (payload.type) {
@@ -326,6 +353,12 @@ export function toPublicPayload(payload: ExercisePayload): PublicPayload {
         ...payload,
         items: payload.items.map((i) => ({ id: i.id, text: i.text })),
       } as PublicPayload;
+    case "rewrite":
+    case "short_answer":
+      return {
+        ...payload,
+        items: payload.items.map((i) => ({ id: i.id, prompt: i.prompt })),
+      };
   }
 }
 
@@ -427,6 +460,25 @@ export function gradeItem(
       return { kind: "mark_words", targets, extras, units };
     }
 
+    case "rewrite":
+    case "short_answer": {
+      // Exact match only; answers that differ are re-checked by the AI
+      const item = payload.items.find((i) => i.id === itemKey);
+      if (!item) throw new GradingError("Question inconnue");
+      const given = typeof answer === "string" ? answer.trim() : "";
+      if (!given) throw new GradingError("Écris ta réponse");
+      const correct = item.answers.some((a) => normalizeAnswer(a) === normalizeAnswer(given));
+      return {
+        kind: "open",
+        given,
+        expected: item.answers[0],
+        correct,
+        explanation: item.explanation,
+        feedback: null,
+        units: [{ skill_id: item.skill_id, correct }],
+      };
+    }
+
     case "classify":
     case "label": {
       const isClassify = payload.type === "classify";
@@ -472,5 +524,8 @@ export function exerciseTexts(payload: ExercisePayload): string[] {
     case "classify":
     case "label":
       return payload.items.map((i) => i.text);
+    case "rewrite":
+    case "short_answer":
+      return payload.items.map((i) => i.prompt);
   }
 }

@@ -5,6 +5,8 @@ import type { ResponseInputContent } from "openai/resources/responses/responses"
 import {
   ExerciseHint,
   Lesson,
+  OpenJudgement,
+  OpenJudgementSchema,
   SessionGen,
   SessionGenSchema,
   SessionReportGen,
@@ -117,6 +119,8 @@ const EXERCISE_FORMATS = `Formats disponibles (champ \`type\`) :
 - **mark_words** — souligner/entourer des mots. 3 à 4 \`sentences\`. \`legend\` : 1 à 3 couleurs avec une \`key\` (ex. "verbe") et un \`label\` (ex. "Verbe en rouge"). \`targets\` : chaque mot ou groupe de mots à marquer, recopié EXACTEMENT comme dans la phrase (même orthographe), avec sa \`key\`. Un mot ne peut appartenir qu'à une seule cible. Ne mets pas de mot à marquer en double dans une même phrase.
 - **classify** — classer en colonnes. 2 à 4 \`categories\` (key + label) et 8 à 12 \`items\` (mots ou groupes de mots) avec leur \`category_key\`.
 - **label** — étiqueter chaque élément. 2 à 5 \`options\` (ex. MS, MP, FS, FP avec label « masculin singulier »…) et 5 à 8 \`items\` avec leur \`answer_key\`.
+- **rewrite** — réécriture. 3 à 5 \`items\` : \`prompt\` = le texte à transformer, avec la transformation demandée si elle varie d'un item à l'autre (ex. « des orages violents → au singulier »). \`expected_answers\` = toutes les réécritures correctes (la plus naturelle en premier).
+- **short_answer** — réponse courte écrite (un mot ou quelques mots). 3 à 5 \`items\` : \`prompt\` = la question (ex. « Quelle est la classe grammaticale de *vitupérer* ? ») et \`expected_answers\` = toutes les formulations acceptables (ex. ["verbe", "un verbe"]).
 
 Pour chaque élément, \`skill_id\` est l'id de la compétence travaillée et \`explanation\` explique en 1 ou 2 phrases courtes POURQUOI la bonne réponse est juste (elle sera montrée à l'élève qu'il ait juste ou faux ; pas de « Bravo » ni de « Tu t'es trompé »). Tu peux utiliser du **gras**.`;
 
@@ -140,7 +144,7 @@ ${skillLines}
 
 Règles :
 - Commence plus facile puis augmente progressivement la difficulté.
-- Varie les formats : au moins 3 formats différents, en t'inspirant des consignes du cahier ci-dessous.
+- Varie les formats : au moins 3 formats différents, en t'inspirant des consignes du cahier ci-dessous. Au plus un exercice à réponse écrite (rewrite ou short_answer) par session, de préférence en fin de session.
 - Insiste sur les compétences les plus faibles (ou jamais travaillées) ; revois brièvement les compétences acquises.
 - Invente des phrases NOUVELLES, concrètes et variées (vie quotidienne, nature, école, animaux, voyages…), au vocabulaire adapté à l'âge. Ne recopie jamais les phrases du cahier ni celles des sessions précédentes.
 - Chaque exercice a un \`title\` court et une \`instruction\` claire à l'impératif, comme dans un cahier (ex. « Souligne les verbes en rouge et les sujets en vert. »).
@@ -209,4 +213,53 @@ ${input.mistakes.slice(0, 30).map((m) => `- ${m}`).join("\n") || "(aucune)"}`;
 
   if (!response.output_parsed) throw new Error("Bilan IA vide");
   return response.output_parsed;
+}
+
+// ---------------------------------------------------------------------------
+// 4. Open answers (rewrite / short_answer) that differ from the expected ones
+// ---------------------------------------------------------------------------
+
+export async function judgeOpenAnswer(input: {
+  instruction: string;
+  prompt: string;
+  expected: string[];
+  given: string;
+  explanation: string;
+  levelLabel: string | null;
+}): Promise<OpenJudgement> {
+  const instructions = `${TUTOR_PERSONA}
+
+Tu corriges la réponse écrite d'un élève${input.levelLabel ? ` de ${input.levelLabel}` : ""}. Sa réponse ne correspond pas mot pour mot aux réponses prévues : décide si elle est quand même juste.
+
+- \`correct\` = true seulement si la réponse respecte la consigne ET est correctement écrite (orthographe, accords, conjugaison). Accepte une formulation différente si la consigne le permet (autre groupe nominal valable, ordre des mots différent mais correct, synonyme approprié). Ignore la majuscule en début de réponse et le point final.
+- Une faute d'orthographe ou d'accord sur la notion travaillée rend la réponse fausse.
+- \`feedback\` : 1 ou 2 phrases courtes adressées à l'élève. Si c'est juste, confirme pourquoi sa formulation convient. Si c'est faux, montre précisément ce qui ne va pas (le mot fautif, l'accord oublié…) sans être décourageant.`;
+
+  const response = await client.responses.parse({
+    model: AI_MODEL_FAST,
+    input: [
+      { role: "system", content: instructions },
+      {
+        role: "user",
+        content: `Consigne : ${input.instruction}
+Énoncé : ${input.prompt}
+Réponses prévues : ${input.expected.map((e) => `« ${e} »`).join(", ")}
+Règle : ${input.explanation}
+Réponse de l'élève : « ${input.given} »`,
+      },
+    ],
+    text: { format: zodTextFormat(OpenJudgementSchema, "open_judgement") },
+  });
+
+  if (!response.output_parsed) throw new Error("Correction IA vide");
+  return { ...response.output_parsed, feedback: cleanFeedback(response.output_parsed.feedback) };
+}
+
+/** Drops stray JSON/quote characters the model sometimes leaves at the end. */
+function cleanFeedback(text: string) {
+  let out = text.trim().replace(/[}\]]+$/, "").trim();
+  const open = (out.match(/«/g) ?? []).length;
+  const close = (out.match(/»/g) ?? []).length;
+  if (close > open) out = out.replace(/\s*»$/, "");
+  return out;
 }

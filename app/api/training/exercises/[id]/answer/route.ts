@@ -1,15 +1,18 @@
 import { Prisma } from "../../../../../generated/prisma";
 import { prisma } from "@/lib/prisma";
 import { GradingError, gradeItem, itemKeys } from "@/lib/training/exercises";
-import { ExercisePayload } from "@/lib/training/schema";
-import { refreshExercise } from "@/lib/training/server";
+import { judgeOpenAnswer } from "@/lib/training/ai";
+import { ExercisePayload, ItemResult } from "@/lib/training/schema";
+import { getProfileContext, refreshExercise } from "@/lib/training/server";
 import { resolveProfileForRequest } from "@/lib/todo-api";
 import { NextRequest, NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
+export const maxDuration = 60;
 
 // POST /api/training/exercises/[id]/answer  { item_key, answer }
 // Grades one item deterministically; an item can only be answered once.
+// Written answers that don't match an expected one are re-checked by the AI.
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -46,7 +49,7 @@ export async function POST(
       return NextResponse.json({ error: "Tu as déjà répondu à cette question" }, { status: 409 });
     }
 
-    let result;
+    let result: ItemResult;
     try {
       result = gradeItem(payload, itemKey, body.answer);
     } catch (error) {
@@ -54,6 +57,32 @@ export async function POST(
         return NextResponse.json({ error: error.message }, { status: 400 });
       }
       throw error;
+    }
+
+    let gradedBy = "rule";
+    if (result.kind === "open" && !result.correct && (payload.type === "rewrite" || payload.type === "short_answer")) {
+      const item = payload.items.find((i) => i.id === itemKey)!;
+      try {
+        const student = await getProfileContext(resolved.profileId);
+        const judgement = await judgeOpenAnswer({
+          instruction: payload.instruction,
+          prompt: item.prompt,
+          expected: item.answers,
+          given: result.given,
+          explanation: item.explanation,
+          levelLabel: student.levelLabel,
+        });
+        result = {
+          ...result,
+          correct: judgement.correct,
+          feedback: judgement.feedback,
+          units: [{ skill_id: item.skill_id, correct: judgement.correct }],
+        };
+        gradedBy = "llm";
+      } catch (error) {
+        // Keep the strict grading if the AI is unavailable
+        console.error("Error judging open answer:", error);
+      }
     }
 
     await prisma.training_answer.create({
@@ -64,6 +93,7 @@ export async function POST(
         result: result as unknown as Prisma.InputJsonValue,
         units_total: result.units.length,
         units_correct: result.units.filter((u) => u.correct).length,
+        graded_by: gradedBy,
       },
     });
 

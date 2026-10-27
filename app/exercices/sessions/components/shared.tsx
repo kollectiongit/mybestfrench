@@ -1,5 +1,6 @@
 "use client";
 
+import { SpeakButton } from "@/components/speak-button";
 import { cn } from "@/lib/utils";
 import { CheckCircle2, XCircle } from "lucide-react";
 import ReactMarkdown from "react-markdown";
@@ -23,11 +24,14 @@ export function Feedback({
   correct,
   title,
   children,
+  speak,
   className,
 }: {
   correct: boolean;
   title?: React.ReactNode;
   children?: React.ReactNode;
+  /** Text read aloud by the ▶ button */
+  speak?: string;
   className?: string;
 }) {
   return (
@@ -45,10 +49,11 @@ export function Feedback({
       ) : (
         <XCircle className="mt-0.5 size-4 shrink-0 text-rose-600" />
       )}
-      <div className="space-y-0.5">
+      <div className="flex-1 space-y-0.5">
         {title && <div className="font-semibold">{title}</div>}
         {children && <div>{children}</div>}
       </div>
+      {speak && <SpeakButton text={speak} className="-my-1" />}
     </div>
   );
 }
