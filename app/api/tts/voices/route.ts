@@ -1,5 +1,5 @@
 import { auth } from "@/lib/auth";
-import { defaultVoiceId, isTtsConfigured, listVoices } from "@/lib/tts";
+import { defaultVoiceId, isTtsConfigured, selectableVoices } from "@/lib/tts";
 import { NextRequest, NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
@@ -15,7 +15,7 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    const [voices, defaultId] = await Promise.all([listVoices(), defaultVoiceId()]);
+    const [voices, defaultId] = await Promise.all([selectableVoices(), defaultVoiceId()]);
     return NextResponse.json({ configured: true, voices, default_voice_id: defaultId });
   } catch (error) {
     console.error("Error listing voices:", error);

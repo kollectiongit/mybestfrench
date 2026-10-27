@@ -1,11 +1,13 @@
+import { prisma } from "@/lib/prisma";
 import { resolveProfileForRequest } from "@/lib/todo-api";
-import { isTtsConfigured, speak, TTS_MAX_CHARS, voiceForProfile } from "@/lib/tts";
+import { isTtsConfigured, speak, TTS_MAX_CHARS, TtsPlanError, voiceForProfile } from "@/lib/tts";
 import { NextRequest, NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
 
-// POST /api/tts  { text } - Audio URL of the text read with the current profile's voice
+// POST /api/tts  { text, session_id? } - Audio URL of the text, read with the
+// training session's voice when given, else the current profile's voice
 export async function POST(request: NextRequest) {
   try {
     const resolved = await resolveProfileForRequest(request);
@@ -22,7 +24,19 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Texte trop long" }, { status: 400 });
     }
 
-    const voiceId = await voiceForProfile(resolved.profileId);
+    let voiceId: string | null = null;
+    if (typeof body.session_id === "string" && body.session_id) {
+      const session = await prisma.training_session.findFirst({
+        where: {
+          id: body.session_id,
+          user_id: resolved.session.user.id,
+          profile_id: resolved.profileId,
+        },
+        select: { tts_voice_id: true },
+      });
+      voiceId = session?.tts_voice_id ?? null;
+    }
+    voiceId ??= await voiceForProfile(resolved.profileId);
     if (!voiceId) {
       return NextResponse.json({ error: "Aucune voix disponible" }, { status: 503 });
     }
@@ -31,6 +45,12 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ url });
   } catch (error) {
     console.error("Error generating speech:", error);
+    if (error instanceof TtsPlanError) {
+      return NextResponse.json(
+        { error: "Cette voix demande une offre ElevenLabs payante" },
+        { status: 402 }
+      );
+    }
     return NextResponse.json({ error: "La lecture audio a échoué" }, { status: 500 });
   }
 }

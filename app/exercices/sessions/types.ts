@@ -62,6 +62,7 @@ export interface SessionData {
   plan: { intro_message: string; focus_skill_ids: string[] } | null;
   report: SessionReport | null;
   skills_result: SkillsResult | null;
+  voice_name: string | null;
   sheet: {
     id: number;
     title: string;

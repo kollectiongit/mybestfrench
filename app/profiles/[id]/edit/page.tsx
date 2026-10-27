@@ -44,6 +44,8 @@ export default async function EditProfilePage({
     conjugaison_show_radical: profile.conjugaison_show_radical ?? true,
     conjugaison_groupes: profile.conjugaison_groupes ?? [1, 2, 3],
     tts_voice_id: profile.tts_voice_id ?? null,
+    tts_voice_mode: profile.tts_voice_mode === "rotate" ? ("rotate" as const) : ("fixed" as const),
+    tts_voice_ids: profile.tts_voice_ids ?? [],
   };
 
   return <EditProfilePageClient initialProfile={initialProfile} />;

@@ -254,6 +254,8 @@ model profiles {
   conjugaison_show_radical Boolean @default(true)
   conjugaison_groupes      Int[]   @default([1, 2, 3])
   tts_voice_id        String?               @db.VarChar(64) // ElevenLabs voice, null = default voice
+  tts_voice_mode      String                @default("fixed") @db.VarChar(10) // fixed | rotate (one voice per training session)
+  tts_voice_ids       String[]              @default([]) // voices allowed in rotation, empty = all French voices
   exercices_attempts  exercices_attempts[]
   exercices_errors    exercices_errors[]
   generated_questions generated_questions[]
@@ -536,6 +538,8 @@ model training_session {
   skills_result  Json?
   report_json    Json?
   model_name     String?   @db.VarChar(100)
+  tts_voice_id   String?   @db.VarChar(64) // voice reading this session (see lib/tts.ts)
+  tts_voice_name String?   @db.VarChar(100)
 
   sheet     training_sheet      @relation(fields: [sheet_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
   profiles  profiles            @relation(fields: [profile_id], references: [id], onDelete: Cascade, onUpdate: NoAction)

@@ -2,7 +2,7 @@
 
 import { cn } from "@/lib/utils";
 import { Loader2, Square, Volume2 } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { createContext, useContext, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
 // Shared across buttons: only one sound plays at a time, and each text's URL
@@ -11,6 +11,9 @@ let statusPromise: Promise<boolean> | null = null;
 const urlCache = new Map<string, string>();
 let currentAudio: HTMLAudioElement | null = null;
 let stopCurrent: (() => void) | null = null;
+
+/** Training session whose voice reads the text (one voice per session). */
+export const SpeechSessionContext = createContext<string | null>(null);
 
 function useTtsAvailable() {
   const [available, setAvailable] = useState(false);
@@ -43,6 +46,8 @@ export function SpeakButton({
   label?: string;
 }) {
   const available = useTtsAvailable();
+  const sessionId = useContext(SpeechSessionContext);
+  const cacheKey = `${sessionId ?? ""}|${text}`;
   const [state, setState] = useState<"idle" | "loading" | "playing">("idle");
   const ownAudio = useRef<HTMLAudioElement | null>(null);
 
@@ -64,17 +69,17 @@ export function SpeakButton({
     stopCurrent?.();
     setState("loading");
     try {
-      let url = urlCache.get(text);
+      let url = urlCache.get(cacheKey);
       if (!url) {
         const res = await fetch("/api/tts", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ text }),
+          body: JSON.stringify({ text, session_id: sessionId }),
         });
         const data = await res.json();
         if (!res.ok) throw new Error(data.error ?? "Lecture impossible");
         url = data.url as string;
-        urlCache.set(text, url);
+        urlCache.set(cacheKey, url);
       }
       const audio = new Audio(url);
       currentAudio = audio;

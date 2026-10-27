@@ -31,6 +31,8 @@ export async function PUT(
       conjugaison_show_radical,
       conjugaison_groupes,
       tts_voice_id,
+      tts_voice_mode,
+      tts_voice_ids,
     } = body;
 
     console.log("Profile update API: Received data:", {
@@ -102,6 +104,16 @@ export async function PUT(
                 typeof tts_voice_id === "string" && /^[A-Za-z0-9]{1,64}$/.test(tts_voice_id)
                   ? tts_voice_id
                   : null,
+            }
+          : {}),
+        ...(tts_voice_mode === "fixed" || tts_voice_mode === "rotate"
+          ? { tts_voice_mode }
+          : {}),
+        ...(Array.isArray(tts_voice_ids)
+          ? {
+              tts_voice_ids: tts_voice_ids
+                .filter((v: unknown): v is string => typeof v === "string" && /^[A-Za-z0-9]{1,64}$/.test(v))
+                .slice(0, 50),
             }
           : {}),
         updated_at: new Date(),

@@ -21,7 +21,7 @@ import { ImageUpload } from "../../components/image-upload";
 import ProfileBooksManager from "../../components/profile-books-manager";
 import ProfileLevelsSelector from "../../components/profile-levels-selector";
 import TodoManager from "../../components/todo-manager";
-import VoiceSettings from "../../components/voice-settings";
+import VoiceSettings, { VoiceMode } from "../../components/voice-settings";
 
 interface InitialProfile {
   id: string;
@@ -34,6 +34,8 @@ interface InitialProfile {
   conjugaison_show_radical: boolean;
   conjugaison_groupes: number[];
   tts_voice_id: string | null;
+  tts_voice_mode: VoiceMode;
+  tts_voice_ids: string[];
 }
 
 const SECTIONS = [
@@ -69,6 +71,12 @@ export default function EditProfilePageClient({
   );
   const [ttsVoiceId, setTtsVoiceId] = useState<string | null>(
     initialProfile.tts_voice_id
+  );
+  const [ttsVoiceMode, setTtsVoiceMode] = useState<VoiceMode>(
+    initialProfile.tts_voice_mode
+  );
+  const [ttsVoiceIds, setTtsVoiceIds] = useState<string[]>(
+    initialProfile.tts_voice_ids
   );
   const [avatarFilename, setAvatarFilename] = useState(
     initialProfile.avatar_url ?? ""
@@ -127,6 +135,8 @@ export default function EditProfilePageClient({
           conjugaison_show_radical: showRadical,
           conjugaison_groupes: groupes,
           tts_voice_id: ttsVoiceId,
+          tts_voice_mode: ttsVoiceMode,
+          tts_voice_ids: ttsVoiceIds,
         }),
       });
       if (!res.ok) {
@@ -154,6 +164,8 @@ export default function EditProfilePageClient({
     showRadical,
     groupes,
     ttsVoiceId,
+    ttsVoiceMode,
+    ttsVoiceIds,
     selectedLevelIds,
     isUploading,
     initialProfile.id,
@@ -319,7 +331,14 @@ export default function EditProfilePageClient({
                 groupes={groupes}
                 onGroupesChange={setGroupes}
               />
-              <VoiceSettings voiceId={ttsVoiceId} onVoiceIdChange={setTtsVoiceId} />
+              <VoiceSettings
+                voiceId={ttsVoiceId}
+                onVoiceIdChange={setTtsVoiceId}
+                mode={ttsVoiceMode}
+                onModeChange={setTtsVoiceMode}
+                voiceIds={ttsVoiceIds}
+                onVoiceIdsChange={setTtsVoiceIds}
+              />
             </CardContent>
           </Card>
 

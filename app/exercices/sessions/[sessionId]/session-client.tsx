@@ -1,6 +1,6 @@
 "use client";
 
-import { SpeakButton } from "@/components/speak-button";
+import { SpeakButton, SpeechSessionContext } from "@/components/speak-button";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -15,6 +15,7 @@ import {
   BookOpen,
   ChevronLeft,
   Flag,
+  Mic,
   Pause,
   Play,
   Timer,
@@ -232,138 +233,154 @@ export default function SessionClient({ sessionId }: { sessionId: string }) {
   );
 
   return (
-    <div className="container mx-auto max-w-3xl space-y-6 px-4 py-6">
-      {/* En-tête */}
-      <div className="space-y-3">
-        <Link
-          href={`/exercices/sessions/fiche/${session.sheet.id}`}
-          className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
-        >
-          <ChevronLeft className="size-4" /> {session.sheet.category} › {session.sheet.topic}
-        </Link>
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <h1 className="text-2xl font-bold">{session.sheet.title}</h1>
-          <div className="flex items-center gap-2">
-            {lessonButton}
-            <div className="flex items-center gap-1.5 rounded-md border bg-white px-2.5 py-1.5 text-sm font-semibold tabular-nums">
-              <Timer className="size-4 text-sky-600" />
-              {formatDuration(seconds)}
+    <SpeechSessionContext.Provider value={session.id}>
+      <div className="container mx-auto max-w-3xl space-y-6 px-4 py-6">
+        {/* En-tête */}
+        <div className="space-y-3">
+          <Link
+            href={`/exercices/sessions/fiche/${session.sheet.id}`}
+            className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
+          >
+            <ChevronLeft className="size-4" /> {session.sheet.category} › {session.sheet.topic}
+          </Link>
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <h1 className="text-2xl font-bold">{session.sheet.title}</h1>
+              {session.voice_name && (
+                <p className="mt-0.5 flex items-center gap-1.5 text-sm text-muted-foreground">
+                  <Mic className="size-3.5" /> Voix du prof : {session.voice_name}
+                </p>
+              )}
             </div>
-            {inProgress && started && (
-              <Button
-                variant="outline"
-                size="icon"
-                className="size-9"
-                title={paused ? "Reprendre" : "Pause"}
-                onClick={() => {
-                  if (!paused) sendHeartbeat();
-                  setPaused((p) => !p);
-                }}
-              >
-                {paused ? <Play className="size-4" /> : <Pause className="size-4" />}
-              </Button>
-            )}
+            <div className="flex items-center gap-2">
+              {lessonButton}
+              <div className="flex items-center gap-1.5 rounded-md border bg-white px-2.5 py-1.5 text-sm font-semibold tabular-nums">
+                <Timer className="size-4 text-sky-600" />
+                {formatDuration(seconds)}
+              </div>
+              {inProgress && started && (
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="size-9"
+                  title={paused ? "Reprendre" : "Pause"}
+                  onClick={() => {
+                    if (!paused) sendHeartbeat();
+                    setPaused((p) => !p);
+                  }}
+                >
+                  {paused ? <Play className="size-4" /> : <Pause className="size-4" />}
+                </Button>
+              )}
+            </div>
           </div>
-        </div>
 
-        {/* Étapes */}
-        <div className="flex flex-wrap items-center gap-2">
-          {exercises.map((e, i) => (
-            <button
-              key={e.id}
-              type="button"
-              onClick={() => setIndex(i)}
-              disabled={!started && inProgress}
-              className={cn(
-                "flex items-center gap-1.5 rounded-full border-2 px-3 py-1 text-xs font-semibold transition-colors",
-                i === index && session.status === "in_progress" ? "border-sky-500 bg-sky-50 text-sky-800" : "border-gray-200 bg-white",
-                isDone(e) && i !== index && "border-emerald-200 bg-emerald-50 text-emerald-800"
-              )}
-            >
-              {i + 1}. {TYPE_LABELS[e.type]}
-              {isDone(e) && (
-                <span className="tabular-nums">
-                  {e.items_correct}/{e.items_total}
-                </span>
-              )}
-            </button>
-          ))}
-          {inProgress && answeredUnits > 0 && (
-            <span className="ml-auto text-sm text-muted-foreground tabular-nums">
-              {correctUnits}/{answeredUnits} juste{correctUnits > 1 ? "s" : ""}
-            </span>
-          )}
-        </div>
-      </div>
-
-      {session.status === "completed" ? (
-        <>
-          <SessionReportView session={session} onRestart={restart} restarting={restarting} />
-          <div className="space-y-4">
-            <h2 className="text-xl font-bold">Revoir mes réponses</h2>
+          {/* Étapes */}
+          <div className="flex flex-wrap items-center gap-2">
             {exercises.map((e, i) => (
-              <ExerciseCard key={e.id} exercise={e} number={i + 1} total={exercises.length} readOnly onAnswer={answer} />
-            ))}
-          </div>
-        </>
-      ) : !started ? (
-        <div className="space-y-5">
-          {session.plan?.intro_message && (
-            <div className="flex gap-2 rounded-2xl border border-sky-200 bg-sky-50 p-4 text-sky-950">
-              <Md className="flex-1">{session.plan.intro_message}</Md>
-              <SpeakButton text={session.plan.intro_message} />
-            </div>
-          )}
-          <div>
-            <h2 className="mb-3 text-lg font-semibold">Avant de commencer, relis la leçon</h2>
-            <LessonView lesson={session.sheet.lesson} />
-          </div>
-          <div className="flex justify-center">
-            <Button size="lg" className="gap-2" onClick={() => setStarted(true)}>
-              <Play className="size-4" /> C&apos;est parti ! ({exercises.length} exercices)
-            </Button>
-          </div>
-        </div>
-      ) : (
-        <div className="relative">
-          {paused && (
-            <div className="absolute inset-0 z-10 flex flex-col items-center justify-start gap-3 rounded-2xl bg-white/80 pt-24 backdrop-blur-md">
-              <p className="text-lg font-semibold">Session en pause</p>
-              <Button className="gap-2" onClick={() => setPaused(false)}>
-                <Play className="size-4" /> Reprendre
-              </Button>
-            </div>
-          )}
-          <ExerciseCard
-            exercise={current}
-            number={index + 1}
-            total={exercises.length}
-            readOnly={paused}
-            onAnswer={answer}
-          />
-          <div className="mt-4 flex flex-wrap justify-end gap-3">
-            {isDone(current) && !allDone && (
-              <Button
-                className="gap-2"
-                onClick={() => {
-                  const next = exercises.findIndex((e, i) => i > index && !isDone(e));
-                  setIndex(next === -1 ? exercises.findIndex((e) => !isDone(e)) : next);
-                  window.scrollTo({ top: 0, behavior: "smooth" });
-                }}
+              <button
+                key={e.id}
+                type="button"
+                onClick={() => setIndex(i)}
+                disabled={!started && inProgress}
+                className={cn(
+                  "flex items-center gap-1.5 rounded-full border-2 px-3 py-1 text-xs font-semibold transition-colors",
+                  i === index && session.status === "in_progress" ? "border-sky-500 bg-sky-50 text-sky-800" : "border-gray-200 bg-white",
+                  isDone(e) && i !== index && "border-emerald-200 bg-emerald-50 text-emerald-800"
+                )}
               >
-                Exercice suivant <ArrowRight className="size-4" />
-              </Button>
-            )}
-            {allDone && (
-              <Button className="gap-2" onClick={complete} disabled={completing}>
-                <Flag className="size-4" />
-                {completing ? "Le prof prépare ton bilan…" : "Terminer et voir mon bilan"}
-              </Button>
+                {i + 1}. {TYPE_LABELS[e.type]}
+                {isDone(e) && (
+                  <span className="tabular-nums">
+                    {e.items_correct}/{e.items_total}
+                  </span>
+                )}
+              </button>
+            ))}
+            {inProgress && answeredUnits > 0 && (
+              <span className="ml-auto text-sm text-muted-foreground tabular-nums">
+                {correctUnits}/{answeredUnits} juste{correctUnits > 1 ? "s" : ""}
+              </span>
             )}
           </div>
         </div>
-      )}
-    </div>
+
+        {session.status === "completed" ? (
+          <>
+            <SessionReportView session={session} onRestart={restart} restarting={restarting} />
+            <div className="space-y-4">
+              <h2 className="text-xl font-bold">Revoir mes réponses</h2>
+              {exercises.map((e, i) => (
+                <ExerciseCard key={e.id} exercise={e} number={i + 1} total={exercises.length} readOnly onAnswer={answer} />
+              ))}
+            </div>
+          </>
+        ) : !started ? (
+          <div className="space-y-5">
+            {session.plan?.intro_message && (
+              <div className="flex gap-2 rounded-2xl border border-sky-200 bg-sky-50 p-4 text-sky-950">
+                <div className="flex-1 space-y-1">
+                  {session.voice_name && (
+                    <p className="text-sm font-semibold">
+                      Aujourd&apos;hui, c&apos;est {session.voice_name} qui te lit les consignes. Clique sur 🔊 pour l&apos;écouter.
+                    </p>
+                  )}
+                  <Md>{session.plan.intro_message}</Md>
+                </div>
+                <SpeakButton text={session.plan.intro_message} />
+              </div>
+            )}
+            <div>
+              <h2 className="mb-3 text-lg font-semibold">Avant de commencer, relis la leçon</h2>
+              <LessonView lesson={session.sheet.lesson} />
+            </div>
+            <div className="flex justify-center">
+              <Button size="lg" className="gap-2" onClick={() => setStarted(true)}>
+                <Play className="size-4" /> C&apos;est parti ! ({exercises.length} exercices)
+              </Button>
+            </div>
+          </div>
+        ) : (
+          <div className="relative">
+            {paused && (
+              <div className="absolute inset-0 z-10 flex flex-col items-center justify-start gap-3 rounded-2xl bg-white/80 pt-24 backdrop-blur-md">
+                <p className="text-lg font-semibold">Session en pause</p>
+                <Button className="gap-2" onClick={() => setPaused(false)}>
+                  <Play className="size-4" /> Reprendre
+                </Button>
+              </div>
+            )}
+            <ExerciseCard
+              exercise={current}
+              number={index + 1}
+              total={exercises.length}
+              readOnly={paused}
+              onAnswer={answer}
+            />
+            <div className="mt-4 flex flex-wrap justify-end gap-3">
+              {isDone(current) && !allDone && (
+                <Button
+                  className="gap-2"
+                  onClick={() => {
+                    const next = exercises.findIndex((e, i) => i > index && !isDone(e));
+                    setIndex(next === -1 ? exercises.findIndex((e) => !isDone(e)) : next);
+                    window.scrollTo({ top: 0, behavior: "smooth" });
+                  }}
+                >
+                  Exercice suivant <ArrowRight className="size-4" />
+                </Button>
+              )}
+              {allDone && (
+                <Button className="gap-2" onClick={complete} disabled={completing}>
+                  <Flag className="size-4" />
+                  {completing ? "Le prof prépare ton bilan…" : "Terminer et voir mon bilan"}
+                </Button>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
+    </SpeechSessionContext.Provider>
   );
 }
 

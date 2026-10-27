@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { Prisma } from "../../../app/generated/prisma";
+import { pickSessionVoice } from "@/lib/tts";
 import { generateReport, generateSession, TaxonomyEntry } from "./ai";
 import {
   exerciseSkillIds,
@@ -118,6 +119,12 @@ export async function createSession(opts: {
     exerciseCount: EXERCISES_PER_SESSION,
   });
 
+  // One voice per session (rotation set in the profile); speech is optional
+  const voice = await pickSessionVoice(opts.profileId).catch((error) => {
+    console.error("Error picking session voice:", error);
+    return null;
+  });
+
   const skillIds = new Set(skills.map((s) => s.id));
   const payloads = gen.exercises
     .map((e) => normalizeExercise(e, skillIds))
@@ -130,6 +137,8 @@ export async function createSession(opts: {
       profile_id: opts.profileId,
       user_id: opts.userId,
       model_name: model,
+      tts_voice_id: voice?.voice_id ?? null,
+      tts_voice_name: voice?.name || null,
       plan_json: {
         intro_message: gen.intro_message,
         focus_skill_ids: gen.focus_skill_ids.filter((id) => skillIds.has(id)),
@@ -175,6 +184,7 @@ export function serializeSession(session: OwnedSession) {
     plan: session.plan_json as { intro_message: string; focus_skill_ids: string[] } | null,
     report: session.report_json as SessionReport | null,
     skills_result: session.skills_result as SkillsResult | null,
+    voice_name: session.tts_voice_name,
     sheet: {
       id: session.sheet.id,
       title: session.sheet.title,
