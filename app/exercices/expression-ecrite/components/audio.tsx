@@ -45,15 +45,18 @@ async function postJson(url: string, body?: unknown) {
   return data;
 }
 
-/** ▶ The outline read aloud (recorded once, then served from the project). */
-export function OutlineListenButton({ projectId }: { projectId: string }) {
+/**
+ * ▶ The outline read aloud (recorded once, then served from the project).
+ * `outline` reads a proposed outline instead of the validated one.
+ */
+export function OutlineListenButton({ projectId, outline }: { projectId: string; outline?: string }) {
   const { state, run } = useEndpointPlayer();
   return (
     <Button
       variant="outline"
       onClick={() =>
         run(async () => {
-          const data = await postJson(`/api/writing/${projectId}/outline-audio`);
+          const data = await postJson(`/api/writing/${projectId}/outline-audio`, outline ? { outline } : undefined);
           if (data.notice) toast.message(data.notice);
           return data.engine === "device"
             ? (data.texts as string[]).map((text) => ({ text }))

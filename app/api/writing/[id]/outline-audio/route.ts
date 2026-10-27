@@ -6,8 +6,12 @@ import { NextRequest, NextResponse } from "next/server";
 export const dynamic = "force-dynamic";
 export const maxDuration = 120;
 
+const MAX_OUTLINE_CHARS = 6000;
+
 // POST /api/writing/[id]/outline-audio - The outline read aloud. Recorded on the
 // first ▶ and saved on the project; a modified outline is recorded again.
+// Body { outline } reads the outline the coach just proposed, not yet validated:
+// its recording is kept too, so validating it unchanged reuses it.
 export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   let outline: string | null = null;
   try {
@@ -16,9 +20,12 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
 
     const project = await findOwnedProject((await params).id, resolved.session.user.id, resolved.profileId);
     if (!project) return NextResponse.json({ error: "Expression écrite introuvable" }, { status: 404 });
-    outline = project.outline;
 
-    const audio = await outlineAudio(project, resolved.profileId);
+    const body = await request.json().catch(() => ({}));
+    const proposed = typeof body?.outline === "string" ? body.outline.slice(0, MAX_OUTLINE_CHARS) : null;
+    outline = proposed ?? project.outline;
+
+    const audio = await outlineAudio({ ...project, outline }, resolved.profileId);
     if (!audio) return NextResponse.json({ error: "Pas encore de trame" }, { status: 400 });
     return NextResponse.json(audio);
   } catch (error) {

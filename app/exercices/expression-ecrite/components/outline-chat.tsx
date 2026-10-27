@@ -9,6 +9,7 @@ import { cn } from "@/lib/utils";
 import { CheckCircle2, GraduationCap, Loader2, Send, Sparkles, Volume2, VolumeX } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
+import { OutlineListenButton } from "./audio";
 import { RichMd } from "./shared";
 
 const AUTO_READ_KEY = "writing-chat-auto-read";
@@ -211,6 +212,7 @@ export function OutlineChat({
                   {saving ? <Loader2 className="size-4 animate-spin" /> : <CheckCircle2 className="size-4" />}
                   Valider et commencer à écrire
                 </Button>
+                <OutlineListenButton projectId={projectId} outline={draft.outline} />
                 <Button variant="outline" onClick={() => setDraft(null)}>
                   Continuer la discussion
                 </Button>
