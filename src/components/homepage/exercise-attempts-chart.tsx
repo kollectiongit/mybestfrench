@@ -21,10 +21,14 @@ import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts";
 // 5 conjugaisons "valent" la hauteur de 1 dictée
 const CONJUGAISON_HEIGHT_FACTOR = 5;
 
+const EXERCICES_COLOR = "#f59e0b";
+
 interface ChartData {
   period: string;
   attempts: number;
   conjugaisons: number;
+  // Exercices des sessions d'entraînement : 1 exercice = hauteur de 1 dictée
+  exercices: number;
   // Valeur tracée pour la barre conjugaison (mise à l'échelle)
   conjugaisonsScaled?: number;
 }
@@ -37,6 +41,10 @@ const chartConfig = {
   conjugaisonsScaled: {
     label: "Conjugaisons",
     color: "#2b7fff",
+  },
+  exercices: {
+    label: "Exercices",
+    color: EXERCICES_COLOR,
   },
 } satisfies ChartConfig;
 
@@ -97,6 +105,7 @@ export function ExerciseAttemptsChart() {
         const scaled = data.map((d) => ({
           ...d,
           conjugaisons: d.conjugaisons ?? 0,
+          exercices: d.exercices ?? 0,
           conjugaisonsScaled: (d.conjugaisons ?? 0) / CONJUGAISON_HEIGHT_FACTOR,
         }));
         setChartData(scaled);
@@ -323,13 +332,19 @@ export function ExerciseAttemptsChart() {
 
                       const dataKey = (item as { dataKey?: string })?.dataKey;
                       const isConjugaison = dataKey === "conjugaisonsScaled";
+                      const isExercice = dataKey === "exercices";
                       // Afficher le vrai nombre, pas la valeur mise à l'échelle
                       const realCount = isConjugaison
                         ? chartData.conjugaisons ?? 0
-                        : chartData.attempts ?? 0;
+                        : isExercice
+                          ? chartData.exercices ?? 0
+                          : chartData.attempts ?? 0;
+                      const plural = realCount !== 1 ? "s" : "";
                       const label = isConjugaison
-                        ? `conjugaison${realCount !== 1 ? "s" : ""}`
-                        : `dictée${realCount !== 1 ? "s" : ""}`;
+                        ? `conjugaison${plural}`
+                        : isExercice
+                          ? `exercice${plural}`
+                          : `dictée${plural}`;
 
                       return (
                         <span className="flex items-center gap-1.5">
@@ -343,7 +358,9 @@ export function ExerciseAttemptsChart() {
                             style={{
                               backgroundColor: isConjugaison
                                 ? "#2b7fff"
-                                : "var(--color-attempts)",
+                                : isExercice
+                                  ? EXERCICES_COLOR
+                                  : "var(--color-attempts)",
                             }}
                           />
                           <span className="font-bold">
@@ -482,6 +499,46 @@ export function ExerciseAttemptsChart() {
                       width={narrowWidth}
                       height={barProps.height}
                       fill="#2b7fff"
+                      rx={8}
+                      style={{ transition: "fill 0.2s ease-in-out" }}
+                    />
+                  );
+                }}
+              />
+              <Bar
+                dataKey="exercices"
+                fill={EXERCICES_COLOR}
+                radius={8}
+                shape={(props: unknown) => {
+                  const barProps = props as {
+                    x?: number;
+                    y?: number;
+                    width?: number;
+                    height?: number;
+                    payload?: ChartData;
+                  };
+
+                  if (
+                    !barProps.payload ||
+                    !barProps.x ||
+                    !barProps.y ||
+                    !barProps.width ||
+                    barProps.height === undefined
+                  ) {
+                    return <rect />;
+                  }
+
+                  // Pas de barre grise pour les jours sans exercice : la
+                  // série est récente, on évite d'alourdir le graphique
+                  if ((barProps.payload.exercices ?? 0) === 0) return <rect />;
+
+                  return (
+                    <rect
+                      x={barProps.x}
+                      y={barProps.y}
+                      width={barProps.width}
+                      height={barProps.height}
+                      fill={EXERCICES_COLOR}
                       rx={8}
                       style={{ transition: "fill 0.2s ease-in-out" }}
                     />

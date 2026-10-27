@@ -1,4 +1,4 @@
-import { OPENAI_MODEL } from "@/lib/ai-models";
+import { AI_MODEL_FAST } from "@/lib/ai-models";
 import { auth } from "@/lib/auth";
 import { compareDictation, DictationComparison } from "@/lib/dictation-diff";
 import {
@@ -289,7 +289,7 @@ N'ajoute AUCUNE autre erreur, n'en retire aucune et ne recompte rien : tous les 
             try {
               let accumulatedText = "";
               const stream = client.responses.stream({
-                model: OPENAI_MODEL,
+                model: AI_MODEL_FAST,
                 input: [
                   { role: "system", content: systemPrompt },
                   { role: "user", content: userPrompt },

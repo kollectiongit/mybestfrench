@@ -20,6 +20,7 @@ import {
   GraduationCap,
   Home,
   ListChecks,
+  NotebookPen,
   Pencil,
 } from "lucide-react";
 import Link from "next/link";
@@ -31,6 +32,7 @@ const navigationLinks = [
   { href: "/profiles", label: "Profils", icon: Contact },
   { href: "/exercices/dictees", label: "Dictées", icon: GraduationCap },
   { href: "/exercices/conjugaisons", label: "Conjugaison", icon: Pencil },
+  { href: "/exercices/sessions", label: "Exercices", icon: NotebookPen },
   { href: "/lecture", label: "Lecture", icon: BookOpen },
   { href: "/todos", label: "To-Do", icon: ListChecks },
 ];
@@ -41,6 +43,7 @@ export default function Component() {
 
   // Function to determine if a link is active
   const isLinkActive = (href: string) => {
+    if (href === "/exercices/sessions") return pathname.startsWith(href);
     return pathname === href;
   };
 

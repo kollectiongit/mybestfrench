@@ -27,6 +27,8 @@ model User {
   sessions            Session[]
   reading_logs        reading_logs[]
   todo_completions    todo_completions[]
+  training_sheets     training_sheet[]
+  training_sessions   training_session[]
 
   @@map("user")
 }
@@ -90,6 +92,7 @@ model exercices_attempts {
   dictation_id                              Int?
   conjugaison_id                            Int?
   generated_question_id                     Int?
+  training_exercise_id                      Int?
   question_type                             String
   question_text                             String
   user_answer                               String?
@@ -110,6 +113,7 @@ model exercices_attempts {
   correction_full_json                      String?
   dictation                                 dictation?           @relation(fields: [dictation_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
   conjugaison                               conjugaison?         @relation(fields: [conjugaison_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  training_exercise                         training_exercise?   @relation(fields: [training_exercise_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
   exercices_errors                          exercices_errors[]
   generated_questions                       generated_questions? @relation(fields: [generated_question_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
   exercises                                 exercises?           @relation(fields: [exercise_id], references: [id], onUpdate: NoAction, map: "training_attempts_exercise_id_fkey")
@@ -124,6 +128,7 @@ model exercices_attempts {
   @@index([profile_id, dictation_id, created_at])
   @@index([conjugaison_id, profile_id])
   @@index([profile_id, conjugaison_id, created_at])
+  @@index([training_exercise_id])
 }
 
 model conjugaison {
@@ -259,6 +264,7 @@ model profiles {
   todos               todos[]
   todo_categories     todo_categories[]
   todo_completions    todo_completions[]
+  training_sessions   training_session[]
   active_book         books?                @relation("active_book", fields: [active_book_id], references: [id], onDelete: SetNull, onUpdate: NoAction)
   active_book_2       books?                @relation("active_book_2", fields: [active_book_id_2], references: [id], onDelete: SetNull, onUpdate: NoAction)
   user                User                  @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
@@ -272,6 +278,7 @@ model topic {
   rules_explanation_message String?
   dictation                 dictation[]
   exercises                 exercises[]
+  training_sheets           training_sheet[]
   category                  category        @relation(fields: [category_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
   topics_levels             topics_levels[]
 
@@ -483,4 +490,93 @@ model todo_completions {
 
   @@unique([todo_id, completion_date])
   @@index([profile_id, completion_date])
+}
+
+// Sessions d'exercices (voir docs/plan-sessions-exercices.md)
+
+// Fiche d'entraînement : source (photo ou consigne) + leçon + compétences
+model training_sheet {
+  id             Int      @id @default(autoincrement())
+  user_id        String
+  topic_id       Int
+  title          String   @db.VarChar(200)
+  source_type    String   @db.VarChar(20) // "photo" | "text"
+  source_images  String[] @default([])
+  source_text    String?
+  lesson_json    Json
+  skills_json    Json
+  exercise_hints Json?
+  archived       Boolean  @default(false)
+  created_at     DateTime @default(now()) @db.Timestamptz(6)
+  updated_at     DateTime @default(now()) @updatedAt @db.Timestamptz(6)
+
+  user     User               @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  topic    topic              @relation(fields: [topic_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  sessions training_session[]
+
+  @@index([user_id, archived])
+  @@index([topic_id])
+}
+
+// Une passation chronométrée d'une fiche par un profil
+model training_session {
+  id             String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  sheet_id       Int
+  profile_id     String    @db.Uuid
+  user_id        String
+  status         String    @default("in_progress") @db.VarChar(20) // in_progress | completed | abandoned
+  started_at     DateTime  @default(now()) @db.Timestamptz(6)
+  completed_at   DateTime? @db.Timestamptz(6)
+  active_seconds Int       @default(0)
+  score_20       Decimal?  @db.Decimal(4, 1)
+  items_total    Int       @default(0)
+  items_correct  Int       @default(0)
+  plan_json      Json?
+  skills_result  Json?
+  report_json    Json?
+  model_name     String?   @db.VarChar(100)
+
+  sheet     training_sheet      @relation(fields: [sheet_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  profiles  profiles            @relation(fields: [profile_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  user      User                @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  exercises training_exercise[]
+
+  @@index([profile_id, started_at])
+  @@index([sheet_id, profile_id])
+}
+
+model training_exercise {
+  id             Int       @id @default(autoincrement())
+  session_id     String    @db.Uuid
+  position       Int
+  type           String    @db.VarChar(30) // choice | fill_blanks | mark_words | classify | label
+  is_remediation Boolean   @default(false)
+  skill_ids      String[]  @default([])
+  payload        Json // contenu + corrigé + explications
+  status         String    @default("pending") @db.VarChar(20) // pending | done
+  items_total    Int       @default(0)
+  items_correct  Int       @default(0)
+  completed_at   DateTime? @db.Timestamptz(6)
+
+  session            training_session     @relation(fields: [session_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  answers            training_answer[]
+  exercices_attempts exercices_attempts[]
+
+  @@index([session_id, position])
+}
+
+model training_answer {
+  id            Int      @id @default(autoincrement())
+  exercise_id   Int
+  item_key      String   @db.VarChar(50)
+  answer        Json
+  result        Json // détail de la correction (unités justes / fausses)
+  units_total   Int
+  units_correct Int
+  graded_by     String   @default("rule") @db.VarChar(10) // rule | llm
+  created_at    DateTime @default(now()) @db.Timestamptz(6)
+
+  exercise training_exercise @relation(fields: [exercise_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([exercise_id, item_key])
 }
