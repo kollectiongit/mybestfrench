@@ -2,11 +2,16 @@
 
 import { cn } from "@/lib/utils";
 import { Loader2, Mic, Square } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { Ref, useEffect, useImperativeHandle, useRef, useState } from "react";
 import { toast } from "sonner";
 
 // Voice dictation: the browser's speech recognition when it has one (live
 // text, Chrome / Safari / Edge), else a recording transcribed by the server.
+
+/** A dictation stops by itself after this long */
+const MAX_SECONDS = 60;
+/** The remaining seconds are shown on the button at the end */
+const COUNTDOWN_SECONDS = 10;
 
 interface RecognitionResult {
   isFinal: boolean;
@@ -29,9 +34,21 @@ function recognitionClass(): (new () => Recognition) | null {
   return w.SpeechRecognition ?? w.webkitSpeechRecognition ?? null;
 }
 
+export interface DictationHandle {
+  /**
+   * Ends the dictation running (or being transcribed) and resolves with its
+   * text, already passed to onText; null when no dictation was running.
+   */
+  finish(): Promise<string | null>;
+}
+
+type Status = "idle" | "listening" | "transcribing";
+
 export function DictationButton({
   onText,
   onInterim,
+  onActiveChange,
+  handle,
   disabled,
   className,
 }: {
@@ -39,17 +56,68 @@ export function DictationButton({
   onText: (text: string) => void;
   /** Live text while speaking (browser recognition only) */
   onInterim?: (text: string) => void;
+  /** A dictation is running or being transcribed */
+  onActiveChange?: (active: boolean) => void;
+  /** To end the dictation from outside, e.g. when the message is sent */
+  handle?: Ref<DictationHandle>;
   disabled?: boolean;
   className?: string;
 }) {
-  const [state, setState] = useState<"idle" | "listening" | "transcribing">("idle");
+  const [state, setState] = useState<Status>("idle");
+  const [elapsed, setElapsed] = useState(0);
+  const status = useRef<Status>("idle");
   const stopRef = useRef<(() => void) | null>(null);
+  const limit = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const waiters = useRef<((text: string | null) => void)[]>([]);
   // Known only in the browser (no button in the server render)
   const [supported, setSupported] = useState(false);
   useEffect(() => {
     setSupported(!!recognitionClass() || (!!navigator.mediaDevices && typeof MediaRecorder !== "undefined"));
     return () => stopRef.current?.();
   }, []);
+
+  const setStatus = (next: Status) => {
+    status.current = next;
+    setState(next);
+    onActiveChange?.(next !== "idle");
+  };
+  const settle = (text: string | null) => {
+    setStatus("idle");
+    waiters.current.splice(0).forEach((resolve) => resolve(text));
+  };
+
+  useImperativeHandle(handle, () => ({
+    finish: () => {
+      if (status.current === "idle") return Promise.resolve(null);
+      return new Promise<string | null>((resolve) => {
+        waiters.current.push(resolve);
+        if (status.current === "listening") stopRef.current?.();
+      });
+    },
+  }));
+
+  // Seconds spoken, for the countdown
+  useEffect(() => {
+    if (state !== "listening") return;
+    setElapsed(0);
+    const startedAt = Date.now();
+    const timer = setInterval(() => setElapsed(Math.floor((Date.now() - startedAt) / 1000)), 250);
+    return () => clearInterval(timer);
+  }, [state]);
+
+  const listen = (stop: () => void) => {
+    stopRef.current = () => {
+      if (limit.current) clearTimeout(limit.current);
+      limit.current = null;
+      stopRef.current = null;
+      stop();
+    };
+    limit.current = setTimeout(() => {
+      stopRef.current?.();
+      toast.message("Une minute maximum : ton message est prêt à être envoyé");
+    }, MAX_SECONDS * 1000);
+    setStatus("listening");
+  };
 
   const startRecognition = (Ctor: new () => Recognition) => {
     const recognition = new Ctor();
@@ -71,14 +139,15 @@ export function DictationButton({
       else if (e.error !== "no-speech" && e.error !== "aborted") toast.error("La dictée s'est arrêtée");
     };
     recognition.onend = () => {
-      stopRef.current = null;
-      setState("idle");
+      // Also when the browser ends it by itself (long silence)
+      stopRef.current?.();
       onInterim?.("");
-      if (finalText.trim()) onText(finalText.trim());
+      const text = finalText.trim();
+      if (text) onText(text);
+      settle(text || null);
     };
     recognition.start();
-    stopRef.current = () => recognition.stop();
-    setState("listening");
+    listen(() => recognition.stop());
   };
 
   const startRecording = async () => {
@@ -94,8 +163,8 @@ export function DictationButton({
     recorder.ondataavailable = (e) => e.data.size && chunks.push(e.data);
     recorder.onstop = async () => {
       stream.getTracks().forEach((t) => t.stop());
-      stopRef.current = null;
-      setState("transcribing");
+      setStatus("transcribing");
+      let text: string | null = null;
       try {
         const type = recorder.mimeType || "audio/webm";
         const form = new FormData();
@@ -103,16 +172,18 @@ export function DictationButton({
         const res = await fetch("/api/transcribe", { method: "POST", body: form });
         const data = await res.json().catch(() => ({}));
         if (!res.ok) throw new Error(data.error ?? "Je n'ai pas compris, réessaie");
-        if (data.text) onText(data.text);
+        if (data.text) {
+          text = data.text as string;
+          onText(text);
+        }
       } catch (e) {
         toast.error(e instanceof Error ? e.message : "Je n'ai pas compris, réessaie");
       } finally {
-        setState("idle");
+        settle(text);
       }
     };
     recorder.start();
-    stopRef.current = () => recorder.stop();
-    setState("listening");
+    listen(() => recorder.stop());
   };
 
   if (!supported) return null;
@@ -128,12 +199,13 @@ export function DictationButton({
     else startRecording();
   };
 
+  const remaining = MAX_SECONDS - elapsed;
   return (
     <button
       type="button"
       onClick={toggle}
       disabled={disabled || state === "transcribing"}
-      title={state === "listening" ? "Arrêter la dictée" : "Dicter mon message"}
+      title={state === "listening" ? "Arrêter la dictée (une minute maximum)" : "Dicter mon message"}
       aria-label={state === "listening" ? "Arrêter la dictée" : "Dicter mon message"}
       className={cn(
         "inline-flex size-9 shrink-0 items-center justify-center rounded-md border transition-colors disabled:opacity-50",
@@ -145,6 +217,8 @@ export function DictationButton({
     >
       {state === "transcribing" ? (
         <Loader2 className="size-4 animate-spin" />
+      ) : state === "listening" && remaining <= COUNTDOWN_SECONDS ? (
+        <span className="text-sm font-semibold tabular-nums">{Math.max(remaining, 0)}</span>
       ) : state === "listening" ? (
         <Square className="size-3.5 fill-current" />
       ) : (

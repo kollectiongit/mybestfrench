@@ -1,6 +1,6 @@
 "use client";
 
-import { DictationButton } from "@/components/dictation-button";
+import { DictationButton, DictationHandle } from "@/components/dictation-button";
 import { playText, SpeakButton, stopSpeech } from "@/components/speak-button";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -45,6 +45,8 @@ export function OutlineChat({
   const [messages, setMessages] = useState<ChatMessage[]>(initialMessages);
   const [input, setInput] = useState("");
   const [interim, setInterim] = useState("");
+  const [dictating, setDictating] = useState(false);
+  const dictation = useRef<DictationHandle>(null);
   const [streaming, setStreaming] = useState(false);
   const [autoRead, setAutoRead] = useState(false);
   const [draft, setDraft] = useState<{ title: string; outline: string } | null>(null);
@@ -148,6 +150,15 @@ export function OutlineChat({
     } finally {
       setSaving(false);
     }
+  };
+
+  // Sending while dictating ends the dictation and sends what was said
+  const submit = async () => {
+    if (streaming) return;
+    const typed = input.trim();
+    const dictated = await dictation.current?.finish();
+    const message = [typed, dictated].filter(Boolean).join(" ");
+    if (message) send(message);
   };
 
   const hasStudentMessage = messages.some((m) => m.role === "user");
@@ -271,23 +282,25 @@ export function OutlineChat({
           className="mt-3 flex items-center gap-2"
           onSubmit={(e) => {
             e.preventDefault();
-            if (input.trim() && !streaming) send(input.trim());
+            submit();
           }}
         >
           <DictationButton
+            handle={dictation}
             disabled={streaming}
             onInterim={setInterim}
+            onActiveChange={setDictating}
             onText={(text) => setInput((prev) => (prev ? `${prev} ${text}` : text))}
           />
           <input
-            value={interim || input}
+            value={interim ? (input ? `${input} ${interim}` : interim) : input}
             onChange={(e) => setInput(e.target.value)}
             readOnly={!!interim}
             maxLength={2000}
             placeholder="Écris ou dicte ta réponse au prof…"
             className="h-9 min-w-0 flex-1 rounded-md border border-sky-200 bg-white px-3 text-sm outline-none focus:border-sky-500"
           />
-          <Button type="submit" size="icon" className="size-9" disabled={!input.trim() || streaming} title="Envoyer">
+          <Button type="submit" size="icon" className="size-9" disabled={(!input.trim() && !dictating) || streaming} title="Envoyer">
             <Send className="size-4" />
           </Button>
         </form>
