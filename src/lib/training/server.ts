@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { Prisma } from "../../../app/generated/prisma";
 import { pickSessionVoice } from "@/lib/tts";
-import { generateReport, generateSession, TaxonomyEntry } from "./ai";
+import { generateReport, generateRetryExercise, generateSession, TaxonomyEntry } from "./ai";
 import {
   exerciseSkillIds,
   exerciseTexts,
@@ -21,6 +21,10 @@ import {
 } from "./schema";
 
 export const EXERCISES_PER_SESSION = 5;
+/** An exercise can be redone (new questions) when fewer than half of the answers are right. */
+export const RETRY_THRESHOLD = 0.5;
+/** Max redos of one original exercise. */
+export const MAX_RETRIES = 2;
 
 export async function getTaxonomy(): Promise<TaxonomyEntry[]> {
   const categories = await prisma.category.findMany({
@@ -200,6 +204,8 @@ export function serializeSession(session: OwnedSession) {
         position: e.position,
         type: e.type,
         status: e.status,
+        retry_of: e.retry_of,
+        can_retry: session.status === "in_progress" && canRetry(e, session.exercises),
         items_total: e.items_total,
         items_correct: e.items_correct,
         item_keys: itemKeys(payload),
@@ -213,6 +219,97 @@ export function serializeSession(session: OwnedSession) {
 }
 
 export type SerializedSession = ReturnType<typeof serializeSession>;
+
+type ExerciseRow = { id: number; status: string; items_total: number; items_correct: number; retry_of: number | null };
+
+/** The first exercise of a chain of redos. */
+function originalOf(e: ExerciseRow, all: ExerciseRow[]): number {
+  const parent = all.find((x) => x.id === e.retry_of);
+  return parent ? originalOf(parent, all) : e.id;
+}
+
+function canRetry(e: ExerciseRow, all: ExerciseRow[]) {
+  if (e.status !== "done" || e.items_total === 0) return false;
+  if (e.items_correct / e.items_total >= RETRY_THRESHOLD) return false;
+  if (all.some((x) => x.retry_of === e.id)) return false; // already redone
+  const original = originalOf(e, all);
+  const redos = all.filter((x) => x.retry_of != null && originalOf(x, all) === original).length;
+  return redos < MAX_RETRIES;
+}
+
+/**
+ * Inserts a new attempt right after a failed exercise: new questions from the
+ * AI (same format and skills), or the same questions if the AI fails.
+ */
+export async function retryExercise(exerciseId: number, userId: string, profileId: string) {
+  const exercise = await prisma.training_exercise.findFirst({
+    where: { id: exerciseId, session: { user_id: userId, profile_id: profileId, status: "in_progress" } },
+    include: {
+      answers: true,
+      session: {
+        include: {
+          sheet: true,
+          exercises: { select: { id: true, status: true, items_total: true, items_correct: true, retry_of: true } },
+        },
+      },
+    },
+  });
+  if (!exercise) return null;
+  const existing = exercise.session.exercises.find((x) => x.retry_of === exercise.id);
+  if (existing) return existing.id;
+  if (!canRetry(exercise, exercise.session.exercises)) return null;
+
+  const original = exercise.payload as unknown as ExercisePayload;
+  const skills = exercise.session.sheet.skills_json as unknown as Skill[];
+  let payload: ExercisePayload = original;
+  try {
+    const gen = await generateRetryExercise({
+      title: exercise.session.sheet.title,
+      lesson: exercise.session.sheet.lesson_json as unknown as Lesson,
+      skills,
+      student: await getProfileContext(profileId),
+      original: {
+        type: original.type,
+        title: original.title,
+        instruction: original.instruction,
+        texts: exerciseTexts(original),
+      },
+      mistakes: exercise.answers.flatMap((a) =>
+        describeMistake(original, a.item_key, a.result as unknown as ItemResult)
+      ),
+    });
+    const normalized = gen.type === original.type ? normalizeExercise(gen, new Set(skills.map((s) => s.id))) : null;
+    if (normalized) payload = normalized;
+  } catch (error) {
+    // Same questions again rather than nothing
+    console.error("Error generating retry exercise:", error);
+  }
+
+  const created = await prisma.$transaction(async (tx) => {
+    await tx.training_exercise.updateMany({
+      where: { session_id: exercise.session_id, position: { gt: exercise.position } },
+      data: { position: { increment: 1 } },
+    });
+    const row = await tx.training_exercise.create({
+      data: {
+        session_id: exercise.session_id,
+        position: exercise.position + 1,
+        type: payload.type,
+        is_remediation: true,
+        retry_of: exercise.id,
+        skill_ids: exerciseSkillIds(payload),
+        payload: payload as unknown as Prisma.InputJsonValue,
+        items_total: unitCount(payload),
+      },
+    });
+    await tx.training_session.update({
+      where: { id: exercise.session_id },
+      data: { items_total: { increment: unitCount(payload) } },
+    });
+    return row;
+  });
+  return created.id;
+}
 
 /**
  * Called after an answer is stored. Recomputes the exercise counters and, once

@@ -556,6 +556,7 @@ model training_exercise {
   position       Int
   type           String    @db.VarChar(30) // choice | fill_blanks | mark_words | classify | label
   is_remediation Boolean   @default(false)
+  retry_of       Int? // exercise redone because of too many mistakes
   skill_ids      String[]  @default([])
   payload        Json // contenu + corrigé + explications
   status         String    @default("pending") @db.VarChar(20) // pending | done

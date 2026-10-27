@@ -111,7 +111,13 @@ export function normalizeExercise(
         })
         .filter((q) => q !== null);
       if (questions.length === 0) return null;
-      return { type: "choice", title: gen.title, instruction: gen.instruction, questions };
+      return {
+        type: "choice",
+        title: gen.title,
+        instruction: gen.instruction,
+        reminder: gen.reminder,
+        questions,
+      };
     }
 
     case "fill_blanks": {
@@ -138,6 +144,7 @@ export function normalizeExercise(
         type: "fill_blanks",
         title: gen.title,
         instruction: gen.instruction,
+        reminder: gen.reminder,
         word_bank: gen.word_bank.map(clean).filter(Boolean),
         sentences,
       };
@@ -178,6 +185,7 @@ export function normalizeExercise(
         type: "mark_words",
         title: gen.title,
         instruction: gen.instruction,
+        reminder: gen.reminder,
         legend,
         sentences,
       };
@@ -199,7 +207,13 @@ export function normalizeExercise(
         })
         .filter((i) => i !== null);
       if (items.length === 0) return null;
-      return { type: gen.type, title: gen.title, instruction: gen.instruction, items };
+      return {
+        type: gen.type,
+        title: gen.title,
+        instruction: gen.instruction,
+        reminder: gen.reminder,
+        items,
+      };
     }
 
     case "classify":
@@ -229,6 +243,7 @@ export function normalizeExercise(
           type: "classify",
           title: gen.title,
           instruction: gen.instruction,
+          reminder: gen.reminder,
           categories: options,
           items: items.map(({ expected, ...rest }) => ({ ...rest, category: expected })),
         };
@@ -237,6 +252,7 @@ export function normalizeExercise(
         type: "label",
         title: gen.title,
         instruction: gen.instruction,
+        reminder: gen.reminder,
         options,
         items: items.map(({ expected, ...rest }) => ({ ...rest, answer: expected })),
       };

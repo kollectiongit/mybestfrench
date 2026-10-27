@@ -76,6 +76,7 @@ const ChoiceGenSchema = z.object({
   type: z.literal("choice"),
   title: z.string(),
   instruction: z.string(),
+  reminder: z.string(),
   questions: z.array(
     z.object({
       prompt: z.string(),
@@ -91,6 +92,7 @@ const FillBlanksGenSchema = z.object({
   type: z.literal("fill_blanks"),
   title: z.string(),
   instruction: z.string(),
+  reminder: z.string(),
   word_bank: z.array(z.string()),
   sentences: z.array(
     z.object({
@@ -110,6 +112,7 @@ const MarkWordsGenSchema = z.object({
   type: z.literal("mark_words"),
   title: z.string(),
   instruction: z.string(),
+  reminder: z.string(),
   legend: z.array(
     z.object({ key: z.string(), label: z.string(), color: ColorSchema })
   ),
@@ -132,6 +135,7 @@ const ClassifyGenSchema = z.object({
   type: z.literal("classify"),
   title: z.string(),
   instruction: z.string(),
+  reminder: z.string(),
   categories: z.array(z.object({ key: z.string(), label: z.string() })),
   items: z.array(
     z.object({
@@ -147,6 +151,7 @@ const LabelGenSchema = z.object({
   type: z.literal("label"),
   title: z.string(),
   instruction: z.string(),
+  reminder: z.string(),
   options: z.array(z.object({ key: z.string(), label: z.string() })),
   items: z.array(
     z.object({
@@ -172,6 +177,7 @@ const RewriteGenSchema = z.object({
   type: z.literal("rewrite"),
   title: z.string(),
   instruction: z.string(),
+  reminder: z.string(),
   items: openItems,
 });
 
@@ -179,6 +185,7 @@ const ShortAnswerGenSchema = z.object({
   type: z.literal("short_answer"),
   title: z.string(),
   instruction: z.string(),
+  reminder: z.string(),
   items: openItems,
 });
 
@@ -232,6 +239,8 @@ export interface ChoicePayload {
   type: "choice";
   title: string;
   instruction: string;
+  /** Short recap of the rule needed for this exercise (absent on old sessions) */
+  reminder?: string;
   questions: {
     id: string;
     prompt: string;
@@ -246,6 +255,8 @@ export interface FillBlanksPayload {
   type: "fill_blanks";
   title: string;
   instruction: string;
+  /** Short recap of the rule needed for this exercise (absent on old sessions) */
+  reminder?: string;
   word_bank: string[];
   sentences: {
     id: string;
@@ -264,6 +275,8 @@ export interface MarkWordsPayload {
   type: "mark_words";
   title: string;
   instruction: string;
+  /** Short recap of the rule needed for this exercise (absent on old sessions) */
+  reminder?: string;
   legend: { key: string; label: string; color: Color }[];
   sentences: {
     id: string;
@@ -285,6 +298,8 @@ export interface ClassifyPayload {
   type: "classify";
   title: string;
   instruction: string;
+  /** Short recap of the rule needed for this exercise (absent on old sessions) */
+  reminder?: string;
   categories: { key: string; label: string }[];
   items: {
     id: string;
@@ -299,6 +314,8 @@ export interface LabelPayload {
   type: "label";
   title: string;
   instruction: string;
+  /** Short recap of the rule needed for this exercise (absent on old sessions) */
+  reminder?: string;
   options: { key: string; label: string }[];
   items: {
     id: string;
@@ -313,6 +330,8 @@ export interface OpenPayload {
   type: "rewrite" | "short_answer";
   title: string;
   instruction: string;
+  /** Short recap of the rule needed for this exercise (absent on old sessions) */
+  reminder?: string;
   items: {
     id: string;
     prompt: string;

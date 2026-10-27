@@ -43,6 +43,9 @@ export interface SessionExercise {
   position: number;
   type: PublicPayload["type"];
   status: string;
+  /** Id of the exercise this one redoes (too many mistakes) */
+  retry_of: number | null;
+  can_retry: boolean;
   items_total: number;
   items_correct: number;
   item_keys: string[];

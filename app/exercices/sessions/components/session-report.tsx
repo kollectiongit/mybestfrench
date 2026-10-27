@@ -54,12 +54,12 @@ export function SessionReportView({
       </div>
 
       <div className="grid gap-4 md:grid-cols-2">
-        <div className="rounded-2xl border border-emerald-200 bg-emerald-50/60 p-4">
-          <h3 className="mb-2 flex items-center gap-2 font-semibold text-emerald-900">
+        <div className="rounded-2xl border border-green-200 bg-green-50/60 p-4">
+          <h3 className="mb-2 flex items-center gap-2 font-semibold text-green-900">
             <ThumbsUp className="size-4" /> Ce que tu as compris
           </h3>
           {report?.compris.length ? (
-            <ul className="list-disc space-y-1 pl-5 text-sm text-emerald-950">
+            <ul className="list-disc space-y-1 pl-5 text-sm text-green-950">
               {report.compris.map((c, i) => (
                 <li key={i}>
                   <Md>{c}</Md>
@@ -67,7 +67,7 @@ export function SessionReportView({
               ))}
             </ul>
           ) : (
-            <p className="text-sm text-emerald-900/70">Pas encore de compétence acquise : on continue !</p>
+            <p className="text-sm text-green-900/70">Pas encore de compétence acquise : on continue !</p>
           )}
         </div>
         <div className="rounded-2xl border border-amber-200 bg-amber-50/60 p-4">

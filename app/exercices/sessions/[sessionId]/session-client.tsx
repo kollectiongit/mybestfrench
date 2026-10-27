@@ -12,9 +12,12 @@ import {
 import { cn } from "@/lib/utils";
 import {
   ArrowRight,
+  Loader2,
+  RotateCcw,
   BookOpen,
   ChevronLeft,
   Flag,
+  Lightbulb,
   Mic,
   Pause,
   Play,
@@ -155,9 +158,34 @@ export default function SessionClient({ sessionId }: { sessionId: string }) {
           ),
         }
       );
+      // Finished exercise: the server says whether it can be redone
+      if (data.exercise?.status === "done") {
+        const fresh = await fetch(`/api/training/sessions/${sessionId}`, { cache: "no-store" })
+          .then((r) => (r.ok ? r.json() : null))
+          .catch(() => null);
+        if (fresh?.session) setSession(fresh.session);
+      }
     },
-    []
+    [sessionId]
   );
+
+  const [retrying, setRetrying] = useState(false);
+  const retry = async (exerciseId: number) => {
+    setRetrying(true);
+    try {
+      const res = await fetch(`/api/training/exercises/${exerciseId}/retry`, { method: "POST" });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? "Erreur");
+      const s: SessionData = data.session;
+      setSession(s);
+      setIndex(Math.max(0, s.exercises.findIndex((e) => e.id === data.exercise_id)));
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Erreur");
+    } finally {
+      setRetrying(false);
+    }
+  };
 
   const complete = async () => {
     setCompleting(true);
@@ -189,7 +217,7 @@ export default function SessionClient({ sessionId }: { sessionId: string }) {
 
   if (error) {
     return (
-      <div className="container mx-auto max-w-3xl px-4 py-12 text-center text-gray-500">{error}</div>
+      <div className="container mx-auto max-w-5xl px-4 py-12 text-center text-gray-500">{error}</div>
     );
   }
   if (!session) {
@@ -223,7 +251,7 @@ export default function SessionClient({ sessionId }: { sessionId: string }) {
           <BookOpen className="size-4" /> Leçon
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-h-[85vh] overflow-y-auto sm:max-w-3xl">
+      <DialogContent className="max-h-[85vh] overflow-y-auto sm:max-w-4xl">
         <DialogHeader>
           <DialogTitle>{session.sheet.title}</DialogTitle>
         </DialogHeader>
@@ -234,7 +262,7 @@ export default function SessionClient({ sessionId }: { sessionId: string }) {
 
   return (
     <SpeechSessionContext.Provider value={session.id}>
-      <div className="container mx-auto max-w-3xl space-y-6 px-4 py-6">
+      <div className="container mx-auto max-w-5xl space-y-6 px-4 py-6">
         {/* En-tête */}
         <div className="space-y-3">
           <Link
@@ -286,10 +314,10 @@ export default function SessionClient({ sessionId }: { sessionId: string }) {
                 className={cn(
                   "flex items-center gap-1.5 rounded-full border-2 px-3 py-1 text-xs font-semibold transition-colors",
                   i === index && session.status === "in_progress" ? "border-sky-500 bg-sky-50 text-sky-800" : "border-gray-200 bg-white",
-                  isDone(e) && i !== index && "border-emerald-200 bg-emerald-50 text-emerald-800"
+                  isDone(e) && i !== index && "border-green-200 bg-green-50 text-green-800"
                 )}
               >
-                {i + 1}. {TYPE_LABELS[e.type]}
+                {i + 1}. {e.retry_of ? "Rattrapage" : TYPE_LABELS[e.type]}
                 {isDone(e) && (
                   <span className="tabular-nums">
                     {e.items_correct}/{e.items_total}
@@ -357,9 +385,21 @@ export default function SessionClient({ sessionId }: { sessionId: string }) {
               readOnly={paused}
               onAnswer={answer}
             />
+            {current.can_retry && (
+              <div className="mt-4 flex flex-wrap items-center gap-3 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3">
+                <p className="flex-1 text-sm text-amber-950">
+                  Plus de la moitié des réponses sont à revoir. Tu veux refaire cet exercice avec de nouvelles questions pour t&apos;entraîner ?
+                </p>
+                <Button className="gap-2" onClick={() => retry(current.id)} disabled={retrying}>
+                  {retrying ? <Loader2 className="size-4 animate-spin" /> : <RotateCcw className="size-4" />}
+                  {retrying ? "Le prof prépare l'exercice…" : "Refaire l'exercice"}
+                </Button>
+              </div>
+            )}
             <div className="mt-4 flex flex-wrap justify-end gap-3">
               {isDone(current) && !allDone && (
                 <Button
+                  variant={current.can_retry ? "outline" : "default"}
                   className="gap-2"
                   onClick={() => {
                     const next = exercises.findIndex((e, i) => i > index && !isDone(e));
@@ -371,7 +411,12 @@ export default function SessionClient({ sessionId }: { sessionId: string }) {
                 </Button>
               )}
               {allDone && (
-                <Button className="gap-2" onClick={complete} disabled={completing}>
+                <Button
+                  variant={current.can_retry ? "outline" : "default"}
+                  className="gap-2"
+                  onClick={complete}
+                  disabled={completing || retrying}
+                >
                   <Flag className="size-4" />
                   {completing ? "Le prof prépare ton bilan…" : "Terminer et voir mon bilan"}
                 </Button>
@@ -404,13 +449,14 @@ function ExerciseCard({
         <div>
           <div className="text-xs font-semibold uppercase tracking-wide text-sky-600">
             Exercice {number}/{total} · {TYPE_LABELS[exercise.type]}
+            {exercise.retry_of && " · nouvel essai"}
           </div>
           <h3 className="text-lg font-bold">{exercise.payload.title}</h3>
         </div>
         <span
           className={cn(
             "rounded-full px-2.5 py-0.5 text-sm font-semibold tabular-nums",
-            isDone(exercise) ? "bg-emerald-100 text-emerald-800" : "bg-gray-100 text-gray-600"
+            isDone(exercise) ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-600"
           )}
         >
           {isDone(exercise)
@@ -422,6 +468,18 @@ function ExerciseCard({
         <Md className="flex-1">{exercise.payload.instruction}</Md>
         <SpeakButton text={exercise.payload.instruction} label="Écouter la consigne" className="-my-0.5" />
       </p>
+      {exercise.payload.reminder && (
+        <details open className="group rounded-xl border border-yellow-200 bg-yellow-50/70 px-4 py-3">
+          <summary className="flex cursor-pointer list-none items-center gap-2 text-sm font-semibold text-yellow-900">
+            <Lightbulb className="size-4" /> Rappel de la règle
+            <span className="text-xs font-normal text-yellow-800/70 group-open:hidden">(cliquer pour afficher)</span>
+          </summary>
+          <div className="mt-2 flex gap-2 text-[15px] leading-relaxed text-gray-800">
+            <Md highlight className="flex-1">{exercise.payload.reminder}</Md>
+            <SpeakButton text={exercise.payload.reminder} label="Écouter le rappel" className="-my-0.5" />
+          </div>
+        </details>
+      )}
       <ExerciseIdContext.Provider value={exercise.id}>
         <ExerciseWidget
           payload={exercise.payload}

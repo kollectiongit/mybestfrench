@@ -93,7 +93,7 @@ export default function SheetClient({ sheetId }: { sheetId: number }) {
   const completed = sessions.filter((s) => s.status === "completed");
 
   return (
-    <div className="container mx-auto max-w-4xl space-y-6 px-4 py-6">
+    <div className="container mx-auto max-w-5xl space-y-6 px-4 py-6">
       <div className="space-y-2">
         <Link href="/exercices/sessions" className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground">
           <ChevronLeft className="size-4" /> Exercices

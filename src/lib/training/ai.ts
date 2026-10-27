@@ -2,7 +2,10 @@ import { AI_MODEL_FAST, AI_MODEL_SMART } from "@/lib/ai-models";
 import OpenAI from "openai";
 import { zodTextFormat } from "openai/helpers/zod";
 import type { ResponseInputContent } from "openai/resources/responses/responses";
+import { z } from "zod";
 import {
+  ExerciseGen,
+  ExerciseGenSchema,
   ExerciseHint,
   Lesson,
   OpenJudgement,
@@ -55,7 +58,7 @@ On te donne ${input.images.length > 0 ? "une ou plusieurs photos d'un cahier d'e
 3. **lesson** : reformule la leçon à retenir.
    - \`je_retiens\` : les règles et définitions (sections avec un titre, des points courts, des exemples).
    - \`je_sais_faire\` : les méthodes et astuces pour réussir les exercices.
-   Si la source ne contient pas de leçon, écris-la toi-même à partir du thème. Utilise **gras** pour les mots-clés. Reformule avec tes mots : ne recopie pas le cahier mot pour mot.
+   Si la source ne contient pas de leçon, écris-la toi-même à partir du thème. Mets en **gras** chaque notion que l'élève doit retenir (ex. **nom commun**, **déterminant**, **adjectif**, **s'accorde**) : elles seront surlignées. Points courts (une idée par point), exemples courts et concrets. Reformule avec tes mots : ne recopie pas le cahier mot pour mot.
 4. **skills** : découpe la notion en 3 à 6 compétences observables et testables séparément. \`id\` en snake_case court (ex. \`contraction_article\`), \`label\` lisible par un enfant (ex. « Contracter à + le → au »), \`description\` d'une phrase.
 5. **exercise_hints** : les types d'exercices présents dans la source (ou adaptés au thème), parmi : choice (QCM), fill_blanks (texte à trous), mark_words (souligner/entourer des mots dans une phrase), classify (classer des mots dans des colonnes), label (étiqueter chaque élément : MS/FP, NP/GN…), other. Décris chaque consigne en une phrase.
 
@@ -122,6 +125,8 @@ const EXERCISE_FORMATS = `Formats disponibles (champ \`type\`) :
 - **rewrite** — réécriture. 3 à 5 \`items\` : \`prompt\` = le texte à transformer, avec la transformation demandée si elle varie d'un item à l'autre (ex. « des orages violents → au singulier »). \`expected_answers\` = toutes les réécritures correctes (la plus naturelle en premier).
 - **short_answer** — réponse courte écrite (un mot ou quelques mots). 3 à 5 \`items\` : \`prompt\` = la question (ex. « Quelle est la classe grammaticale de *vitupérer* ? ») et \`expected_answers\` = toutes les formulations acceptables (ex. ["verbe", "un verbe"]).
 
+Chaque exercice a un \`reminder\` : le rappel de la règle utile pour CET exercice, que l'élève peut relire avant et pendant l'exercice. 1 à 3 phrases courtes, notions en **gras**, éventuellement un mini-exemple, sans donner les réponses de l'exercice. Ex. pour classer noms propres / noms communs : « Un **nom propre** désigne une personne, un lieu ou un animal précis et commence par une majuscule (*Paris*, *Léa*). Un **nom commun** désigne une chose ou un être en général (*une ville*, *une fille*). »
+
 Pour chaque élément, \`skill_id\` est l'id de la compétence travaillée et \`explanation\` explique en 1 ou 2 phrases courtes POURQUOI la bonne réponse est juste (elle sera montrée à l'élève qu'il ait juste ou faux ; pas de « Bravo » ni de « Tu t'es trompé »). Tu peux utiliser du **gras**.`;
 
 export async function generateSession(ctx: SessionContext): Promise<{ gen: SessionGen; model: string }> {
@@ -175,6 +180,56 @@ ${ctx.usedSentences.length ? `\nPhrases et mots déjà utilisés (à NE PAS réu
 
   if (!response.output_parsed) throw new Error("Génération IA vide");
   return { gen: response.output_parsed, model: AI_MODEL_SMART };
+}
+
+// ---------------------------------------------------------------------------
+// 2b. Redo an exercise with new questions (too many mistakes)
+// ---------------------------------------------------------------------------
+
+const RetryGenSchema = z.object({ exercise: ExerciseGenSchema });
+
+export async function generateRetryExercise(input: {
+  title: string;
+  lesson: Lesson;
+  skills: Skill[];
+  student: { firstName: string; age: number | null; levelLabel: string | null };
+  original: { type: string; title: string; instruction: string; texts: string[] };
+  mistakes: string[];
+}): Promise<ExerciseGen> {
+  const instructions = `${TUTOR_PERSONA}
+
+${input.student.firstName}${input.student.age ? ` (${input.student.age} ans)` : ""}${input.student.levelLabel ? `, niveau ${input.student.levelLabel},` : ""} a fait plus de la moitié d'erreurs à un exercice sur « ${input.title} ». Prépare UN nouvel exercice pour qu'il réessaie :
+- même format (\`type\` = "${input.original.type}") et mêmes compétences, consigne équivalente ;
+- des phrases et des mots ENTIÈREMENT NOUVEAUX (ne réutilise aucune phrase de l'exercice raté) ;
+- un peu plus facile et plus guidé : phrases plus courtes, un seul piège à la fois, un \`reminder\` très clair qui reprend la règle là où l'élève s'est trompé ;
+- le même nombre d'éléments environ.
+
+${EXERCISE_FORMATS}
+
+Compétences :
+${input.skills.map((s) => `- \`${s.id}\` : ${s.label}`).join("\n")}
+
+Leçon :
+${JSON.stringify(input.lesson)}
+
+Exercice raté — « ${input.original.title} » : ${input.original.instruction}
+${input.original.texts.map((t) => `- ${t}`).join("\n")}
+
+Erreurs de l'élève :
+${input.mistakes.slice(0, 20).map((m) => `- ${m}`).join("\n") || "(non détaillées)"}`;
+
+  const response = await client.responses.parse({
+    model: AI_MODEL_SMART,
+    reasoning: { effort: "low" },
+    input: [
+      { role: "system", content: instructions },
+      { role: "user", content: "Génère le nouvel exercice." },
+    ],
+    text: { format: zodTextFormat(RetryGenSchema, "retry_exercise") },
+  });
+
+  if (!response.output_parsed) throw new Error("Génération IA vide");
+  return response.output_parsed.exercise;
 }
 
 // ---------------------------------------------------------------------------
