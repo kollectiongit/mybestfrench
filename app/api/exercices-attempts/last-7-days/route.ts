@@ -83,6 +83,21 @@ export async function GET(request: NextRequest) {
       },
     });
 
+    // Expressions écrites count for their value in dictées
+    const writingAttempts = await prisma.writing_attempt.findMany({
+      where: {
+        profile_id: currentProfileId,
+        created_at: {
+          gte: weekStart,
+          lte: weekEnd,
+        },
+      },
+      select: {
+        created_at: true,
+        dictee_value: true,
+      },
+    });
+
     // Group attempts by day.
     // Each day's count weights a dictation as 1 and a conjugaison as 1/5.
     const dayCounts = new Map<string, number>();
@@ -95,6 +110,13 @@ export async function GET(request: NextRequest) {
       const dateKey = date.toISOString().split('T')[0]; // Format: YYYY-MM-DD
       const weight = attempt.conjugaison_id ? 1 / 5 : 1;
       dayCounts.set(dateKey, (dayCounts.get(dateKey) || 0) + weight);
+    });
+
+    writingAttempts.forEach((attempt) => {
+      const date = new Date(attempt.created_at);
+      date.setHours(0, 0, 0, 0);
+      const dateKey = date.toISOString().split('T')[0];
+      dayCounts.set(dateKey, (dayCounts.get(dateKey) || 0) + Number(attempt.dictee_value));
     });
 
     // Generate the 7 days of the week (Monday to Sunday) with counts

@@ -33,6 +33,9 @@ export async function PUT(
       tts_voice_id,
       tts_voice_mode,
       tts_voice_ids,
+      writing_min_words,
+      favorite_movies,
+      news_interests,
     } = body;
 
     console.log("Profile update API: Received data:", {
@@ -115,6 +118,16 @@ export async function PUT(
                 .filter((v: unknown): v is string => typeof v === "string" && /^[A-Za-z0-9]{1,64}$/.test(v))
                 .slice(0, 50),
             }
+          : {}),
+        ...(writing_min_words !== undefined && writing_min_words !== "" &&
+        Number.isFinite(Number(writing_min_words))
+          ? { writing_min_words: Math.min(2000, Math.max(20, Math.round(Number(writing_min_words)))) }
+          : {}),
+        ...(typeof favorite_movies === "string"
+          ? { favorite_movies: favorite_movies.trim().slice(0, 1000) || null }
+          : {}),
+        ...(typeof news_interests === "string"
+          ? { news_interests: news_interests.trim().slice(0, 1000) || null }
           : {}),
         updated_at: new Date(),
       },

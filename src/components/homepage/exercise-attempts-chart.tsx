@@ -22,6 +22,7 @@ import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts";
 const CONJUGAISON_HEIGHT_FACTOR = 5;
 
 const EXERCICES_COLOR = "#f59e0b";
+const EXPRESSIONS_COLOR = "#10b981";
 
 interface ChartData {
   period: string;
@@ -29,6 +30,9 @@ interface ChartData {
   conjugaisons: number;
   // Exercices des sessions d'entraînement : 1 exercice = hauteur de 1 dictée
   exercices: number;
+  // Expressions écrites : la barre a la hauteur de leur équivalent en dictées
+  expressions: number;
+  expressions_value: number;
   // Valeur tracée pour la barre conjugaison (mise à l'échelle)
   conjugaisonsScaled?: number;
 }
@@ -45,6 +49,10 @@ const chartConfig = {
   exercices: {
     label: "Exercices",
     color: EXERCICES_COLOR,
+  },
+  expressions_value: {
+    label: "Expressions écrites",
+    color: EXPRESSIONS_COLOR,
   },
 } satisfies ChartConfig;
 
@@ -106,6 +114,8 @@ export function ExerciseAttemptsChart() {
           ...d,
           conjugaisons: d.conjugaisons ?? 0,
           exercices: d.exercices ?? 0,
+          expressions: d.expressions ?? 0,
+          expressions_value: d.expressions_value ?? 0,
           conjugaisonsScaled: (d.conjugaisons ?? 0) / CONJUGAISON_HEIGHT_FACTOR,
         }));
         setChartData(scaled);
@@ -333,16 +343,21 @@ export function ExerciseAttemptsChart() {
                       const dataKey = (item as { dataKey?: string })?.dataKey;
                       const isConjugaison = dataKey === "conjugaisonsScaled";
                       const isExercice = dataKey === "exercices";
+                      const isExpression = dataKey === "expressions_value";
                       // Afficher le vrai nombre, pas la valeur mise à l'échelle
                       const realCount = isConjugaison
                         ? chartData.conjugaisons ?? 0
-                        : isExercice
+                        : isExpression
+                          ? chartData.expressions ?? 0
+                          : isExercice
                           ? chartData.exercices ?? 0
                           : chartData.attempts ?? 0;
                       const plural = realCount !== 1 ? "s" : "";
                       const label = isConjugaison
                         ? `conjugaison${plural}`
-                        : isExercice
+                        : isExpression
+                          ? `expression${plural} écrite${plural} (≈ ${(chartData.expressions_value ?? 0).toLocaleString("fr-FR")} dictées)`
+                          : isExercice
                           ? `exercice${plural}`
                           : `dictée${plural}`;
 
@@ -358,7 +373,9 @@ export function ExerciseAttemptsChart() {
                             style={{
                               backgroundColor: isConjugaison
                                 ? "#2b7fff"
-                                : isExercice
+                                : isExpression
+                                  ? EXPRESSIONS_COLOR
+                                  : isExercice
                                   ? EXERCICES_COLOR
                                   : "var(--color-attempts)",
                             }}
@@ -539,6 +556,45 @@ export function ExerciseAttemptsChart() {
                       width={barProps.width}
                       height={barProps.height}
                       fill={EXERCICES_COLOR}
+                      rx={8}
+                      style={{ transition: "fill 0.2s ease-in-out" }}
+                    />
+                  );
+                }}
+              />
+              <Bar
+                dataKey="expressions_value"
+                fill={EXPRESSIONS_COLOR}
+                radius={8}
+                shape={(props: unknown) => {
+                  const barProps = props as {
+                    x?: number;
+                    y?: number;
+                    width?: number;
+                    height?: number;
+                    payload?: ChartData;
+                  };
+
+                  if (
+                    !barProps.payload ||
+                    !barProps.x ||
+                    !barProps.y ||
+                    !barProps.width ||
+                    barProps.height === undefined
+                  ) {
+                    return <rect />;
+                  }
+
+                  // Comme les exercices : pas de barre grise les jours sans
+                  if ((barProps.payload.expressions ?? 0) === 0) return <rect />;
+
+                  return (
+                    <rect
+                      x={barProps.x}
+                      y={barProps.y}
+                      width={barProps.width}
+                      height={barProps.height}
+                      fill={EXPRESSIONS_COLOR}
                       rx={8}
                       style={{ transition: "fill 0.2s ease-in-out" }}
                     />

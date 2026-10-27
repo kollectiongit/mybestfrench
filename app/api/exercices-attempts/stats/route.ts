@@ -123,6 +123,21 @@ export async function GET(request: NextRequest) {
       },
     });
 
+    // Expressions écrites: each one is worth several dictées (see lib/writing/words.ts)
+    const writingAttempts = await prisma.writing_attempt.findMany({
+      where: {
+        profile_id: currentProfileId,
+        created_at: {
+          gte: startDate,
+          lte: now,
+        },
+      },
+      select: {
+        created_at: true,
+        dictee_value: true,
+      },
+    });
+
     // Check if date range spans multiple years
     const startYear = startDate.getFullYear();
     const endYear = now.getFullYear();
@@ -207,9 +222,36 @@ export async function GET(request: NextRequest) {
       groupedExercices.set(key, (groupedExercices.get(key) || 0) + 1);
     });
 
+    // Expressions écrites: count, and value in dictées (height of the bar)
+    const groupedExpressions = new Map<string, { count: number; value: number }>();
+
+    writingAttempts.forEach((attempt) => {
+      const key = formatPeriodKey(new Date(attempt.created_at));
+      const current = groupedExpressions.get(key) ?? { count: 0, value: 0 };
+      groupedExpressions.set(key, {
+        count: current.count + 1,
+        value: current.value + Number(attempt.dictee_value),
+      });
+    });
+    const expressionsOf = (key: string) => {
+      const e = groupedExpressions.get(key);
+      return {
+        expressions: e?.count ?? 0,
+        expressions_value: Math.round((e?.value ?? 0) * 10) / 10,
+      };
+    };
+
     // Generate all periods in the range and fill missing ones with 0
     // Store both period key and date for proper sorting
-    const allPeriods: Array<{ period: string; attempts: number; conjugaisons: number; exercices: number; date: Date }> = [];
+    const allPeriods: Array<{
+      period: string;
+      attempts: number;
+      conjugaisons: number;
+      exercices: number;
+      expressions: number;
+      expressions_value: number;
+      date: Date;
+    }> = [];
     const currentDate = new Date(startDate);
     currentDate.setHours(0, 0, 0, 0);
     const endDate = new Date(now);
@@ -227,6 +269,7 @@ export async function GET(request: NextRequest) {
           attempts: groupedData.get(key) || 0,
           conjugaisons: groupedConjugaisons.get(key) || 0,
           exercices: groupedExercices.get(key) || 0,
+          ...expressionsOf(key),
           date: date,
         });
         dateIterator.setDate(dateIterator.getDate() + 1);
@@ -245,6 +288,7 @@ export async function GET(request: NextRequest) {
           attempts: groupedData.get(key) || 0,
           conjugaisons: groupedConjugaisons.get(key) || 0,
           exercices: groupedExercices.get(key) || 0,
+          ...expressionsOf(key),
           date: date,
         });
         dateIterator.setDate(dateIterator.getDate() + 7);
@@ -262,6 +306,7 @@ export async function GET(request: NextRequest) {
           attempts: groupedData.get(key) || 0,
           conjugaisons: groupedConjugaisons.get(key) || 0,
           exercices: groupedExercices.get(key) || 0,
+          ...expressionsOf(key),
           date: date,
         });
         dateIterator.setMonth(dateIterator.getMonth() + 1);
@@ -274,11 +319,13 @@ export async function GET(request: NextRequest) {
         // Sort by actual date for proper chronological order including year
         return a.date.getTime() - b.date.getTime();
       })
-      .map(({ period, attempts, conjugaisons, exercices }) => ({
+      .map(({ period, attempts, conjugaisons, exercices, expressions, expressions_value }) => ({
         period,
         attempts,
         conjugaisons,
         exercices,
+        expressions,
+        expressions_value,
       }));
 
     return NextResponse.json(chartData, {

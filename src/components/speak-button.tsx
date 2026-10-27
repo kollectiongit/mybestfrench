@@ -205,3 +205,83 @@ export function SpeakButton({
     </button>
   );
 }
+
+// ---------------------------------------------------------------------------
+// Imperative playback (outline, oral hints, sentence-by-sentence dictée)
+// ---------------------------------------------------------------------------
+
+/** One piece to play: a ready mp3, or a text read by the device voice. */
+export type SpeechSource = { url: string } | { text: string };
+
+/**
+ * Plays the sources one after the other (stopping any other sound) and calls
+ * `onEnd` when done or stopped. Returns a function that stops it.
+ */
+export function playSources(sources: SpeechSource[], onEnd: () => void): () => void {
+  stopCurrent?.();
+  const me = Symbol("play-sources");
+  let stopped = false;
+  let stopPiece: (() => void) | null = null;
+
+  const finish = () => {
+    if (stopped) return;
+    stopped = true;
+    if (currentOwner === me) {
+      currentOwner = null;
+      stopCurrent = null;
+    }
+    onEnd();
+  };
+  const stop = () => {
+    stopPiece?.();
+    finish();
+  };
+  stopCurrent = stop;
+  currentOwner = me;
+
+  const next = async (i: number) => {
+    if (stopped) return;
+    const source = sources[i];
+    if (!source) return finish();
+    if ("url" in source) {
+      const audio = new Audio(source.url);
+      audio.onended = () => next(i + 1);
+      audio.onerror = () => next(i + 1);
+      stopPiece = () => audio.pause();
+      await audio.play().catch(() => finish());
+    } else {
+      // speakOnDevice's own stop calls onEnd: ignore it once we are stopped
+      stopPiece = await speakOnDevice(source.text, () => {
+        if (!stopped) next(i + 1);
+      });
+    }
+  };
+  next(0);
+  return stop;
+}
+
+/** Plays a text like the ▶ button does (cached URL, device voice fallback). */
+export async function playText(text: string, onEnd: () => void): Promise<() => void> {
+  const key = `|${text}`;
+  let url = urlCache.get(key);
+  if (!url) {
+    const res = await fetch("/api/tts", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ text }),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (res.ok && data.engine === "device") url = DEVICE;
+    else if (res.ok && data.url) url = data.url as string;
+    else if (res.status !== 400 && isDeviceSpeechSupported()) {
+      return playSources([{ text }], onEnd);
+    } else throw new Error(data.error ?? "Lecture impossible");
+    urlCache.set(key, url);
+  }
+  return playSources([url === DEVICE ? { text } : { url }], onEnd);
+}
+
+/** Stops whatever is playing (button, outline, hint…). */
+export function stopSpeech() {
+  stopCurrent?.();
+}

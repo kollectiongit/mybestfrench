@@ -31,6 +31,9 @@ interface InitialProfile {
   age: number | null;
   description: string | null;
   weekly_pages_goal: number | null;
+  writing_min_words: number;
+  favorite_movies: string | null;
+  news_interests: string | null;
   conjugaison_show_radical: boolean;
   conjugaison_groupes: number[];
   tts_voice_id: string | null;
@@ -62,6 +65,9 @@ export default function EditProfilePageClient({
       initialProfile.weekly_pages_goal != null
         ? String(initialProfile.weekly_pages_goal)
         : "",
+    writing_min_words: String(initialProfile.writing_min_words),
+    favorite_movies: initialProfile.favorite_movies ?? "",
+    news_interests: initialProfile.news_interests ?? "",
   });
   const [showRadical, setShowRadical] = useState(
     initialProfile.conjugaison_show_radical
@@ -289,6 +295,51 @@ export default function EditProfilePageClient({
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   rows={3}
                 />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="favorite_movies">Films et séries préférés</Label>
+                <textarea
+                  id="favorite_movies"
+                  name="favorite_movies"
+                  value={form.favorite_movies}
+                  onChange={handleChange}
+                  placeholder="Ex. Le Roi Lion, Harry Potter, Miraculous…"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  rows={2}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="news_interests">Sujets d&apos;actualité qui l&apos;intéressent</Label>
+                <textarea
+                  id="news_interests"
+                  name="news_interests"
+                  value={form.news_interests}
+                  onChange={handleChange}
+                  placeholder="Ex. l'espace, les animaux en danger, le football…"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  rows={2}
+                />
+                <p className="text-xs text-gray-500">
+                  Avec la description et les livres, ils aident le prof à proposer des sujets d&apos;expression écrite.
+                </p>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="writing_min_words">
+                  Expression écrite : nombre de mots minimum
+                </Label>
+                <Input
+                  id="writing_min_words"
+                  name="writing_min_words"
+                  type="number"
+                  min={20}
+                  max={2000}
+                  step={10}
+                  value={form.writing_min_words}
+                  onChange={handleChange}
+                />
+                <p className="text-xs text-gray-500">
+                  Proposé à chaque nouvelle expression écrite (modifiable au lancement), puis fixé pour celle-ci.
+                </p>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="weekly_pages_goal">

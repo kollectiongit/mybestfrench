@@ -2,8 +2,10 @@
 
 import { useCurrentProfile } from "@/hooks/use-current-profile";
 import { CurrentProfile } from "@/lib/current-profile";
-import { Trash2 } from "lucide-react";
+import { Shuffle, Trash2 } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { toast } from "sonner";
 import DictationCard from "../../../src/components/commons/DictationCard";
 import { addFavoriteDictation, removeFavoriteDictation } from "./actions";
 import CategoryFilters from "./components/CategoryFilters";
@@ -57,6 +59,12 @@ const getMinLevelRank = (levels: string[]): number => {
   return ranks.length > 0 ? Math.min(...ranks) : 999;
 };
 
+// Une dictée "à travailler" : jamais faite, ou meilleur score sous 50 %
+const RANDOM_MAX_SUCCESS = 50;
+const isToWork = (dictation: Dictation) =>
+  dictation.attempts_count === 0 ||
+  (dictation.highest_success_percentage ?? 0) < RANDOM_MAX_SUCCESS;
+
 // Props pour les données pré-chargées
 interface DicteesPageClientProps {
   initialDictations?: Dictation[];
@@ -68,6 +76,7 @@ export default function DicteesPageClient({
   initialProfile = null,
 }: DicteesPageClientProps) {
   const { profile, isLoading: profileLoading } = useCurrentProfile();
+  const router = useRouter();
   const [dictations, setDictations] = useState<Dictation[]>(initialDictations);
   const [filteredDictations, setFilteredDictations] =
     useState<Dictation[]>(initialDictations);
@@ -344,6 +353,20 @@ export default function DicteesPageClient({
     ]
   );
 
+  // Tirage au sort parmi les dictées affichées (les filtres actifs s'appliquent)
+  const randomCandidates = filteredDictations.filter(isToWork);
+  const handleRandomDictation = () => {
+    if (randomCandidates.length === 0) {
+      toast.info(
+        `Toutes ces dictées sont réussies à ${RANDOM_MAX_SUCCESS} % ou plus 🎉`
+      );
+      return;
+    }
+    const pick =
+      randomCandidates[Math.floor(Math.random() * randomCandidates.length)];
+    router.push(`/exercices/dictees/${pick.id}`);
+  };
+
   // Effect to make cards in the same row have equal height
   useEffect(() => {
     const equalizeCardHeights = () => {
@@ -433,8 +456,17 @@ export default function DicteesPageClient({
     <div className="container mx-auto px-4 py-8 space-y-3">
       {/* Header with title and search (md+): same row with space-between */}
       <div className="mb-8 flex flex-col md:flex-row md:items-center md:justify-between md:gap-4">
-        <div className="md:mb-0 mb-4">
+        <div className="md:mb-0 mb-4 flex items-center gap-3">
           <Header count={filteredDictations.length} />
+          <button
+            type="button"
+            onClick={handleRandomDictation}
+            title={`Une dictée au hasard, jamais faite ou réussie à moins de ${RANDOM_MAX_SUCCESS} % (${randomCandidates.length} possible${randomCandidates.length > 1 ? "s" : ""})`}
+            className="inline-flex items-center gap-2 h-10 px-3 rounded-lg bg-indigo-600 text-white text-sm font-medium transition-all duration-200 hover:bg-indigo-700 hover:scale-105"
+          >
+            <Shuffle className="h-4 w-4" />
+            <span>Au hasard</span>
+          </button>
         </div>
         <div className="flex flex-row items-center gap-2 md:max-w-md">
           <div className="flex-1 w-full md:w-auto">

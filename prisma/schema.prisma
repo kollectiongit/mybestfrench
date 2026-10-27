@@ -29,6 +29,7 @@ model User {
   todo_completions    todo_completions[]
   training_sheets     training_sheet[]
   training_sessions   training_session[]
+  writing_projects    writing_project[]
 
   @@map("user")
 }
@@ -256,6 +257,9 @@ model profiles {
   tts_voice_id        String?               @db.VarChar(64) // ElevenLabs voice, null = default voice
   tts_voice_mode      String                @default("fixed") @db.VarChar(10) // fixed | rotate (one voice per training session) | device (browser voice, free)
   tts_voice_ids       String[]              @default([]) // voices allowed in rotation, empty = all French voices
+  writing_min_words   Int                   @default(100) // default word goal of a new expression écrite
+  favorite_movies     String? // films / séries aimés (contexte pour les sujets d'expression écrite)
+  news_interests      String? // sujets d'actualité qui l'intéressent
   exercices_attempts  exercices_attempts[]
   exercices_errors    exercices_errors[]
   generated_questions generated_questions[]
@@ -268,6 +272,8 @@ model profiles {
   todo_categories     todo_categories[]
   todo_completions    todo_completions[]
   training_sessions   training_session[]
+  writing_projects    writing_project[]
+  writing_attempts    writing_attempt[]
   active_book         books?                @relation("active_book", fields: [active_book_id], references: [id], onDelete: SetNull, onUpdate: NoAction)
   active_book_2       books?                @relation("active_book_2", fields: [active_book_id_2], references: [id], onDelete: SetNull, onUpdate: NoAction)
   user                User                  @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
@@ -600,4 +606,63 @@ model tts_audio {
   created_at DateTime @default(now()) @db.Timestamptz(6)
 
   @@index([created_at])
+}
+
+// Expression écrite : un sujet construit avec l'IA (la trame), puis rédigé en
+// un ou plusieurs essais corrigés par l'IA.
+model writing_project {
+  id                   String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  profile_id           String    @db.Uuid
+  user_id              String
+  title                String?   @db.VarChar(200)
+  status               String    @default("planning") @db.VarChar(20) // planning (discussion de la trame) | writing
+  chat_json            Json      @default("[]") // [{ role, content }] discussion avec l'IA sur la trame
+  outline              String? // trame validée (markdown)
+  outline_validated_at DateTime? @db.Timestamptz(6)
+  outline_audio_hash   String?   @db.VarChar(64) // sha256 de la trame lue : l'audio ne vaut que pour ce texte
+  outline_audio_urls   String[]  @default([])
+  min_words            Int // objectif figé à la création (modifiable pour ce sujet seulement)
+  draft_text           String    @default("") // brouillon en cours, aussi gardé dans le localStorage
+  draft_updated_at     DateTime? @db.Timestamptz(6)
+  draft_active_seconds Int       @default(0)
+  archived             Boolean   @default(false)
+  created_at           DateTime  @default(now()) @db.Timestamptz(6)
+  updated_at           DateTime  @default(now()) @updatedAt @db.Timestamptz(6)
+
+  profiles profiles          @relation(fields: [profile_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  user     User              @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  attempts writing_attempt[]
+
+  @@index([profile_id, archived, updated_at])
+}
+
+// Un essai soumis : copie de l'élève, correction, notes et équivalent en dictées
+model writing_attempt {
+  id                Int      @id @default(autoincrement())
+  project_id        String   @db.Uuid
+  profile_id        String   @db.Uuid
+  number            Int // 1er essai, 2e essai…
+  text              String
+  word_count        Int
+  min_words         Int
+  outline_snapshot  String? // trame au moment de l'essai
+  active_seconds    Int      @default(0)
+  score_global      Int // /100
+  score_spelling    Int
+  score_grammar     Int
+  score_conjugation Int
+  score_vocabulary  Int
+  correction_json   Json // segments, erreurs expliquées, points forts, à travailler…
+  corrected_text    String // copie corrigée (fautes seulement)
+  improved_text     String // version enrichie (vocabulaire, phrases plus riches)
+  dictee_value      Decimal  @db.Decimal(5, 1) // vaut N dictées (histogramme de l'accueil)
+  training_sheets   Json     @default("{}") // { "<index du point à travailler>": id de la fiche d'exercices générée }
+  model_name        String?  @db.VarChar(100)
+  created_at        DateTime @default(now()) @db.Timestamptz(6)
+
+  project  writing_project @relation(fields: [project_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  profiles profiles        @relation(fields: [profile_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([project_id, number])
+  @@index([profile_id, created_at])
 }

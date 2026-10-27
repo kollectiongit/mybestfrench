@@ -22,6 +22,7 @@ import {
   ListChecks,
   NotebookPen,
   Pencil,
+  PenLine,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -33,6 +34,7 @@ const navigationLinks = [
   { href: "/exercices/dictees", label: "Dictées", icon: GraduationCap },
   { href: "/exercices/conjugaisons", label: "Conjugaison", icon: Pencil },
   { href: "/exercices/sessions", label: "Exercices", icon: NotebookPen },
+  { href: "/exercices/expression-ecrite", label: "Expression écrite", icon: PenLine },
   { href: "/lecture", label: "Lecture", icon: BookOpen },
   { href: "/todos", label: "To-Do", icon: ListChecks },
 ];
@@ -43,7 +45,7 @@ export default function Component() {
 
   // Function to determine if a link is active
   const isLinkActive = (href: string) => {
-    if (href === "/exercices/sessions") return pathname.startsWith(href);
+    if (href === "/exercices/sessions" || href === "/exercices/expression-ecrite") return pathname.startsWith(href);
     return pathname === href;
   };
 
