@@ -53,3 +53,21 @@ export async function PATCH(request: NextRequest, { params }: Params) {
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }
+
+// DELETE /api/writing/[id] - The expression écrite and all its attempts (cascade).
+// Exercise sheets generated from its corrections are kept.
+export async function DELETE(request: NextRequest, { params }: Params) {
+  try {
+    const resolved = await resolveProfileForRequest(request);
+    if ("error" in resolved) return resolved.error;
+
+    const project = await findOwnedProject((await params).id, resolved.session.user.id, resolved.profileId);
+    if (!project) return NextResponse.json({ error: "Expression écrite introuvable" }, { status: 404 });
+
+    await prisma.writing_project.delete({ where: { id: project.id } });
+    return NextResponse.json({ ok: true });
+  } catch (error) {
+    console.error("Error deleting writing project:", error);
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+  }
+}

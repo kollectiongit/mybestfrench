@@ -4,8 +4,10 @@ import { useCurrentProfile } from "@/hooks/use-current-profile";
 import { cn } from "@/lib/utils";
 import { ArrowLeft, History, Loader2, MessagesSquare, PenLine } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { AttemptView } from "../components/attempt-view";
+import { DeleteButton } from "../components/delete-dialog";
 import { OutlineChat } from "../components/outline-chat";
 import { formatDate, score100Classes } from "../components/shared";
 import { WritingEditor } from "../components/writing-editor";
@@ -15,6 +17,7 @@ type Tab = "outline" | "writing" | "attempts";
 
 export default function ProjectClient({ projectId }: { projectId: string }) {
   const { profile } = useCurrentProfile();
+  const router = useRouter();
   const [project, setProject] = useState<Project | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [tab, setTab] = useState<Tab>("outline");
@@ -75,6 +78,14 @@ export default function ProjectClient({ projectId }: { projectId: string }) {
   };
   const goToOutline = () => openTab("outline");
 
+  // Same renumbering as the server: the attempts stay "Essai 1, 2, 3…"
+  const removeAttempt = (id: number) => {
+    const attempts = project.attempts.filter((a) => a.id !== id).map((a, i) => ({ ...a, number: i + 1 }));
+    setProject({ ...project, attempts });
+    setSelectedAttempt(attempts.at(-1)?.id ?? null);
+    if (!attempts.length) setTab("writing");
+  };
+
   const tabs: { key: Tab; label: string; icon: typeof PenLine; disabled?: boolean }[] = [
     { key: "outline", label: "1. Ma trame", icon: MessagesSquare },
     { key: "writing", label: "2. J'écris", icon: PenLine, disabled: !project.outline },
@@ -95,7 +106,20 @@ export default function ProjectClient({ projectId }: { projectId: string }) {
         >
           <ArrowLeft className="size-4" /> Expressions écrites
         </Link>
-        <h1 className="mt-2 text-2xl font-bold text-gray-900 md:text-3xl">{project.title ?? "Nouveau sujet"}</h1>
+        <div className="mt-2 flex items-start justify-between gap-3">
+          <h1 className="text-2xl font-bold text-gray-900 md:text-3xl">{project.title ?? "Nouveau sujet"}</h1>
+          <DeleteButton
+            url={`/api/writing/${project.id}`}
+            label="Supprimer"
+            title="Supprimer cette expression écrite ?"
+            description={`La trame, le brouillon et ${
+              project.attempts.length
+                ? `les ${project.attempts.length} essai${project.attempts.length > 1 ? "s" : ""} corrigé${project.attempts.length > 1 ? "s" : ""}`
+                : "la discussion avec le prof"
+            } seront définitivement supprimés. Les fiches d'exercices déjà créées sont gardées.`}
+            onDeleted={() => router.push("/exercices/expression-ecrite")}
+          />
+        </div>
         <p className="text-sm text-muted-foreground">Objectif : au moins {project.min_words} mots</p>
       </div>
 
@@ -162,9 +186,9 @@ export default function ProjectClient({ projectId }: { projectId: string }) {
 
       {tab === "attempts" && attempt && (
         <div className="space-y-4">
-          {project.attempts.length > 1 && (
+          <div className="flex flex-wrap items-center justify-between gap-2">
             <div className="flex flex-wrap gap-2">
-              {project.attempts.map((a) => (
+              {project.attempts.length > 1 && project.attempts.map((a) => (
                 <button
                   key={a.id}
                   type="button"
@@ -182,7 +206,14 @@ export default function ProjectClient({ projectId }: { projectId: string }) {
                 </button>
               ))}
             </div>
-          )}
+            <DeleteButton
+              url={`/api/writing/attempts/${attempt.id}`}
+              label={`Supprimer l'essai ${attempt.number}`}
+              title={`Supprimer l'essai ${attempt.number} ?`}
+              description="La copie et sa correction seront définitivement supprimées. Les essais suivants sont renumérotés ; les fiches d'exercices déjà créées sont gardées."
+              onDeleted={() => removeAttempt(attempt.id)}
+            />
+          </div>
           <AttemptView
             key={attempt.id}
             attempt={attempt}
