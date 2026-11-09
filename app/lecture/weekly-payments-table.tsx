@@ -51,7 +51,11 @@ function round2(n: number): number {
   return Math.round(n * 100) / 100;
 }
 
-export default function WeeklyPaymentsTable() {
+export default function WeeklyPaymentsTable({
+  onPaymentChange,
+}: {
+  onPaymentChange: () => void;
+}) {
   const [endSunday, setEndSunday] = useState<Date>(currentSunday);
   const [weeks, setWeeks] = useState<string[]>([]);
   const [profiles, setProfiles] = useState<PaymentProfile[]>([]);
@@ -155,6 +159,7 @@ export default function WeeklyPaymentsTable() {
         return;
       }
       updatePaidLocal(profile.id, iso, null);
+      onPaymentChange();
       clearDraft(key);
       return;
     }
@@ -187,6 +192,7 @@ export default function WeeklyPaymentsTable() {
       return;
     }
     updatePaidLocal(profile.id, iso, round2(amount));
+    onPaymentChange();
     clearDraft(key);
     toast.success("Versement enregistré");
   };

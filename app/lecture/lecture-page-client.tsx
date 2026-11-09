@@ -454,7 +454,9 @@ export default function LecturePageClient() {
       )}
 
       <div className="mt-12">
-        <WeeklyPaymentsTable />
+        <WeeklyPaymentsTable
+          onPaymentChange={() => setEarningsToken((t) => t + 1)}
+        />
       </div>
     </div>
   );

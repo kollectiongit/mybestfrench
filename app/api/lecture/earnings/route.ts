@@ -22,7 +22,8 @@ function round2(n: number): number {
 }
 
 // GET /api/lecture/earnings?week_start=YYYY-MM-DD (Monday of the current week)
-// Returns, per profile: cumulative earnings (all weeks) and current-week earnings.
+// Returns, per profile: cumulative earnings (all weeks), current-week earnings,
+// total already paid, and what remains to be paid.
 export async function GET(request: NextRequest) {
   try {
     const session = await auth.api.getSession({ headers: request.headers });
@@ -53,6 +54,7 @@ export async function GET(request: NextRequest) {
         reading_logs: {
           select: { book_id: true, pages_read_count: true, read_date: true },
         },
+        weekly_payments: { select: { amount_paid: true } },
       },
     });
 
@@ -83,12 +85,19 @@ export async function GET(request: NextRequest) {
         }
       }
 
+      const paid = p.weekly_payments.reduce(
+        (sum, payment) => sum + Number(payment.amount_paid),
+        0
+      );
+
       return {
         id: p.id,
         first_name: p.first_name,
         currency,
         total: round2(total),
         current_week: round2(currentWeek),
+        paid: round2(paid),
+        to_pay: round2(Math.max(0, total - paid)),
       };
     });
 
