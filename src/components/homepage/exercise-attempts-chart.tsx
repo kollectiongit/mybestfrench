@@ -4,7 +4,6 @@ import {
   ChartConfig,
   ChartContainer,
   ChartTooltip,
-  ChartTooltipContent,
 } from "@/components/ui/chart";
 import {
   Select,
@@ -20,9 +19,6 @@ import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts";
 
 // 5 conjugaisons "valent" la hauteur de 1 dictée
 const CONJUGAISON_HEIGHT_FACTOR = 5;
-
-const EXERCICES_COLOR = "#f59e0b";
-const EXPRESSIONS_COLOR = "#10b981";
 
 interface ChartData {
   period: string;
@@ -40,7 +36,7 @@ interface ChartData {
 const chartConfig = {
   attempts: {
     label: "Dictées",
-    color: "var(--chart-2)",
+    color: "var(--foreground)",
   },
   conjugaisonsScaled: {
     label: "Conjugaisons",
@@ -48,13 +44,167 @@ const chartConfig = {
   },
   exercices: {
     label: "Exercices",
-    color: EXERCICES_COLOR,
+    color: "#f59e0b",
   },
   expressions_value: {
     label: "Expressions écrites",
-    color: EXPRESSIONS_COLOR,
+    color: "#10b981",
   },
 } satisfies ChartConfig;
+
+type SegmentKey = keyof typeof chartConfig;
+
+// Portions de la barre, de bas en haut
+const SEGMENTS: {
+  key: SegmentKey;
+  label: string;
+  color: string;
+  count: (data: ChartData) => number;
+}[] = (
+  [
+    ["attempts", (d: ChartData) => d.attempts],
+    ["conjugaisonsScaled", (d: ChartData) => d.conjugaisons],
+    ["exercices", (d: ChartData) => d.exercices],
+    ["expressions_value", (d: ChartData) => d.expressions],
+  ] as const
+).map(([key, count]) => ({
+  key,
+  label: chartConfig[key].label,
+  color: chartConfig[key].color,
+  count,
+}));
+
+const BAR_RADIUS = 8;
+
+function formatPoints(points: number) {
+  const value = points.toLocaleString("fr-FR", { maximumFractionDigits: 1 });
+  return `${value} ${points < 2 ? "pt" : "pts"}`;
+}
+
+// Rectangle dont seuls les coins du haut et/ou du bas sont arrondis
+function roundedBarPath(
+  x: number,
+  y: number,
+  width: number,
+  height: number,
+  topRadius: number,
+  bottomRadius: number
+) {
+  const right = x + width;
+  const bottom = y + height;
+  return [
+    `M${x},${y + topRadius}`,
+    `Q${x},${y} ${x + topRadius},${y}`,
+    `H${right - topRadius}`,
+    `Q${right},${y} ${right},${y + topRadius}`,
+    `V${bottom - bottomRadius}`,
+    `Q${right},${bottom} ${right - bottomRadius},${bottom}`,
+    `H${x + bottomRadius}`,
+    `Q${x},${bottom} ${x},${bottom - bottomRadius}`,
+    "Z",
+  ].join(" ");
+}
+
+function renderStackSegment(
+  props: unknown,
+  segmentIndex: number,
+  hoveredIndex: number | null
+) {
+  const { x, y, width, height, payload, index } = props as {
+    x?: number;
+    y?: number;
+    width?: number;
+    height?: number;
+    payload?: ChartData;
+    index?: number;
+  };
+
+  if (
+    x === undefined ||
+    y === undefined ||
+    !width ||
+    height === undefined ||
+    !payload ||
+    index === undefined
+  ) {
+    return <g />;
+  }
+
+  const points = SEGMENTS.map((segment) => payload[segment.key] ?? 0);
+
+  // Période sans activité : petit trait gris, tracé une seule fois
+  if (points.every((value) => value === 0)) {
+    if (segmentIndex !== 0) return <g />;
+    return (
+      <rect
+        x={x}
+        y={y + height - 5}
+        width={width}
+        height={5}
+        fill="#e5e7eb"
+        rx={4}
+      />
+    );
+  }
+
+  if (points[segmentIndex] === 0 || height <= 0) return <g />;
+
+  // Seules les extrémités de la barre empilée sont arrondies
+  const isBottom = points.slice(0, segmentIndex).every((value) => value === 0);
+  const isTop = points.slice(segmentIndex + 1).every((value) => value === 0);
+  const radius = Math.min(
+    BAR_RADIUS,
+    width / 2,
+    isTop && isBottom ? height / 2 : height
+  );
+
+  return (
+    <path
+      d={roundedBarPath(
+        x,
+        y,
+        width,
+        height,
+        isTop ? radius : 0,
+        isBottom ? radius : 0
+      )}
+      fill={SEGMENTS[segmentIndex].color}
+      opacity={hoveredIndex !== null && hoveredIndex !== index ? 0.5 : 1}
+      style={{ transition: "opacity 0.2s ease-in-out" }}
+    />
+  );
+}
+
+function PointsTooltip({ data }: { data: ChartData }) {
+  const total = SEGMENTS.reduce(
+    (sum, segment) => sum + (data[segment.key] ?? 0),
+    0
+  );
+
+  return (
+    <div className="border-border/50 bg-background grid min-w-48 gap-1.5 rounded-lg border px-2.5 py-1.5 text-xs shadow-xl">
+      <div className="flex justify-between gap-4 font-medium">
+        <span>{data.period.replace("|", " ")}</span>
+        <span className="tabular-nums">{formatPoints(total)}</span>
+      </div>
+      {/* Même ordre que la barre : du haut vers le bas */}
+      {[...SEGMENTS].reverse().map((segment) => (
+        <div key={segment.key} className="flex items-center gap-1.5">
+          <span
+            className="inline-block size-2 rounded-[2px]"
+            style={{ backgroundColor: segment.color }}
+          />
+          <span className="text-muted-foreground">
+            {segment.label} ({segment.count(data)})
+          </span>
+          <span className="ml-auto pl-4 font-bold tabular-nums">
+            {formatPoints(data[segment.key] ?? 0)}
+          </span>
+        </div>
+      ))}
+    </div>
+  );
+}
 
 export function ExerciseAttemptsChart() {
   const { profile, isLoading: profileLoading } = useCurrentProfile();
@@ -328,279 +478,23 @@ export function ExerciseAttemptsChart() {
               <YAxis tickLine={false} axisLine={false} tickMargin={8} />
               <ChartTooltip
                 cursor={false}
-                content={
-                  <ChartTooltipContent
-                    hideLabel
-                    formatter={(value, name, item, index, payload) => {
-                      const chartData = payload as unknown as ChartData;
-                      let formattedDate = chartData.period;
-
-                      if (dimension === "day" && chartData.period) {
-                        // Format: "LU|25/10" -> "LU 25/10"
-                        formattedDate = chartData.period.replace("|", " ");
-                      }
-
-                      const dataKey = (item as { dataKey?: string })?.dataKey;
-                      const isConjugaison = dataKey === "conjugaisonsScaled";
-                      const isExercice = dataKey === "exercices";
-                      const isExpression = dataKey === "expressions_value";
-                      // Afficher le vrai nombre, pas la valeur mise à l'échelle
-                      const realCount = isConjugaison
-                        ? chartData.conjugaisons ?? 0
-                        : isExpression
-                          ? chartData.expressions ?? 0
-                          : isExercice
-                          ? chartData.exercices ?? 0
-                          : chartData.attempts ?? 0;
-                      const plural = realCount !== 1 ? "s" : "";
-                      const label = isConjugaison
-                        ? `conjugaison${plural}`
-                        : isExpression
-                          ? `expression${plural} écrite${plural} (≈ ${(chartData.expressions_value ?? 0).toLocaleString("fr-FR")} dictées)`
-                          : isExercice
-                          ? `exercice${plural}`
-                          : `dictée${plural}`;
-
-                      return (
-                        <span className="flex items-center gap-1.5">
-                          {index === 0 && (
-                            <span className="text-muted-foreground">
-                              {formattedDate}
-                            </span>
-                          )}
-                          <span
-                            className="inline-block size-2 rounded-[2px]"
-                            style={{
-                              backgroundColor: isConjugaison
-                                ? "#2b7fff"
-                                : isExpression
-                                  ? EXPRESSIONS_COLOR
-                                  : isExercice
-                                  ? EXERCICES_COLOR
-                                  : "var(--color-attempts)",
-                            }}
-                          />
-                          <span className="font-bold">
-                            {realCount} {label}
-                          </span>
-                        </span>
-                      );
-                    }}
-                  />
-                }
-              />
-              <Bar
-                dataKey="attempts"
-                fill="var(--color-attempts)"
-                radius={8}
-                shape={(props: unknown) => {
-                  const barProps = props as {
-                    x?: number;
-                    y?: number;
-                    width?: number;
-                    height?: number;
-                    payload?: ChartData;
-                    index?: number;
-                    fill?: string;
-                  };
-
-                  if (
-                    !barProps.payload ||
-                    !barProps.x ||
-                    !barProps.y ||
-                    !barProps.width ||
-                    barProps.height === undefined ||
-                    barProps.index === undefined
-                  ) {
-                    // Default rendering for missing props
-                    return <rect />;
-                  }
-
-                  const isZero = barProps.payload.attempts === 0;
-                  const currentIndex = barProps.index;
-                  const isHovered = hoveredIndex === currentIndex;
-                  const isOtherHovered =
-                    hoveredIndex !== null && hoveredIndex !== currentIndex;
-
-                  // Determine fill color based on hover state
-                  let fillColor: string;
-                  if (isZero) {
-                    fillColor = "#e5e7eb"; // Light gray for zero attempts
-                  } else if (isHovered) {
-                    fillColor = "#2b7fff"; // Original color when hovered
-                  } else if (isOtherHovered) {
-                    fillColor = "var(--color-attempts)"; // gray-500 when another bar is hovered
-                  } else {
-                    fillColor = "var(--color-attempts)"; // Original color
-                  }
-
-                  if (isZero) {
-                    // For zero attempts: 5px height, light gray color
-                    return (
-                      <rect
-                        x={barProps.x}
-                        y={barProps.y + (barProps.height - 5)}
-                        width={barProps.width}
-                        height={5}
-                        fill={fillColor}
-                        rx={4}
-                        style={{ transition: "fill 0.2s ease-in-out" }}
-                      />
-                    );
-                  }
-
-                  // For non-zero attempts: normal bar
-                  return (
-                    <rect
-                      x={barProps.x}
-                      y={barProps.y}
-                      width={barProps.width}
-                      height={barProps.height}
-                      fill={fillColor}
-                      rx={8}
-                      style={{ transition: "fill 0.2s ease-in-out" }}
-                    />
-                  );
+                content={({ active, payload }) => {
+                  const data = payload?.[0]?.payload as ChartData | undefined;
+                  if (!active || !data) return null;
+                  return <PointsTooltip data={data} />;
                 }}
               />
-              <Bar
-                dataKey="conjugaisonsScaled"
-                fill="#2b7fff"
-                radius={8}
-                shape={(props: unknown) => {
-                  const barProps = props as {
-                    x?: number;
-                    y?: number;
-                    width?: number;
-                    height?: number;
-                    payload?: ChartData;
-                    index?: number;
-                  };
-
-                  if (
-                    !barProps.payload ||
-                    !barProps.x ||
-                    !barProps.y ||
-                    !barProps.width ||
-                    barProps.height === undefined ||
-                    barProps.index === undefined
-                  ) {
-                    return <rect />;
+              {SEGMENTS.map((segment, segmentIndex) => (
+                <Bar
+                  key={segment.key}
+                  dataKey={segment.key}
+                  stackId="points"
+                  fill={segment.color}
+                  shape={(props: unknown) =>
+                    renderStackSegment(props, segmentIndex, hoveredIndex)
                   }
-
-                  const isZero = (barProps.payload.conjugaisons ?? 0) === 0;
-
-                  // Largeur réduite de 50 %, barre recentrée dans son emplacement
-                  const narrowWidth = barProps.width / 2;
-                  const narrowX = barProps.x + barProps.width / 4;
-
-                  if (isZero) {
-                    // For zero conjugaisons: 5px height, light gray
-                    return (
-                      <rect
-                        x={narrowX}
-                        y={barProps.y + (barProps.height - 5)}
-                        width={narrowWidth}
-                        height={5}
-                        fill="#e5e7eb"
-                        rx={4}
-                        style={{ transition: "fill 0.2s ease-in-out" }}
-                      />
-                    );
-                  }
-
-                  return (
-                    <rect
-                      x={narrowX}
-                      y={barProps.y}
-                      width={narrowWidth}
-                      height={barProps.height}
-                      fill="#2b7fff"
-                      rx={8}
-                      style={{ transition: "fill 0.2s ease-in-out" }}
-                    />
-                  );
-                }}
-              />
-              <Bar
-                dataKey="exercices"
-                fill={EXERCICES_COLOR}
-                radius={8}
-                shape={(props: unknown) => {
-                  const barProps = props as {
-                    x?: number;
-                    y?: number;
-                    width?: number;
-                    height?: number;
-                    payload?: ChartData;
-                  };
-
-                  if (
-                    !barProps.payload ||
-                    !barProps.x ||
-                    !barProps.y ||
-                    !barProps.width ||
-                    barProps.height === undefined
-                  ) {
-                    return <rect />;
-                  }
-
-                  // Pas de barre grise pour les jours sans exercice : la
-                  // série est récente, on évite d'alourdir le graphique
-                  if ((barProps.payload.exercices ?? 0) === 0) return <rect />;
-
-                  return (
-                    <rect
-                      x={barProps.x}
-                      y={barProps.y}
-                      width={barProps.width}
-                      height={barProps.height}
-                      fill={EXERCICES_COLOR}
-                      rx={8}
-                      style={{ transition: "fill 0.2s ease-in-out" }}
-                    />
-                  );
-                }}
-              />
-              <Bar
-                dataKey="expressions_value"
-                fill={EXPRESSIONS_COLOR}
-                radius={8}
-                shape={(props: unknown) => {
-                  const barProps = props as {
-                    x?: number;
-                    y?: number;
-                    width?: number;
-                    height?: number;
-                    payload?: ChartData;
-                  };
-
-                  if (
-                    !barProps.payload ||
-                    !barProps.x ||
-                    !barProps.y ||
-                    !barProps.width ||
-                    barProps.height === undefined
-                  ) {
-                    return <rect />;
-                  }
-
-                  // Comme les exercices : pas de barre grise les jours sans
-                  if ((barProps.payload.expressions ?? 0) === 0) return <rect />;
-
-                  return (
-                    <rect
-                      x={barProps.x}
-                      y={barProps.y}
-                      width={barProps.width}
-                      height={barProps.height}
-                      fill={EXPRESSIONS_COLOR}
-                      rx={8}
-                      style={{ transition: "fill 0.2s ease-in-out" }}
-                    />
-                  );
-                }}
-              />
+                />
+              ))}
             </BarChart>
           </ChartContainer>
         </div>
