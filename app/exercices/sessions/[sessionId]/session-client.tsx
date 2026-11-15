@@ -379,6 +379,7 @@ export default function SessionClient({ sessionId }: { sessionId: string }) {
               </div>
             )}
             <ExerciseCard
+              key={current.id}
               exercise={current}
               number={index + 1}
               total={exercises.length}
