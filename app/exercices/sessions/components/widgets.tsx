@@ -14,7 +14,7 @@ import {
   useSensors,
 } from "@dnd-kit/core";
 import { Check, Loader2, Undo2, X } from "lucide-react";
-import { useEffect, useId, useRef, useState } from "react";
+import { useEffect, useId, useMemo, useRef, useState } from "react";
 import type { AnswerEntry, AnswerHandler, ItemResult, PublicPayload } from "../types";
 import { Feedback, MARK_COLORS, Md } from "./shared";
 import { WhyChat } from "./why-chat";
@@ -161,10 +161,30 @@ export function ChoiceWidget({ payload, answers, onAnswer, readOnly }: WidgetPro
 // Texte à trous
 // ---------------------------------------------------------------------------
 
+// The AI tends to list the bank in the order the blanks appear, which gives the
+// answers away. Shuffle with a seed taken from the words themselves so the order
+// is the same on the server and the client (no hydration mismatch) and stays put
+// across re-renders, yet looks random.
+function shuffleWords(words: string[]): string[] {
+  let seed = 2166136261;
+  for (const ch of words.join("|")) seed = Math.imul(seed ^ ch.codePointAt(0)!, 16777619);
+  const next = () => {
+    seed = Math.imul(seed ^ (seed >>> 15), 2246822507) ^ Math.imul(seed ^ (seed >>> 13), 3266489909);
+    return ((seed ^= seed >>> 16) >>> 0) / 4294967296;
+  };
+  const out = [...words];
+  for (let i = out.length - 1; i > 0; i--) {
+    const j = Math.floor(next() * (i + 1));
+    [out[i], out[j]] = [out[j], out[i]];
+  }
+  return out;
+}
+
 export function FillBlanksWidget({ payload, answers, onAnswer, readOnly }: WidgetProps<"fill_blanks">) {
   const { pending, submit } = useSubmit(onAnswer);
   const [values, setValues] = useState<Record<string, string>>({});
   const [focused, setFocused] = useState<string | null>(null);
+  const wordBank = useMemo(() => shuffleWords(payload.word_bank), [payload.word_bank]);
 
   const insertWord = (word: string) => {
     // Fill the focused blank, else the first empty blank of an open sentence
@@ -180,7 +200,7 @@ export function FillBlanksWidget({ payload, answers, onAnswer, readOnly }: Widge
       {payload.word_bank.length > 0 && !readOnly && (
         <div className="flex flex-wrap items-center gap-2">
           <span className="text-sm text-muted-foreground">Mots proposés :</span>
-          {payload.word_bank.map((word) => (
+          {wordBank.map((word) => (
             <button
               key={word}
               type="button"
